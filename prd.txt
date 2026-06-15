@@ -1,0 +1,554 @@
+This is a good project because it combines **file processing, parsing, validation, comparison algorithms, and frontend UX** while remaining relatively simple to launch.
+
+## Phase 1: Define the Product
+
+### Core Features
+
+1. CSV → JSON Converter
+2. JSON → CSV Converter
+3. JSON Beautifier
+4. JSON Validator
+5. JSON Compare (Diff Viewer)
+
+### Future Features
+
+* XML ↔ JSON
+* YAML ↔ JSON
+* SQL → JSON
+* JSON Schema Generator
+* JSON Minifier
+* Base64 Encoder/Decoder
+* JWT Decoder
+* UUID Generator
+* Regex Tester
+
+This can become a developer utility platform similar to tools on sites like [JSON Formatter & Validator](https://jsonformatter.org?utm_source=chatgpt.com) or [Code Beautify](https://codebeautify.org?utm_source=chatgpt.com).
+
+---
+
+# Recommended Tech Stack
+
+Since you're already comfortable with React/Next.js:
+
+## Frontend
+
+* Next.js 15
+* TypeScript
+* TailwindCSS
+* shadcn/ui
+* Zustand (optional)
+
+## Backend
+
+For MVP:
+
+* No backend required
+
+Everything can run inside browser.
+
+Later:
+
+* Node.js
+* Redis (rate limiting)
+* PostgreSQL (analytics)
+
+---
+
+# Application Structure
+
+```txt
+src
+├── app
+│   ├── csv-to-json
+│   ├── json-to-csv
+│   ├── json-validator
+│   ├── json-beautifier
+│   ├── json-compare
+│   └── page.tsx
+│
+├── components
+│   ├── editors
+│   ├── file-upload
+│   ├── diff-viewer
+│   ├── converter
+│   └── common
+│
+├── lib
+│   ├── csv
+│   ├── json
+│   ├── compare
+│   └── utils
+│
+└── hooks
+```
+
+---
+
+# Architecture
+
+```txt
+User Input
+      │
+      ▼
+ Monaco Editor
+      │
+      ▼
+ Parse Data
+      │
+      ▼
+ Process Logic
+      │
+      ▼
+ Output Editor
+      │
+      ▼
+ Copy / Download
+```
+
+---
+
+# Feature 1: CSV → JSON
+
+## Input
+
+```csv
+name,age,city
+John,25,NY
+Mike,30,LA
+```
+
+## Output
+
+```json
+[
+  {
+    "name":"John",
+    "age":"25",
+    "city":"NY"
+  },
+  {
+    "name":"Mike",
+    "age":"30",
+    "city":"LA"
+  }
+]
+```
+
+---
+
+## Logic
+
+### Step 1
+
+Split lines
+
+```ts
+const rows = csv.split("\n");
+```
+
+### Step 2
+
+Extract headers
+
+```ts
+const headers = rows[0].split(",");
+```
+
+### Step 3
+
+Map values
+
+```ts
+const result = rows.slice(1).map(row => {
+  const values = row.split(",");
+
+  return headers.reduce((obj, header, index) => {
+    obj[header] = values[index];
+    return obj;
+  }, {});
+});
+```
+
+### Step 4
+
+Convert
+
+```ts
+JSON.stringify(result, null, 2);
+```
+
+---
+
+## Better Approach
+
+Use:
+
+```bash
+papaparse
+```
+
+because it handles:
+
+* quoted fields
+* escaped commas
+* multiline values
+
+Example:
+
+```ts
+Papa.parse(csvText, {
+  header: true
+});
+```
+
+---
+
+# Feature 2: JSON → CSV
+
+Input:
+
+```json
+[
+  {
+    "name":"John",
+    "age":25
+  }
+]
+```
+
+Output:
+
+```csv
+name,age
+John,25
+```
+
+---
+
+## Logic
+
+### Extract keys
+
+```ts
+const headers = Object.keys(data[0]);
+```
+
+### Create rows
+
+```ts
+const rows = data.map(item =>
+  headers.map(key => item[key]).join(",")
+);
+```
+
+### Join
+
+```ts
+[
+ headers.join(","),
+ ...rows
+].join("\n");
+```
+
+---
+
+## Better Approach
+
+```bash
+papaparse
+```
+
+```ts
+Papa.unparse(jsonData);
+```
+
+---
+
+# Feature 3: JSON Beautifier
+
+Input:
+
+```json
+{"name":"john","age":25}
+```
+
+Output:
+
+```json
+{
+  "name": "john",
+  "age": 25
+}
+```
+
+---
+
+## Logic
+
+```ts
+const parsed = JSON.parse(input);
+
+const formatted = JSON.stringify(
+  parsed,
+  null,
+  2
+);
+```
+
+---
+
+### Beautifier Levels
+
+2 spaces
+
+```ts
+JSON.stringify(obj, null, 2);
+```
+
+4 spaces
+
+```ts
+JSON.stringify(obj, null, 4);
+```
+
+Tab
+
+```ts
+JSON.stringify(obj, null, "\t");
+```
+
+---
+
+# Feature 4: JSON Validator
+
+Input:
+
+```json
+{
+ "name":"john"
+}
+```
+
+---
+
+## Logic
+
+```ts
+try {
+  JSON.parse(input);
+
+  return {
+    valid: true
+  };
+}
+catch(error){
+  return {
+    valid: false,
+    message: error.message
+  };
+}
+```
+
+---
+
+## Validation Output
+
+Show:
+
+```txt
+✓ Valid JSON
+```
+
+or
+
+```txt
+✗ Invalid JSON
+
+Unexpected token } at line 4
+```
+
+---
+
+## Advanced Validation
+
+Use:
+
+```bash
+ajv
+```
+
+for JSON schema validation.
+
+Example:
+
+```ts
+const validate = ajv.compile(schema);
+
+validate(data);
+```
+
+---
+
+# Feature 5: JSON Compare
+
+Most interesting feature.
+
+Input A:
+
+```json
+{
+  "name":"john",
+  "age":25
+}
+```
+
+Input B:
+
+```json
+{
+  "name":"john",
+  "age":30
+}
+```
+
+Output:
+
+```diff
+ age: 25 → 30
+```
+
+---
+
+## Logic
+
+### Parse Both
+
+```ts
+const left = JSON.parse(json1);
+const right = JSON.parse(json2);
+```
+
+### Recursive Comparison
+
+```ts
+function compare(a,b,path="") {
+}
+```
+
+Check:
+
+* Added keys
+* Deleted keys
+* Modified values
+
+---
+
+### Example Result
+
+```ts
+[
+ {
+   path:"age",
+   oldValue:25,
+   newValue:30,
+   type:"modified"
+ }
+]
+```
+
+---
+
+## Recommended Library
+
+```bash
+jsondiffpatch
+```
+
+It generates structured diffs.
+
+```ts
+jsondiffpatch.diff(
+  left,
+  right
+);
+```
+
+---
+
+# UI Design
+
+## Converter Pages
+
+```txt
+┌─────────────────────┐
+│ Input Editor        │
+└─────────────────────┘
+
+[Convert]
+
+┌─────────────────────┐
+│ Output Editor       │
+└─────────────────────┘
+
+Copy | Download
+```
+
+---
+
+## JSON Compare
+
+```txt
+┌──────────────┐ ┌──────────────┐
+│ JSON A       │ │ JSON B       │
+└──────────────┘ └──────────────┘
+
+      Compare
+
+┌─────────────────────┐
+│ Diff Result         │
+└─────────────────────┘
+```
+
+Use:
+
+```bash
+react-diff-viewer
+```
+
+---
+
+# Libraries
+
+```bash
+npm install papaparse
+npm install jsondiffpatch
+npm install monaco-editor
+npm install @monaco-editor/react
+npm install ajv
+npm install file-saver
+```
+
+---
+
+# SEO Strategy
+
+Each tool should have its own route:
+
+```txt
+/csv-to-json
+/json-to-csv
+/json-validator
+/json-beautifier
+/json-compare
+```
+
+This helps rank for search terms like:
+
+* "csv to json converter"
+* "json validator online"
+* "json compare tool"
+* "json formatter"
+
+Use Next.js metadata for each page.
+
+For an MVP, I would build it as a **single Next.js application with Monaco Editor + PapaParse + jsondiffpatch**, keeping all processing in the browser. This avoids backend costs, scales extremely well, and can be deployed cheaply on platforms like [Vercel](https://vercel.com?utm_source=chatgpt.com).
