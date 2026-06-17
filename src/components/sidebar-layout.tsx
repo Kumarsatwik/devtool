@@ -12,7 +12,8 @@ import {
   Sparkles,
   Menu,
   X,
-  Home
+  Home,
+  Database
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -21,9 +22,11 @@ const tools = [
   { href: "/csv-to-json", label: "CSV → JSON", icon: FileSpreadsheet },
   { href: "/json-to-csv", label: "JSON → CSV", icon: FileSpreadsheet },
   { href: "/json-to-js", label: "JSON → JS", icon: FileCode2 },
+  { href: "/js-to-json", label: "JS → JSON", icon: FileCode2 },
   { href: "/json-beautifier", label: "JSON Beautifier", icon: Sparkles },
   { href: "/json-validator", label: "JSON Validator", icon: CheckCircle },
   { href: "/json-compare", label: "JSON Compare", icon: ArrowLeftRight },
+  { href: "/dynamodb-to-json", label: "DynamoDB ↔ JSON", icon: Database },
 ];
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {

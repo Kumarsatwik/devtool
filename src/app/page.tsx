@@ -16,7 +16,8 @@ import {
   Terminal,
   ArrowRight,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Database
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -43,6 +44,13 @@ const tools = [
     tag: "JSON to JS",
   },
   {
+    href: "/js-to-json",
+    title: "JS → JSON",
+    description: "Convert JavaScript object literals back into strict, valid JSON",
+    icon: FileCode2,
+    tag: "JS to JSON",
+  },
+  {
     href: "/json-beautifier",
     title: "JSON Beautifier",
     description: "Format, indent, or collapse raw JSON data to read it easily",
@@ -62,6 +70,13 @@ const tools = [
     description: "Compare two JSON objects side-by-side and find discrepancies",
     icon: ArrowLeftRight,
     tag: "Diff Viewer",
+  },
+  {
+    href: "/dynamodb-to-json",
+    title: "DynamoDB ↔ JSON",
+    description: "Convert DynamoDB attributes to standard JSON and vice versa",
+    icon: Database,
+    tag: "Database",
   },
 ];
 
@@ -295,6 +310,7 @@ export default function Home() {
                 <li><Link href="/csv-to-json" className="hover:text-foreground">CSV → JSON</Link></li>
                 <li><Link href="/json-to-csv" className="hover:text-foreground">JSON → CSV</Link></li>
                 <li><Link href="/json-compare" className="hover:text-foreground">Compare JSON</Link></li>
+                <li><Link href="/dynamodb-to-json" className="hover:text-foreground">DynamoDB ↔ JSON</Link></li>
               </ul>
             </div>
             <div className="space-y-2">
@@ -303,6 +319,7 @@ export default function Home() {
                 <li><Link href="/json-beautifier" className="hover:text-foreground">Beautifier</Link></li>
                 <li><Link href="/json-validator" className="hover:text-foreground">Linter</Link></li>
                 <li><Link href="/json-to-js" className="hover:text-foreground">JSON → JS</Link></li>
+                <li><Link href="/js-to-json" className="hover:text-foreground">JS → JSON</Link></li>
               </ul>
             </div>
           </div>
