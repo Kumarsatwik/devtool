@@ -81,6 +81,31 @@ export function compareJSON(json1: string, json2: string): DiffItem[] {
   return diffs;
 }
 
+function sortKeysDeep(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(sortKeysDeep);
+  }
+  if (value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype) {
+    const sorted: Record<string, unknown> = {};
+    for (const key of Object.keys(value as Record<string, unknown>).sort()) {
+      sorted[key] = sortKeysDeep((value as Record<string, unknown>)[key]);
+    }
+    return sorted;
+  }
+  return value;
+}
+
+export function sortJSONKeys(jsonText: string, spaces: number | string = 2): string {
+  const trimmed = jsonText.trim();
+  if (!trimmed) return "";
+  const { valid, parsed, error } = validateJSON(trimmed);
+  if (!valid) {
+    throw new Error(error);
+  }
+  const sorted = sortKeysDeep(parsed);
+  return JSON.stringify(sorted, null, spaces);
+}
+
 export function unmarshallDynamo(jsonText: string): string {
   const trimmed = jsonText.trim();
   if (!trimmed) return "";

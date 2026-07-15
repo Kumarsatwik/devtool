@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
-import { compareJSON, validateJSON, type DiffItem } from "@/lib/json";
+import { compareJSON, sortJSONKeys, validateJSON, type DiffItem } from "@/lib/json";
 import { 
   AlertCircle, 
   CheckCircle2, 
@@ -20,7 +20,8 @@ import {
   Search,
   Settings2,
   Trash2,
-  GitPullRequest
+  GitPullRequest,
+  ArrowDownAZ
 } from "lucide-react";
 
 const MonacoDiffEditor = dynamic(
@@ -72,11 +73,48 @@ export default function JSONComparePage() {
   const [splitLayout, setSplitLayout] = useState(true); // true = split, false = unified
   const [diffSearchQuery, setDiffSearchQuery] = useState("");
   const [diffFilterType, setDiffFilterType] = useState<"all" | "added" | "removed" | "modified">("all");
+  const [sortKeys, setSortKeys] = useState(false);
+
+  const validation1 = validateJSON(input1);
+  const validation2 = validateJSON(input2);
+
+  const sortApplied1 = useMemo(() => {
+    if (!sortKeys || !validation1.valid) return input1;
+    try {
+      return sortJSONKeys(input1);
+    } catch {
+      return input1;
+    }
+  }, [sortKeys, input1, validation1.valid]);
+
+  const sortApplied2 = useMemo(() => {
+    if (!sortKeys || !validation2.valid) return input2;
+    try {
+      return sortJSONKeys(input2);
+    } catch {
+      return input2;
+    }
+  }, [sortKeys, input2, validation2.valid]);
+
+  const sortError = useMemo<string | null>(() => {
+    if (!sortKeys) return null;
+    if (!validation1.valid) return null;
+    if (!validation2.valid) return null;
+    try {
+      sortJSONKeys(input1);
+      sortJSONKeys(input2);
+      return null;
+    } catch (err) {
+      return err instanceof Error ? err.message : "Failed to sort keys";
+    }
+  }, [sortKeys, input1, input2, validation1.valid, validation2.valid]);
 
   const handleCompare = useCallback(() => {
     try {
       setError(null);
-      const result = compareJSON(input1, input2);
+      const source1 = sortKeys ? sortJSONKeys(input1) : input1;
+      const source2 = sortKeys ? sortJSONKeys(input2) : input2;
+      const result = compareJSON(source1, source2);
       setDiffs(result);
       setCompared(true);
       setActiveView("diff");
@@ -84,7 +122,7 @@ export default function JSONComparePage() {
       setError(err instanceof Error ? err.message : "Comparison failed");
       setActiveView("edit");
     }
-  }, [input1, input2]);
+  }, [input1, input2, sortKeys]);
 
   const handleClear = () => {
     setInput1("");
@@ -93,10 +131,8 @@ export default function JSONComparePage() {
     setError(null);
     setCompared(false);
     setActiveView("edit");
+    setSortKeys(false);
   };
-
-  const validation1 = validateJSON(input1);
-  const validation2 = validateJSON(input2);
 
   // Compute counts for Summary Card
   const additionsCount = diffs.filter(d => d.type === "added").length;
@@ -185,6 +221,19 @@ export default function JSONComparePage() {
               </Button>
             )}
 
+            {/* Sort keys toggle */}
+            <Button
+              variant={sortKeys ? "secondary" : "ghost"}
+              size="xs"
+              className="h-6 gap-1 text-[11px] font-semibold"
+              aria-pressed={sortKeys}
+              onClick={() => setSortKeys((v) => !v)}
+              title="Sort keys alphabetically in both JSON files before comparing"
+            >
+              <ArrowDownAZ className="h-3 w-3" />
+              <span>Sort Keys</span>
+            </Button>
+
             <Button
               variant="ghost"
               size="xs"
@@ -212,6 +261,23 @@ export default function JSONComparePage() {
           <StatusMessage type="success">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-foreground" />
             <span className="font-semibold">Documents are syntactically identical. No diff paths found.</span>
+          </StatusMessage>
+        )}
+
+        {sortKeys && (
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground select-none">
+            <ArrowDownAZ className="h-3.5 w-3.5" />
+            <span>Keys are sorted alphabetically (nested objects included) before comparison — original inputs are not modified.</span>
+          </div>
+        )}
+
+        {sortError && (
+          <StatusMessage type="error">
+            <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-destructive">Key sorting failed</p>
+              <p className="text-muted-foreground text-[11px] mt-0.5">{sortError}</p>
+            </div>
           </StatusMessage>
         )}
 
@@ -263,8 +329,8 @@ export default function JSONComparePage() {
               <div className="h-[500px] bg-background">
                 {mounted ? (
                   <MonacoDiffEditor
-                    original={input1}
-                    modified={input2}
+                    original={sortApplied1}
+                    modified={sortApplied2}
                     language="json"
                     theme={theme}
                     options={{
