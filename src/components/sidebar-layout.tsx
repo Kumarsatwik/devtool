@@ -13,8 +13,9 @@ import {
   Menu,
   X,
   Home,
-  Database,
   Clock,
+  Workflow,
+  FileText,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,8 @@ const tools = [
   { href: "/json-validator", label: "JSON Validator", icon: CheckCircle },
   { href: "/json-compare", label: "JSON Compare", icon: ArrowLeftRight },
   { href: "/epoch-converter", label: "Epoch Converter", icon: Clock },
+  { href: "/mermaid-diagram", label: "Mermaid Diagram", icon: Workflow },
+  { href: "/markdown-preview", label: "Markdown Preview", icon: FileText },
 ];
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
@@ -167,7 +170,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Workspace content region */}
-      <div className="flex-1 min-w-0 bg-background overflow-y-auto">
+      <div className="flex-1 min-w-0 bg-background overflow-hidden">
         {children}
       </div>
     </div>

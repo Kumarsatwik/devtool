@@ -59,10 +59,10 @@ export default function JSONBeautifierPage() {
 
   return (
     <ToolPageLayout title="JSON Beautifier" description="Format, indent, or collapse raw JSON data to read it easily.">
-      <div className="space-y-6">
-        
+      <div className="h-full flex flex-col gap-4">
+
         {/* Settings Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none">
+        <div className="flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none shrink-0">
           <div className="flex items-center gap-2 font-bold text-foreground">
             <Settings2 className="h-4 w-4 text-muted-foreground" />
             <span>Format Controls</span>
@@ -125,21 +125,23 @@ export default function JSONBeautifierPage() {
         </div>
 
         {/* Editor workspace */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Raw JSON Code</label>
+        <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-2">
+
+          <div className="flex flex-col min-h-0 gap-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">Raw JSON Code</label>
             <EditorPanel
               value={input}
               onChange={setInput}
               language="json"
               title="JSON Input"
               sampleText={sampleJSON}
+              height="fill"
+              className="flex-1 min-h-0"
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <div className="flex flex-col min-h-0 gap-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
               {mode === "beautify" ? "Beautified JSON" : "Compressed JSON"}
             </label>
             <EditorPanel
@@ -148,6 +150,8 @@ export default function JSONBeautifierPage() {
               readOnly
               title="JSON Output"
               downloadFileName={mode === "beautify" ? "formatted.json" : "minified.json"}
+              height="fill"
+              className="flex-1 min-h-0"
             />
           </div>
         </div>
@@ -207,7 +211,7 @@ export default function JSONBeautifierPage() {
             )}
           </StatusMessage>
         )}
-        
+
       </div>
     </ToolPageLayout>
   );

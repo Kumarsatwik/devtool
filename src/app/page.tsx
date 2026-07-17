@@ -22,8 +22,9 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronUp,
-  Database,
   Clock,
+  Workflow,
+  FileText,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -86,6 +87,20 @@ const tools = [
       "Convert epoch timestamps to IST and UTC, and dates back to epoch",
     icon: Clock,
     tag: "Time",
+  },
+  {
+    href: "/mermaid-diagram",
+    title: "Mermaid Diagram",
+    description: "Write Mermaid syntax, preview diagrams, and export as images",
+    icon: Workflow,
+    tag: "Diagrams",
+  },
+  {
+    href: "/markdown-preview",
+    title: "Markdown Preview",
+    description: "Live Markdown editing with HTML preview and export to PDF/HTML",
+    icon: FileText,
+    tag: "Docs",
   },
 ];
 

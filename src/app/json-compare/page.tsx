@@ -151,10 +151,10 @@ export default function JSONComparePage() {
 
   return (
     <ToolPageLayout title="JSON Compare" description="Perform GitHub-style side-by-side or unified comparisons between two JSON trees.">
-      <div className="space-y-6">
-        
+      <div className="h-full flex flex-col gap-4">
+
         {/* Controls toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none">
+        <div className="flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none shrink-0">
           <div className="flex items-center gap-2 font-bold text-foreground">
             <Settings2 className="h-4 w-4 text-muted-foreground" />
             <span>Workspace</span>
@@ -282,11 +282,11 @@ export default function JSONComparePage() {
         )}
 
         {/* Comparative workspace */}
-        <div>
+        <div className="flex-1 min-h-0">
           {activeView === "edit" ? (
-            <div className="grid gap-6 lg:grid-cols-2">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs select-none">
+            <div className="h-full grid gap-4 lg:grid-cols-2">
+              <div className="flex flex-col min-h-0 gap-2">
+                <div className="flex items-center justify-between text-xs select-none shrink-0">
                   <label className="font-bold uppercase tracking-wider text-muted-foreground">Original JSON (A)</label>
                   <span className={`font-semibold ${validation1.valid ? "text-muted-foreground" : "text-destructive"}`}>
                     {validation1.valid ? "Valid Syntax" : "Invalid JSON"}
@@ -298,12 +298,13 @@ export default function JSONComparePage() {
                   language="json"
                   title="JSON A"
                   sampleText={sampleJSON1}
-                  height="480px"
+                  height="fill"
+                  className="flex-1 min-h-0"
                 />
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs select-none">
+              <div className="flex flex-col min-h-0 gap-2">
+                <div className="flex items-center justify-between text-xs select-none shrink-0">
                   <label className="font-bold uppercase tracking-wider text-muted-foreground">Modified JSON (B)</label>
                   <span className={`font-semibold ${validation2.valid ? "text-muted-foreground" : "text-destructive"}`}>
                     {validation2.valid ? "Valid Syntax" : "Invalid JSON"}
@@ -315,18 +316,19 @@ export default function JSONComparePage() {
                   language="json"
                   title="JSON B"
                   sampleText={sampleJSON2}
-                  height="480px"
+                  height="fill"
+                  className="flex-1 min-h-0"
                 />
               </div>
             </div>
           ) : (
             /* Diff Editor */
-            <div className="border border-border rounded overflow-hidden bg-card shadow-none">
-              <div className="bg-muted/40 border-b border-border px-3 py-1.5 text-xs text-muted-foreground flex justify-between select-none">
+            <div className="h-full border border-border rounded overflow-hidden bg-card shadow-none flex flex-col">
+              <div className="bg-muted/40 border-b border-border px-3 py-1.5 text-xs text-muted-foreground flex justify-between select-none shrink-0">
                 <span>Code Comparison</span>
                 <span className="text-[10px] font-bold text-foreground">GitHub-Style Diff View</span>
               </div>
-              <div className="h-[500px] bg-background">
+              <div className="flex-1 min-h-0 bg-background">
                 {mounted ? (
                   <MonacoDiffEditor
                     original={sortApplied1}

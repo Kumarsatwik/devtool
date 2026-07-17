@@ -110,7 +110,7 @@ export function unmarshallDynamo(jsonText: string): string {
   const trimmed = jsonText.trim();
   if (!trimmed) return "";
   
-  let parsed: any;
+  let parsed: unknown;
   try {
     parsed = JSON.parse(trimmed);
   } catch (err) {
@@ -121,19 +121,19 @@ export function unmarshallDynamo(jsonText: string): string {
     throw new Error("Input must be a JSON object or array.");
   }
 
-  const safeUnmarshall = (item: any) => {
+  const safeUnmarshall = (item: unknown) => {
     if (item === null || typeof item !== "object" || Array.isArray(item)) {
       throw new Error("Each DynamoDB item must be a JSON object.");
     }
     try {
-      return unmarshall(item);
+      return unmarshall(item as Parameters<typeof unmarshall>[0]);
     } catch (err) {
       throw new Error(`Failed to unmarshall item: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
-  const stringifyWithSets = (val: any) => {
-    return JSON.stringify(val, (key, value) => {
+  const stringifyWithSets = (val: unknown) => {
+    return JSON.stringify(val, (_key, value) => {
       if (value instanceof Set) {
         return Array.from(value);
       }
@@ -148,14 +148,16 @@ export function unmarshallDynamo(jsonText: string): string {
   }
 
   // Case 2: Wrapped in "Items" (e.g. Scan or Query output)
-  if (parsed.Items && Array.isArray(parsed.Items)) {
-    const unmarshalledList = parsed.Items.map((item: any) => safeUnmarshall(item));
+  const parsedObj = parsed as Record<string, unknown>;
+
+  if (parsedObj.Items && Array.isArray(parsedObj.Items)) {
+    const unmarshalledList = parsedObj.Items.map((item) => safeUnmarshall(item));
     return stringifyWithSets(unmarshalledList);
   }
 
   // Case 3: Wrapped in "Item" (e.g. GetItem output)
-  if (parsed.Item && typeof parsed.Item === "object" && !Array.isArray(parsed.Item)) {
-    const unmarshalledItem = safeUnmarshall(parsed.Item);
+  if (parsedObj.Item && typeof parsedObj.Item === "object" && !Array.isArray(parsedObj.Item)) {
+    const unmarshalledItem = safeUnmarshall(parsedObj.Item);
     return stringifyWithSets(unmarshalledItem);
   }
 
@@ -168,7 +170,7 @@ export function marshallDynamo(jsonText: string): string {
   const trimmed = jsonText.trim();
   if (!trimmed) return "";
   
-  let parsed: any;
+  let parsed: unknown;
   try {
     parsed = JSON.parse(trimmed);
   } catch (err) {
@@ -179,12 +181,12 @@ export function marshallDynamo(jsonText: string): string {
     throw new Error("Input must be a JSON object or array.");
   }
 
-  const safeMarshall = (item: any) => {
+  const safeMarshall = (item: unknown) => {
     if (item === null || typeof item !== "object" || Array.isArray(item)) {
       throw new Error("Each standard JSON item must be a JSON object.");
     }
     try {
-      return marshall(item, { removeUndefinedValues: true, convertClassInstanceToMap: true });
+      return marshall(item as Parameters<typeof marshall>[0], { removeUndefinedValues: true, convertClassInstanceToMap: true });
     } catch (err) {
       throw new Error(`Failed to marshall item: ${err instanceof Error ? err.message : String(err)}`);
     }

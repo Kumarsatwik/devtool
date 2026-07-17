@@ -82,10 +82,10 @@ export default function JSONValidatorPage() {
 
   return (
     <ToolPageLayout title="JSON Validator" description="Validate JSON syntax and check for errors.">
-      <div className="space-y-6">
-        
+      <div className="h-full flex flex-col gap-4">
+
         {/* Linter Options */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none">
+        <div className="flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none shrink-0">
           <div className="flex items-center gap-2 font-bold text-foreground">
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
             <span>Options</span>
@@ -105,32 +105,33 @@ export default function JSONValidatorPage() {
         </div>
 
         {/* Workspace Split Layout */}
-        <div className="grid gap-6 lg:grid-cols-5">
-          
+        <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-5">
+
           {/* Input Editor */}
-          <div className="lg:col-span-3 space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">JSON Input</label>
+          <div className="lg:col-span-3 flex flex-col min-h-0 gap-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">JSON Input</label>
             <EditorPanel
               value={input}
               onChange={setInput}
               language="json"
               title="JSON Linter Input"
               sampleText={sampleJSON}
-              height="480px"
+              height="fill"
+              className="flex-1 min-h-0"
             />
           </div>
 
           {/* Validation Diagnostics Sidebar */}
-          <div className="lg:col-span-2 space-y-4">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">Diagnostics</label>
-            
+          <div className="lg:col-span-2 flex flex-col min-h-0 gap-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block shrink-0">Diagnostics</label>
+
             {validation ? (
-              <div className="space-y-4">
-                
+              <div className="flex-1 min-h-0 overflow-auto space-y-4 pr-1">
+
                 {/* Result Status Card */}
                 <div className={`border rounded p-4 shadow-none transition-all duration-150 ${
-                  validation.valid 
-                    ? "border-border bg-card" 
+                  validation.valid
+                    ? "border-border bg-card"
                     : "border-destructive/20 bg-destructive/5"
                 }`}>
                   <div className="flex items-center gap-3">
@@ -220,7 +221,7 @@ export default function JSONValidatorPage() {
 
               </div>
             ) : (
-              <div className="border border-dashed rounded p-6 text-center bg-card/10 border-border h-[200px] flex flex-col justify-center items-center">
+              <div className="border border-dashed rounded p-6 text-center bg-card/10 border-border flex-1 flex flex-col justify-center items-center min-h-0">
                 <Terminal className="h-8 w-8 text-muted-foreground/35 mb-2" />
                 <p className="text-xs font-semibold text-muted-foreground">No diagnostics compiled yet.</p>
               </div>

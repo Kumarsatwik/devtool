@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Copy, Check, Download, Trash2, FileText, Upload, RefreshCw } from "lucide-react";
 import { saveAs } from "file-saver";
 
@@ -18,6 +19,7 @@ interface EditorPanelProps {
   title?: string;
   sampleText?: string;
   downloadFileName?: string;
+  className?: string;
 }
 
 export function EditorPanel({
@@ -25,10 +27,11 @@ export function EditorPanel({
   onChange,
   language = "json",
   readOnly = false,
-  height = "480px",
+  height = "560px",
   title,
   sampleText,
   downloadFileName,
+  className,
 }: EditorPanelProps) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -79,12 +82,14 @@ export function EditorPanel({
     fileInputRef.current?.click();
   };
 
+  const isFillHeight = height === "100%" || height === "fill";
+
   return (
-    <div className="flex flex-col border border-border/80 rounded-xl overflow-hidden shadow-sm bg-card hover:border-border transition-colors duration-200">
-      
+    <div className={cn("flex flex-col border border-border/80 rounded-xl overflow-hidden shadow-sm bg-card hover:border-border transition-colors duration-200", isFillHeight && "flex-1 min-h-0", className)}>
+
       {/* Editor Header Bar */}
       {(title || onChange || value) && (
-        <div className="flex items-center justify-between bg-muted/40 border-b border-border/85 px-3 py-1.5 text-xs select-none">
+        <div className="flex items-center justify-between bg-muted/40 border-b border-border/85 px-3 py-1.5 text-xs select-none shrink-0">
           <div className="flex items-center gap-2">
             {title && <span className="font-semibold text-foreground">{title}</span>}
             <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/50">
@@ -176,7 +181,10 @@ export function EditorPanel({
       )}
 
       {/* Editor Body */}
-      <div style={{ height }} className="relative bg-background">
+      <div
+        style={isFillHeight ? undefined : { height }}
+        className={cn("relative bg-background", isFillHeight && "flex-1 min-h-0")}
+      >
         {!mounted ? (
           <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground bg-background">
             <RefreshCw className="h-4 w-4 animate-spin mr-2" />

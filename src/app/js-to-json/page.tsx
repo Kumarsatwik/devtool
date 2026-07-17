@@ -59,10 +59,10 @@ export default function JSToJSONPage() {
 
   return (
     <ToolPageLayout title="JS to JSON" description="Convert JavaScript object literals into strict, standard JSON text.">
-      <div className="space-y-6">
+      <div className="h-full flex flex-col gap-4">
 
         {/* Settings Panel */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none">
+        <div className="flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none shrink-0">
           <div className="flex items-center gap-2 font-bold text-foreground">
             <Settings2 className="h-4 w-4 text-muted-foreground" />
             <span>Format Options</span>
@@ -101,27 +101,31 @@ export default function JSToJSONPage() {
         </div>
 
         {/* Workspace Editors */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-2">
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Source JavaScript Object</label>
+          <div className="flex flex-col min-h-0 gap-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">Source JavaScript Object</label>
             <EditorPanel
               value={input}
               onChange={setInput}
               language="javascript"
               title="JS Input"
               sampleText={sampleJS}
+              height="fill"
+              className="flex-1 min-h-0"
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Output JSON</label>
+          <div className="flex flex-col min-h-0 gap-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">Output JSON</label>
             <EditorPanel
               value={output}
               language="json"
               readOnly
               title="JSON Output"
               downloadFileName="converted.json"
+              height="fill"
+              className="flex-1 min-h-0"
             />
           </div>
         </div>

@@ -94,10 +94,10 @@ export default function JSONToCSVPage() {
 
   return (
     <ToolPageLayout title="JSON to CSV" description="Convert JSON array structures into standard spreadsheet-ready CSV sheets.">
-      <div className="space-y-6">
-        
+      <div className="h-full flex flex-col gap-4">
+
         {/* Settings Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none">
+        <div className="flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none shrink-0">
           <div className="flex items-center gap-2 font-bold text-foreground">
             <Settings2 className="h-4 w-4 text-muted-foreground" />
             <span>Options</span>
@@ -117,31 +117,33 @@ export default function JSONToCSVPage() {
         </div>
 
         {/* Input vs Output Editors */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Source JSON Array</label>
+        <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-2">
+
+          <div className="flex flex-col min-h-0 gap-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">Source JSON Array</label>
             <EditorPanel
               value={input}
               onChange={setInput}
               language="json"
               title="JSON Input"
               sampleText={sampleJSON}
+              height="fill"
+              className="flex-1 min-h-0"
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Output CSV</label>
-            
-            <Tabs value={previewTab} onValueChange={setPreviewTab} className="w-full">
-              <div className="flex items-center justify-between bg-muted/40 border border-border border-b-0 px-3 py-1.5 rounded-t select-none">
+          <div className="flex flex-col min-h-0 gap-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">Output CSV</label>
+
+            <Tabs value={previewTab} onValueChange={setPreviewTab} className="w-full flex flex-col min-h-0 flex-1">
+              <div className="flex items-center justify-between bg-muted/40 border border-border border-b-0 px-3 py-1.5 rounded-t select-none shrink-0">
                 <TabsList variant="line" className="h-6 gap-2">
                   <TabsTrigger value="raw" className="text-xs gap-1 py-0 px-2.5 h-6 rounded">
                     <List className="h-3.5 w-3.5" />
                     <span>Raw Text</span>
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="preview" 
+                  <TabsTrigger
+                    value="preview"
                     className="text-xs gap-1 py-0 px-2.5 h-6 rounded"
                     disabled={!output}
                   >
@@ -152,19 +154,20 @@ export default function JSONToCSVPage() {
                 <span className="text-[10px] font-bold text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded border border-border">CSV</span>
               </div>
 
-              <div className="border border-border rounded-b overflow-hidden shadow-none">
-                <TabsContent value="raw" className="p-0 m-0">
+              <div className="border border-border rounded-b overflow-hidden shadow-none flex-1 min-h-0">
+                <TabsContent value="raw" className="p-0 m-0 h-full data-[state=inactive]:hidden">
                   <EditorPanel
                     value={output}
                     language="plaintext"
                     readOnly
-                    height="480px"
+                    height="fill"
                     downloadFileName="converted.csv"
+                    className="h-full"
                   />
                 </TabsContent>
-                
-                <TabsContent value="preview" className="p-0 m-0 bg-background">
-                  <div className="h-[480px] overflow-auto relative">
+
+                <TabsContent value="preview" className="p-0 m-0 bg-background h-full data-[state=inactive]:hidden">
+                  <div className="h-full overflow-auto relative">
                     {rows.length > 0 ? (
                       <table className="w-full text-xs text-left border-collapse">
                         <thead className="bg-muted/65 text-muted-foreground font-semibold border-b sticky top-0 bg-background z-10">
@@ -201,7 +204,7 @@ export default function JSONToCSVPage() {
                       </div>
                     )}
                   </div>
-                  
+
                   {rows.length > 50 && (
                     <div className="bg-muted/20 border-t px-3 py-1.5 text-[10px] text-muted-foreground flex justify-between select-none">
                       <span>Showing first 50 of {rows.length} rows</span>
@@ -257,7 +260,7 @@ export default function JSONToCSVPage() {
             </div>
           </StatusMessage>
         )}
-        
+
       </div>
     </ToolPageLayout>
   );
