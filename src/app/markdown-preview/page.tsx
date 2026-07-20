@@ -6,11 +6,7 @@ import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
 import { FileUpload } from "@/components/file-upload";
-import {
-  exportMarkdownHtml,
-  exportMarkdownPdf,
-  MARKDOWN_CSS,
-} from "@/lib/markdown-export";
+import { exportMarkdownHtml, MARKDOWN_CSS } from "@/lib/markdown-export";
 import { saveAs } from "file-saver";
 import {
   AlertCircle,
@@ -62,7 +58,6 @@ console.log("Hello, world!");
 const exportOptions = [
   { value: "md", label: ".md", icon: FileText },
   { value: "html", label: "HTML", icon: FileCode2 },
-  { value: "pdf", label: "PDF", icon: FileText },
 ] as const;
 
 function sanitizeHtml(html: string): string {
@@ -129,7 +124,7 @@ export default function MarkdownPreviewPage() {
     }
   }, [input, autoRender, renderMarkdown]);
 
-  const handleExport = async () => {
+  const handleExport = () => {
     if (!previewRef.current) return;
 
     try {
@@ -140,9 +135,6 @@ export default function MarkdownPreviewPage() {
           break;
         case "html":
           exportMarkdownHtml(previewRef.current, "document.html");
-          break;
-        case "pdf":
-          exportMarkdownPdf(previewRef.current, "document.pdf");
           break;
       }
     } catch (err) {

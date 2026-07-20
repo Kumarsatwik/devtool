@@ -1,6 +1,5 @@
 "use client";
 
-import { jsPDF } from "jspdf";
 import { saveAs } from "file-saver";
 
 export const MARKDOWN_CSS = `
@@ -104,6 +103,20 @@ export const MARKDOWN_CSS = `
     .markdown-body tr:nth-child(even) { background: #1a1a1a; }
     .markdown-body hr { border-top-color: #404040; }
   }
+
+  .dark .markdown-body { color: #e5e5e5; }
+  .dark .markdown-body h1, .dark .markdown-body h2, .dark .markdown-body h3, .dark .markdown-body h4, .dark .markdown-body h5, .dark .markdown-body h6 { color: #e5e5e5; }
+  .dark .markdown-body h1, .dark .markdown-body h2 { border-bottom-color: #404040; }
+  .dark .markdown-body a { color: #60a5fa; }
+  .dark .markdown-body a:hover { color: #93c5fd; }
+  .dark .markdown-body blockquote { color: #a3a3a3; background: #262626; border-left-color: #525252; }
+  .dark .markdown-body code, .dark .markdown-body pre { background: #262626; }
+  .dark .markdown-body pre code { background: transparent; }
+  .dark .markdown-body th, .dark .markdown-body td { border-color: #404040; }
+  .dark .markdown-body th { background: #262626; }
+  .dark .markdown-body tr:nth-child(even) { background: #1a1a1a; }
+  .dark .markdown-body hr { border-top-color: #404040; }
+
 `;
 
 const WRAPPER_STYLES = `<style>${MARKDOWN_CSS}</style>`;
@@ -128,40 +141,4 @@ export function exportMarkdownHtml(container: HTMLElement, filename = "document.
 
   const blob = new Blob([htmlDoc], { type: "text/html;charset=utf-8" });
   saveAs(blob, filename);
-}
-
-export async function exportMarkdownPdf(container: HTMLElement, filename = "document.pdf") {
-  const previewEl = container.querySelector("[data-markdown-body]");
-  if (!previewEl) throw new Error("No rendered content found");
-
-  const htmlContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  ${WRAPPER_STYLES}
-</head>
-<body>
-  ${previewEl.innerHTML}
-</body>
-</html>`;
-
-  return new Promise<void>((resolve, reject) => {
-    try {
-      const doc = new jsPDF({ unit: "pt", format: "a4" });
-      doc.html(htmlContent, {
-        callback: (pdf) => {
-          pdf.save(filename);
-          resolve();
-        },
-        margin: [40, 40, 40, 40],
-        x: 0,
-        y: 0,
-        html2canvas: {
-          scale: 0.6,
-        },
-      });
-    } catch (err) {
-      reject(err instanceof Error ? err : new Error("PDF export failed"));
-    }
-  });
 }
