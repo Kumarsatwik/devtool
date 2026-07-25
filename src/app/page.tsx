@@ -97,8 +97,8 @@ const tools = [
   },
   {
     href: "/markdown-preview",
-    title: "Markdown Preview",
-    description: "Live Markdown editing with HTML preview and export to PDF/HTML",
+    title: "Markdown Notes",
+    description: "Rich Markdown note editor with diagrams, images, and export to PDF/HTML/DOCX/TXT/MD",
     icon: FileText,
     tag: "Docs",
   },

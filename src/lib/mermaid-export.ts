@@ -1,64 +1,54 @@
 "use client";
 
-import { jsPDF } from "jspdf";
 import { saveAs } from "file-saver";
 
 function getSvgElement(container: HTMLElement): SVGSVGElement | null {
   return container.querySelector("svg");
 }
 
-function serializeSvg(svg: SVGSVGElement): string {
+interface SerializedSvg {
+  xml: string;
+  width: number;
+  height: number;
+}
+
+function serializeSvg(svg: SVGSVGElement): SerializedSvg {
   const clone = svg.cloneNode(true) as SVGSVGElement;
   clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
 
-  const styles = getComputedStyles();
-  if (styles) {
-    const styleEl = document.createElementNS("http://www.w3.org/2000/svg", "style");
-    styleEl.textContent = styles;
-    clone.insertBefore(styleEl, clone.firstChild);
-  }
+  // Mermaid emits width="100%" with a viewBox; rasterizing needs explicit
+  // pixel dimensions, otherwise the browser falls back to 300x150.
+  const viewBox = svg.viewBox?.baseVal;
+  const rect = svg.getBoundingClientRect();
+  const width = Math.ceil(viewBox?.width || rect.width || 800);
+  const height = Math.ceil(viewBox?.height || rect.height || 600);
+  clone.setAttribute("width", String(width));
+  clone.setAttribute("height", String(height));
+  clone.style.maxWidth = "";
 
+  // Mermaid embeds its own <style> (theme + themeCSS) inside the SVG,
+  // so no document stylesheets need to be injected.
   const serializer = new XMLSerializer();
-  return serializer.serializeToString(clone);
-}
-
-function getComputedStyles(): string {
-  const styleSheets = Array.from(document.styleSheets);
-  let css = "";
-  for (const sheet of styleSheets) {
-    try {
-      const rules = Array.from(sheet.cssRules || sheet.rules || []);
-      for (const rule of rules) {
-        css += rule.cssText + "\n";
-      }
-    } catch {
-      // Cross-origin stylesheets can't be read; skip them.
-    }
-  }
-  return css;
-}
-
-function svgToDataUrl(svgXml: string): string {
-  const blob = new Blob([svgXml], { type: "image/svg+xml;charset=utf-8" });
-  return URL.createObjectURL(blob);
+  return { xml: serializer.serializeToString(clone), width, height };
 }
 
 async function svgToCanvas(
-  svgXml: string,
+  { xml, width, height }: SerializedSvg,
   type: "image/png" | "image/jpeg",
   scale = 2,
-): Promise<{ canvas: HTMLCanvasElement; cleanup: () => void }> {
+): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
-    const url = svgToDataUrl(svgXml);
+    // Data URL keeps the canvas untainted and avoids blob revocation races.
+    const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(xml)}`;
     const img = new Image();
 
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      canvas.width = img.naturalWidth * scale;
-      canvas.height = img.naturalHeight * scale;
+      canvas.width = Math.round(width * scale);
+      canvas.height = Math.round(height * scale);
       const ctx = canvas.getContext("2d");
       if (!ctx) {
-        URL.revokeObjectURL(url);
         reject(new Error("Could not create canvas context"));
         return;
       }
@@ -69,11 +59,10 @@ async function svgToCanvas(
       }
 
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve({ canvas, cleanup: () => URL.revokeObjectURL(url) });
+      resolve(canvas);
     };
 
     img.onerror = () => {
-      URL.revokeObjectURL(url);
       reject(new Error("Failed to render SVG to image"));
     };
 
@@ -85,8 +74,8 @@ export async function exportMermaidSvg(container: HTMLElement, filename = "diagr
   const svg = getSvgElement(container);
   if (!svg) throw new Error("No diagram found to export");
 
-  const svgXml = serializeSvg(svg);
-  const blob = new Blob([svgXml], { type: "image/svg+xml;charset=utf-8" });
+  const { xml } = serializeSvg(svg);
+  const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
   saveAs(blob, filename);
 }
 
@@ -98,46 +87,14 @@ export async function exportMermaidImage(
   const svg = getSvgElement(container);
   if (!svg) throw new Error("No diagram found to export");
 
-  const svgXml = serializeSvg(svg);
+  const serialized = serializeSvg(svg);
   const mimeType = format === "png" ? "image/png" : "image/jpeg";
-  const { canvas, cleanup } = await svgToCanvas(svgXml, mimeType);
+  const canvas = await svgToCanvas(serialized, mimeType);
 
-  const extension = format === "png" ? "png" : "jpg";
-  const defaultName = `diagram.${extension}`;
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, mimeType, 0.95),
+  );
+  if (!blob) throw new Error(`Failed to encode ${format.toUpperCase()} image`);
 
-  const dataUrl = canvas.toDataURL(mimeType, 1.0);
-  const link = document.createElement("a");
-  link.href = dataUrl;
-  link.download = filename || defaultName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  cleanup();
-}
-
-export async function exportMermaidPdf(container: HTMLElement, filename = "diagram.pdf") {
-  const svg = getSvgElement(container);
-  if (!svg) throw new Error("No diagram found to export");
-
-  const svgXml = serializeSvg(svg);
-  const { canvas, cleanup } = await svgToCanvas(svgXml, "image/png");
-
-  const imgData = canvas.toDataURL("image/png");
-  const pxWidth = canvas.width;
-  const pxHeight = canvas.height;
-
-  const ptWidth = pxWidth * 0.75;
-  const ptHeight = pxHeight * 0.75;
-
-  const doc = new jsPDF({
-    orientation: ptWidth > ptHeight ? "landscape" : "portrait",
-    unit: "pt",
-    format: [ptWidth, ptHeight],
-  });
-
-  doc.addImage(imgData, "PNG", 0, 0, ptWidth, ptHeight);
-  doc.save(filename);
-
-  cleanup();
+  saveAs(blob, filename || `diagram.${format}`);
 }

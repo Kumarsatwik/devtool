@@ -201,6 +201,7 @@ export function EditorPanel({
               lineNumbers: "on",
               wordWrap: "on",
               readOnly,
+              automaticLayout: true,
               scrollBeyondLastLine: false,
               fontSize: 13,
               padding: { top: 8 },

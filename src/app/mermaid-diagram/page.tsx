@@ -9,8 +9,15 @@ import { FileUpload } from "@/components/file-upload";
 import {
   exportMermaidSvg,
   exportMermaidImage,
-  exportMermaidPdf,
 } from "@/lib/mermaid-export";
+import {
+  diagramThemes,
+  defaultDiagramTheme,
+  getMermaidConfig,
+  getThemeSpec,
+  isDiagramTheme,
+  type DiagramTheme,
+} from "@/lib/mermaid-themes";
 import {
   AlertCircle,
   CheckCircle2,
@@ -18,6 +25,7 @@ import {
   FileImage,
   FileText,
   Image,
+  Palette,
   RefreshCw,
   Wand2,
   Settings2,
@@ -27,18 +35,17 @@ import {
 } from "lucide-react";
 
 const sampleMermaid = `graph TD
-    A[Start] --> B{Is it working?}
+    A([Start]):::flow-start --> B{Is it working?}
     B -->|Yes| C[Great!]
-    B -->|No| D[Debug]
-    D --> E[Check Logs]
+    B -->|No| D[Debug]:::flow-action
+    D --> E[Check Logs]:::flow-action
     E --> B
-    C --> F[Deploy]`;
+    C --> F([Deploy]):::flow-start`;
 
 const exportOptions = [
   { value: "svg", label: "SVG", icon: FileText },
   { value: "png", label: "PNG", icon: Image },
   { value: "jpg", label: "JPG", icon: FileImage },
-  { value: "pdf", label: "PDF", icon: FileText },
 ] as const;
 
 export default function MermaidDiagramPage() {
@@ -48,26 +55,45 @@ export default function MermaidDiagramPage() {
   const [exportFormat, setExportFormat] = useState<(typeof exportOptions)[number]["value"]>("svg");
   const [isRendering, setIsRendering] = useState(false);
   const [autoRender, setAutoRender] = useState(true);
+  const [diagramTheme, setDiagramTheme] = useState<DiagramTheme>(defaultDiagramTheme);
   const [zoom, setZoom] = useState(1);
   const previewRef = useRef<HTMLDivElement>(null);
   const zoomTargetRef = useRef<HTMLDivElement>(null);
+  const previewScrollRef = useRef<HTMLDivElement>(null);
 
   const minZoom = 0.25;
   const maxZoom = 3;
   const zoomStep = 0.1;
 
   const updateZoom = useCallback((delta: number) => {
-    setZoom((prev) => Math.min(maxZoom, Math.max(minZoom, +(prev + delta).toFixed(2))));
+    setZoom((prev) => Math.min(maxZoom, Math.max(minZoom, +(prev + delta).toFixed(3))));
   }, []);
 
   const resetZoom = useCallback(() => setZoom(1), []);
 
+  // Ctrl/Cmd + scroll (or trackpad pinch) zooms the preview.
+  // Native non-passive listener is required because React registers
+  // wheel events passively, which blocks preventDefault.
   useEffect(() => {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: "default",
-      securityLevel: "strict",
-    });
+    const el = previewScrollRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const step = e.deltaMode === 1 ? 0.05 : 0.0015;
+      updateZoom(-e.deltaY * step);
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [updateZoom]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("mermaid-diagram-theme");
+    if (saved && isDiagramTheme(saved)) {
+      setDiagramTheme(saved);
+    }
   }, []);
 
   const renderDiagram = useCallback(async () => {
@@ -81,6 +107,7 @@ export default function MermaidDiagramPage() {
     setError(null);
 
     try {
+      mermaid.initialize(getMermaidConfig(diagramTheme));
       const id = `mermaid-${Math.random().toString(36).slice(2, 11)}`;
       const { svg } = await mermaid.render(id, input);
       setSvgCode(svg);
@@ -90,7 +117,12 @@ export default function MermaidDiagramPage() {
     } finally {
       setIsRendering(false);
     }
-  }, [input]);
+  }, [input, diagramTheme]);
+
+  const handleThemeChange = (theme: DiagramTheme) => {
+    setDiagramTheme(theme);
+    localStorage.setItem("mermaid-diagram-theme", theme);
+  };
 
   useEffect(() => {
     if (autoRender) {
@@ -116,9 +148,6 @@ export default function MermaidDiagramPage() {
         case "jpg":
           await exportMermaidImage(previewRef.current, "jpg", "diagram.jpg");
           break;
-        case "pdf":
-          await exportMermaidPdf(previewRef.current, "diagram.pdf");
-          break;
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Export failed");
@@ -140,6 +169,23 @@ export default function MermaidDiagramPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
+            {/* Theme Selector */}
+            <div className="flex items-center gap-1.5">
+              <Palette className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-muted-foreground font-semibold">Theme:</span>
+              <select
+                value={diagramTheme}
+                onChange={(e) => handleThemeChange(e.target.value as DiagramTheme)}
+                className="h-7 px-2 pr-6 rounded border border-border bg-background text-[11px] font-semibold text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/15 hover:border-primary/40 transition-colors"
+              >
+                {diagramThemes.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Export Format Selector */}
             <div className="flex items-center gap-1.5">
               <span className="text-muted-foreground font-semibold">Format:</span>
@@ -271,8 +317,13 @@ export default function MermaidDiagramPage() {
                 </div>
               </div>
 
-              {/* Preview Body */}
-              <div className="flex-1 relative bg-background overflow-auto p-4 min-h-0">
+              {/* Preview Body — canvas color follows the selected theme */}
+              <div
+                ref={previewScrollRef}
+                className="flex-1 relative overflow-auto p-4 min-h-0 transition-colors duration-200"
+                style={{ backgroundColor: getThemeSpec(diagramTheme).canvas }}
+                title="Ctrl/⌘ + scroll to zoom"
+              >
                 {isRendering && (
                   <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground bg-background/80 z-10">
                     <RefreshCw className="h-4 w-4 animate-spin mr-2" />
@@ -286,11 +337,14 @@ export default function MermaidDiagramPage() {
                   </div>
                 )}
 
-                <div ref={previewRef} className="min-h-full flex items-center justify-center">
+                {/* CSS zoom (not transform) so the scroll area grows with the
+                    diagram; m-auto centers when small yet keeps every edge
+                    reachable when zoomed past the viewport */}
+                <div ref={previewRef} className="min-h-full min-w-fit flex">
                   <div
                     ref={zoomTargetRef}
-                    className="transition-transform duration-150 ease-out origin-center"
-                    style={{ transform: `scale(${zoom})` }}
+                    className="m-auto transition-all duration-150 ease-out"
+                    style={{ zoom }}
                     dangerouslySetInnerHTML={{ __html: svgCode }}
                   />
                 </div>

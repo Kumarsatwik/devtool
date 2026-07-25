@@ -30,7 +30,7 @@ const tools = [
   { href: "/json-compare", label: "JSON Compare", icon: ArrowLeftRight },
   { href: "/epoch-converter", label: "Epoch Converter", icon: Clock },
   { href: "/mermaid-diagram", label: "Mermaid Diagram", icon: Workflow },
-  { href: "/markdown-preview", label: "Markdown Preview", icon: FileText },
+  { href: "/markdown-preview", label: "Markdown Notes", icon: FileText },
 ];
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
