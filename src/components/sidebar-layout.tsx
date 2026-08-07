@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 const tools = [
   { href: "/csv-to-json", label: "CSV → JSON", icon: FileSpreadsheet },
   { href: "/json-to-csv", label: "JSON → CSV", icon: FileSpreadsheet },
+  { href: "/excel-to-csv", label: "Excel → CSV", icon: FileSpreadsheet },
   { href: "/json-to-js", label: "JSON → JS", icon: FileCode2 },
   { href: "/js-to-json", label: "JS → JSON", icon: FileCode2 },
   { href: "/json-beautifier", label: "JSON Beautifier", icon: Sparkles },

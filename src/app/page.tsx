@@ -30,6 +30,13 @@ import { buttonVariants } from "@/components/ui/button";
 
 const tools = [
   {
+    href: "/excel-to-csv",
+    title: "Excel → CSV",
+    description: "Convert Excel spreadsheets (.xlsx / .xls) into clean CSV sheets",
+    icon: FileSpreadsheet,
+    tag: "Excel to CSV",
+  },
+  {
     href: "/csv-to-json",
     title: "CSV → JSON",
     description: "Convert tabular CSV data to a structured JSON array",
@@ -366,6 +373,11 @@ export default function Home() {
             <div className="space-y-2">
               <span className="font-bold text-foreground block">Utilities</span>
               <ul className="space-y-1.5">
+                <li>
+                  <Link href="/excel-to-csv" className="hover:text-foreground">
+                    Excel → CSV
+                  </Link>
+                </li>
                 <li>
                   <Link href="/csv-to-json" className="hover:text-foreground">
                     CSV → JSON
