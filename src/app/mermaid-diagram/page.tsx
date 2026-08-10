@@ -6,16 +6,12 @@ import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
 import { FileUpload } from "@/components/file-upload";
-import {
-  exportMermaidSvg,
-  exportMermaidImage,
-} from "@/lib/mermaid-export";
+import { exportMermaidSvg, exportMermaidImage } from "@/lib/mermaid-export";
 import {
   diagramThemes,
   defaultDiagramTheme,
   getMermaidConfig,
   getThemeSpec,
-  isDiagramTheme,
   type DiagramTheme,
 } from "@/lib/mermaid-themes";
 import {
@@ -52,10 +48,12 @@ export default function MermaidDiagramPage() {
   const [input, setInput] = useState(sampleMermaid);
   const [svgCode, setSvgCode] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [exportFormat, setExportFormat] = useState<(typeof exportOptions)[number]["value"]>("svg");
+  const [exportFormat, setExportFormat] =
+    useState<(typeof exportOptions)[number]["value"]>("svg");
   const [isRendering, setIsRendering] = useState(false);
   const [autoRender, setAutoRender] = useState(true);
-  const [diagramTheme, setDiagramTheme] = useState<DiagramTheme>(defaultDiagramTheme);
+  const [diagramTheme, setDiagramTheme] =
+    useState<DiagramTheme>(defaultDiagramTheme);
   const [zoom, setZoom] = useState(1);
   const previewRef = useRef<HTMLDivElement>(null);
   const zoomTargetRef = useRef<HTMLDivElement>(null);
@@ -66,7 +64,9 @@ export default function MermaidDiagramPage() {
   const zoomStep = 0.1;
 
   const updateZoom = useCallback((delta: number) => {
-    setZoom((prev) => Math.min(maxZoom, Math.max(minZoom, +(prev + delta).toFixed(3))));
+    setZoom((prev) =>
+      Math.min(maxZoom, Math.max(minZoom, +(prev + delta).toFixed(3))),
+    );
   }, []);
 
   const resetZoom = useCallback(() => setZoom(1), []);
@@ -88,13 +88,6 @@ export default function MermaidDiagramPage() {
     el.addEventListener("wheel", handleWheel, { passive: false });
     return () => el.removeEventListener("wheel", handleWheel);
   }, [updateZoom]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("mermaid-diagram-theme");
-    if (saved && isDiagramTheme(saved)) {
-      setDiagramTheme(saved);
-    }
-  }, []);
 
   const renderDiagram = useCallback(async () => {
     if (!input.trim()) {
@@ -121,7 +114,6 @@ export default function MermaidDiagramPage() {
 
   const handleThemeChange = (theme: DiagramTheme) => {
     setDiagramTheme(theme);
-    localStorage.setItem("mermaid-diagram-theme", theme);
   };
 
   useEffect(() => {
@@ -159,7 +151,10 @@ export default function MermaidDiagramPage() {
   };
 
   return (
-    <ToolPageLayout title="Mermaid Diagram" description="Write Mermaid syntax and preview or export diagrams.">
+    <ToolPageLayout
+      title="Mermaid Diagram"
+      description="Write Mermaid syntax and preview or export diagrams."
+    >
       <div className="h-full flex flex-col gap-4">
         {/* Settings Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none shrink-0">
@@ -172,10 +167,14 @@ export default function MermaidDiagramPage() {
             {/* Theme Selector */}
             <div className="flex items-center gap-1.5">
               <Palette className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-muted-foreground font-semibold">Theme:</span>
+              <span className="text-muted-foreground font-semibold">
+                Theme:
+              </span>
               <select
                 value={diagramTheme}
-                onChange={(e) => handleThemeChange(e.target.value as DiagramTheme)}
+                onChange={(e) =>
+                  handleThemeChange(e.target.value as DiagramTheme)
+                }
                 className="h-7 px-2 pr-6 rounded border border-border bg-background text-[11px] font-semibold text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/15 hover:border-primary/40 transition-colors"
               >
                 {diagramThemes.map((option) => (
@@ -188,14 +187,18 @@ export default function MermaidDiagramPage() {
 
             {/* Export Format Selector */}
             <div className="flex items-center gap-1.5">
-              <span className="text-muted-foreground font-semibold">Format:</span>
+              <span className="text-muted-foreground font-semibold">
+                Format:
+              </span>
               <div className="flex border border-border rounded p-0.5 bg-background">
                 {exportOptions.map((option) => {
                   const Icon = option.icon;
                   return (
                     <Button
                       key={option.value}
-                      variant={exportFormat === option.value ? "secondary" : "ghost"}
+                      variant={
+                        exportFormat === option.value ? "secondary" : "ghost"
+                      }
                       size="xs"
                       className="h-6 gap-1 px-2.5 rounded text-[10px] font-semibold"
                       onClick={() => setExportFormat(option.value)}
@@ -368,7 +371,9 @@ export default function MermaidDiagramPage() {
             <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-destructive">Diagram Error</p>
-              <p className="text-muted-foreground text-[11px] mt-0.5">{error}</p>
+              <p className="text-muted-foreground text-[11px] mt-0.5">
+                {error}
+              </p>
             </div>
           </StatusMessage>
         )}
@@ -377,9 +382,12 @@ export default function MermaidDiagramPage() {
           <StatusMessage type="success">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-foreground" />
             <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
-              <span className="font-semibold text-foreground">Diagram rendered successfully.</span>
+              <span className="font-semibold text-foreground">
+                Diagram rendered successfully.
+              </span>
               <span className="text-[11px] text-muted-foreground">
-                Code length: <strong className="text-foreground">{input.length}</strong>
+                Code length:{" "}
+                <strong className="text-foreground">{input.length}</strong>
               </span>
             </div>
           </StatusMessage>
