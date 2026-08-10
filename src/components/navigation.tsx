@@ -33,14 +33,8 @@ export function Navigation() {
         <div className="flex items-center gap-3">
           {isHomepage && (
             <div className="flex items-center gap-4">
-              <Link 
-                href="/csv-to-json" 
-                className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Docs
-              </Link>
-              <Link 
-                href="/csv-to-json" 
+              <Link
+                href="/csv-to-json"
                 className={buttonVariants({ variant: "outline", size: "xs", className: "h-7 text-xs font-semibold rounded" })}
               >
                 Launch App
