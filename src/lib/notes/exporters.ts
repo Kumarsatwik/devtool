@@ -45,7 +45,7 @@ async function svgToPngDataUrl(svg: string, scale = 2): Promise<string> {
 /**
  * Replace mermaid code blocks in editor HTML with rendered diagrams.
  * mode 'svg'  -> inline SVG (great for standalone HTML export)
- * mode 'png'  -> <img> with PNG data URL (needed for PDF/DOCX)
+ * mode 'png'  -> <img> with PNG data URL (needed for DOCX)
  */
 async function resolveMermaid(html: string, mode: "svg" | "png"): Promise<string> {
   const doc = new DOMParser().parseFromString(html, "text/html");
@@ -123,57 +123,6 @@ export async function exportAsHtml(title: string, editorHtml: string): Promise<v
   const body = await resolveMermaid(editorHtml, "svg");
   const doc = buildDocument(title, `<h1>${title}</h1>\n${body}`);
   saveAs(new Blob([doc], { type: "text/html;charset=utf-8" }), `${sanitizeFilename(title)}.html`);
-}
-
-export async function exportAsPdf(title: string, editorHtml: string): Promise<void> {
-  // html2pdf.js touches `window` at module scope — load it on demand, client only
-  const html2pdf = (await import("html2pdf.js")).default;
-  const body = await resolveMermaid(editorHtml, "png");
-  // html2pdf deep-clones the source element into an internal container with
-  // `height: auto`. The source must therefore stay statically positioned —
-  // a fixed/absolute host collapses that container to height 0 and yields a
-  // blank PDF. We hide the on-page original with a wrapper instead (the
-  // wrapper itself is never cloned).
-  const wrapper = document.createElement("div");
-  wrapper.style.cssText =
-    "position:fixed;left:0;top:0;opacity:0;pointer-events:none;z-index:-1;overflow:hidden;";
-  const host = document.createElement("div");
-  host.style.cssText = "width:780px;background:#fff;";
-  host.innerHTML = `<style>${EXPORT_CSS.replace(/body \{/, ".pdf-root {")}</style>
-    <div class="pdf-root" style="margin:0;padding:12px 20px;"><h1>${title}</h1>${body}</div>`;
-  wrapper.appendChild(host);
-  document.body.appendChild(wrapper);
-  // Wait for embedded images inside the host to finish decoding
-  await Promise.all(
-    Array.from(host.querySelectorAll("img")).map((img) =>
-      img.complete ? Promise.resolve() : new Promise((res) => {
-        img.onload = img.onerror = () => res(undefined);
-      }),
-    ),
-  );
-  try {
-    await html2pdf()
-      .set({
-        margin: [12, 12, 14, 12],
-        filename: `${sanitizeFilename(title)}.pdf`,
-        image: { type: "jpeg", quality: 0.96 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: "#ffffff",
-          scrollX: 0,
-          scrollY: 0,
-          windowWidth: 820,
-        },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        // `pagebreak` is supported at runtime but missing from the lib's types
-        ...({ pagebreak: { mode: ["css", "legacy"] } } as object),
-      })
-      .from(host)
-      .save();
-  } finally {
-    document.body.removeChild(wrapper);
-  }
 }
 
 export async function exportAsDocx(title: string, editorHtml: string): Promise<void> {

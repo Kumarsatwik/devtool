@@ -6,14 +6,13 @@ import { htmlToMarkdown, markdownToHtml } from "@/lib/notes/markdown";
 
 interface MarkdownPaneProps {
   editor: Editor;
-  noteId: string;
 }
 
 /**
  * Live markdown source view. Editor changes stream in; typing here
  * is converted back into the rich editor (two-way sync).
  */
-export function MarkdownPane({ editor, noteId }: MarkdownPaneProps) {
+export function MarkdownPane({ editor }: MarkdownPaneProps) {
   const [text, setText] = useState(() => htmlToMarkdown(editor.getHTML()));
   const focused = useRef(false);
   const applyTimer = useRef<number | undefined>(undefined);
@@ -28,7 +27,7 @@ export function MarkdownPane({ editor, noteId }: MarkdownPaneProps) {
     return () => {
       editor.off("update", onUpdate);
     };
-  }, [editor, noteId]);
+  }, [editor]);
 
   // pane -> editor (debounced)
   const handleChange = (value: string) => {

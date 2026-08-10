@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { TextStyleKit } from "@tiptap/extension-text-style";
@@ -13,15 +13,12 @@ import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table
 import { ToolPageLayout } from "@/components/tool-page-layout";
 import { MermaidBlock } from "@/components/notes/mermaid-block";
 import { Toolbar, type ExportFormat } from "@/components/notes/toolbar";
-import { NotesSidebar } from "@/components/notes/notes-sidebar";
 import { MarkdownPane } from "@/components/notes/markdown-pane";
-import { useNotes } from "@/hooks/use-notes";
 import { markdownToHtml } from "@/lib/notes/markdown";
 import {
   exportAsDocx,
   exportAsHtml,
   exportAsMarkdown,
-  exportAsPdf,
   exportAsTxt,
 } from "@/lib/notes/exporters";
 import "./notes.css";
@@ -43,62 +40,69 @@ const extensions = [
   MermaidBlock,
 ];
 
+const WELCOME_HTML = `
+<h2>Welcome 👋</h2>
+<p>This is a <strong>rich text</strong> note editor with <em>italic</em>, <u>underline</u>, <mark>highlight</mark> and full <strong>Markdown</strong> support.</p>
+<ul>
+  <li>Use the toolbar to format text, change fonts and sizes</li>
+  <li>Insert images — they are embedded right into the note</li>
+  <li>Add Mermaid diagrams with a live preview</li>
+  <li>Open / save <code>.md</code> files, export to HTML, DOCX, TXT</li>
+</ul>
+<pre data-type="mermaid"><code>graph LR
+  A[Write notes] --> B{Format}
+  B --> C[Markdown]
+  B --> D[Rich text]
+  C --> E[Export: HTML / DOCX / TXT]
+  D --> E</code></pre>
+<blockquote><p>Tip: switch to the Markdown pane to edit raw markdown side by side.</p></blockquote>
+`;
+
 export default function MarkdownPreviewPage() {
-  const { notes, activeNote, setActiveId, addNote, updateNote, deleteNote } = useNotes();
+  const [title, setTitle] = useState("Welcome");
+  const [html, setHtml] = useState(WELCOME_HTML);
   const [showMarkdown, setShowMarkdown] = useState(false);
   const [exporting, setExporting] = useState<ExportFormat | null>(null);
-  const loadedNoteId = useRef<string | null>(null);
 
   const editor = useEditor({
     extensions,
-    content: activeNote?.html ?? "<p></p>",
+    content: html,
     // Required for Next.js SSR — render the editor on the client only
     immediatelyRender: false,
     editorProps: {
       attributes: { class: "note-editor", spellcheck: "true" },
     },
     onUpdate: ({ editor: e }) => {
-      if (loadedNoteId.current) {
-        updateNote(loadedNoteId.current, { html: e.getHTML() });
-      }
+      setHtml(e.getHTML());
     },
   });
 
-  // Load content when the active note changes
-  useEffect(() => {
-    if (!editor || !activeNote) return;
-    if (loadedNoteId.current === activeNote.id) return;
-    loadedNoteId.current = activeNote.id;
-    editor.commands.setContent(activeNote.html, { emitUpdate: false });
-  }, [editor, activeNote]);
-
   const handleOpenFile = async (file: File) => {
     const text = await file.text();
-    const title = file.name.replace(/\.(md|markdown|txt)$/i, "");
-    addNote(title, markdownToHtml(text));
+    const nextHtml = markdownToHtml(text);
+    setTitle(file.name.replace(/\.(md|markdown|txt)$/i, ""));
+    setHtml(nextHtml);
+    editor?.commands.setContent(nextHtml, { emitUpdate: false });
   };
 
   const handleExport = async (format: ExportFormat) => {
-    if (!editor || !activeNote) return;
-    const title = activeNote.title || "Untitled note";
-    const html = editor.getHTML();
+    if (!editor) return;
+    const noteTitle = title || "Untitled note";
+    const editorHtml = editor.getHTML();
     setExporting(format);
     try {
       switch (format) {
         case "md":
-          exportAsMarkdown(title, html);
+          exportAsMarkdown(noteTitle, editorHtml);
           break;
         case "txt":
-          exportAsTxt(title, html);
+          exportAsTxt(noteTitle, editorHtml);
           break;
         case "html":
-          await exportAsHtml(title, html);
-          break;
-        case "pdf":
-          await exportAsPdf(title, html);
+          await exportAsHtml(noteTitle, editorHtml);
           break;
         case "docx":
-          await exportAsDocx(title, html);
+          await exportAsDocx(noteTitle, editorHtml);
           break;
       }
     } catch (err) {
@@ -116,19 +120,12 @@ export default function MarkdownPreviewPage() {
     >
       {editor ? (
         <div className="notes-app">
-          <NotesSidebar
-            notes={notes}
-            activeId={activeNote?.id}
-            onSelect={setActiveId}
-            onAdd={() => addNote()}
-            onDelete={deleteNote}
-          />
           <main className="notes-main">
             <input
               className="title-input"
-              value={activeNote?.title ?? ""}
+              value={title}
               placeholder="Untitled note"
-              onChange={(e) => activeNote && updateNote(activeNote.id, { title: e.target.value })}
+              onChange={(e) => setTitle(e.target.value)}
             />
             <Toolbar
               editor={editor}
@@ -142,9 +139,7 @@ export default function MarkdownPreviewPage() {
               <div className="editor-scroll">
                 <EditorContent editor={editor} />
               </div>
-              {showMarkdown && activeNote && (
-                <MarkdownPane editor={editor} noteId={activeNote.id} />
-              )}
+              {showMarkdown && <MarkdownPane editor={editor} />}
             </div>
           </main>
         </div>

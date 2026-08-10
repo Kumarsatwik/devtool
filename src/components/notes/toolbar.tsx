@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import { useEditorState, type Editor } from "@tiptap/react";
 
-export type ExportFormat = "pdf" | "html" | "docx" | "txt" | "md";
+export type ExportFormat = "html" | "docx" | "txt" | "md";
 
 interface ToolbarProps {
   editor: Editor;
@@ -131,7 +131,7 @@ export function Toolbar({
           </button>
           {exportOpen && (
             <div className="tb-menu">
-              {(["md", "pdf", "html", "docx", "txt"] as ExportFormat[]).map((f) => (
+              {(["md", "html", "docx", "txt"] as ExportFormat[]).map((f) => (
                 <button
                   key={f}
                   className="tb-menu-item"
