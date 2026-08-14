@@ -2,10 +2,10 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
+import { useTheme } from "@/components/theme-provider";
 import {
   compareJSON,
   sortJSONKeys,

@@ -1,10 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useTheme } from "next-themes";
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/components/theme-provider";
 import { Copy, Check, Download, Trash2, FileText, Upload, RefreshCw } from "lucide-react";
 import { saveAs } from "file-saver";
 

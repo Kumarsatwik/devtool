@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import { ToolPageLayout } from "@/components/tool-page-layout";
 import { Copy, Check, RefreshCw } from "lucide-react";
 

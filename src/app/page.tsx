@@ -25,6 +25,8 @@ import {
   Clock,
   Workflow,
   FileText,
+  Network,
+  ShieldCheck,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -32,7 +34,8 @@ const tools = [
   {
     href: "/excel-to-csv",
     title: "Excel → CSV",
-    description: "Convert Excel spreadsheets (.xlsx / .xls) into clean CSV sheets",
+    description:
+      "Convert Excel spreadsheets (.xlsx / .xls) into clean CSV sheets",
     icon: FileSpreadsheet,
     tag: "Excel to CSV",
   },
@@ -105,9 +108,26 @@ const tools = [
   {
     href: "/markdown-preview",
     title: "Markdown Notes",
-    description: "Rich Markdown note editor with diagrams, images, and export to PDF/HTML/DOCX/TXT/MD",
+    description:
+      "Rich Markdown note editor with diagrams, images, and export to PDF/HTML/DOCX/TXT/MD",
     icon: FileText,
     tag: "Docs",
+  },
+  {
+    href: "/har-analyzer",
+    title: "HAR Analyzer",
+    description:
+      "Analyze HTTP Archive files for performance, errors, CORS, and auth issues",
+    icon: Network,
+    tag: "Performance",
+  },
+  {
+    href: "/json-sanitizer",
+    title: "JSON Sanitizer",
+    description:
+      "Redact sensitive values from API responses and database records before sharing",
+    icon: ShieldCheck,
+    tag: "Privacy",
   },
 ];
 
@@ -389,10 +409,7 @@ export default function Home() {
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    href="/json-compare"
-                    className="hover:text-foreground"
-                  >
+                  <Link href="/json-compare" className="hover:text-foreground">
                     Compare JSON
                   </Link>
                 </li>

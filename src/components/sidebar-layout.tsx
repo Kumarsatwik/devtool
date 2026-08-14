@@ -16,6 +16,8 @@ import {
   Clock,
   Workflow,
   FileText,
+  Network,
+  ShieldCheck,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -32,6 +34,8 @@ const tools = [
   { href: "/epoch-converter", label: "Epoch Converter", icon: Clock },
   { href: "/mermaid-diagram", label: "Mermaid Diagram", icon: Workflow },
   { href: "/markdown-preview", label: "Markdown Notes", icon: FileText },
+  { href: "/har-analyzer", label: "HAR Analyzer", icon: Network },
+  { href: "/json-sanitizer", label: "JSON Sanitizer", icon: ShieldCheck },
 ];
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
