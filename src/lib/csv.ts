@@ -34,5 +34,15 @@ export function jsonToCSV(jsonData: unknown): string {
     throw new Error("Array is empty");
   }
 
-  return Papa.unparse(jsonData);
+  const flattened = jsonData.map((item) => {
+    if (item === null || typeof item !== "object") return item;
+    return Object.fromEntries(
+      Object.entries(item).map(([key, value]) => [
+        key,
+        value !== null && typeof value === "object" ? JSON.stringify(value) : value,
+      ])
+    );
+  });
+
+  return Papa.unparse(flattened);
 }
