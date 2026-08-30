@@ -143,7 +143,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Workspace content region */}
-      <div className="flex-1 min-w-0 bg-background overflow-hidden">
+      <div className="flex-1 min-w-0 bg-background overflow-clip">
         {children}
       </div>
     </div>

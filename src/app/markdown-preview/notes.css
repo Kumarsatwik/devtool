@@ -20,8 +20,14 @@
   --nb-radius: var(--radius);
 
   display: flex;
-  height: 100%;
-  overflow: hidden;
+  /* Fixed-height window: the page never scrolls; .editor-scroll and the
+     markdown pane scroll internally instead. Offset = ToolPageLayout chrome
+     (breadcrumb, paddings and gaps above/below the content area). */
+  height: calc(100dvh - 104px);
+  min-height: 360px;
+  /* clip (not hidden) keeps corner clipping without creating a scroll
+     container, so the sticky toolbar can pin against the page scroll */
+  overflow: clip;
   border: 1px solid var(--nb-border);
   border-radius: calc(var(--radius) * 1.4);
   background: var(--nb-panel);
@@ -92,7 +98,8 @@
   padding: 6px 16px;
   border-bottom: 1px solid var(--nb-border);
   background: var(--nb-panel);
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 5;
 }
 

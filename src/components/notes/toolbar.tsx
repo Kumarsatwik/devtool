@@ -1,7 +1,15 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import type { ReactNode } from "react";
+import { Fragment, useRef, useState, useEffect } from "react";
 import { useEditorState, type Editor } from "@tiptap/react";
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export type ExportFormat = "html" | "docx" | "txt" | "md";
 
@@ -31,8 +39,14 @@ const FONT_FAMILIES = [
   { label: "Courier New", value: '"Courier New", Courier, monospace' },
   { label: "Rounded", value: '"Avenir Next", "Trebuchet MS", sans-serif' },
   { label: "Cursive", value: '"Comic Sans MS", "Bradley Hand", cursive' },
-  { label: "Brush Script", value: '"Brush Script MT", "Snell Roundhand", cursive' },
-  { label: "Copperplate", value: 'Copperplate, "Copperplate Gothic Light", fantasy' },
+  {
+    label: "Brush Script",
+    value: '"Brush Script MT", "Snell Roundhand", cursive',
+  },
+  {
+    label: "Copperplate",
+    value: 'Copperplate, "Copperplate Gothic Light", fantasy',
+  },
 ];
 
 const FONT_SIZES = [12, 14, 16, 18, 20, 24, 28, 32, 40, 48];
@@ -42,6 +56,43 @@ function parsePx(value: string | undefined | null): number | null {
   if (!value) return null;
   const n = parseFloat(value);
   return Number.isFinite(n) ? n : null;
+}
+
+const kbdCls =
+  "inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded border border-border bg-muted px-1 font-mono text-[10px] font-semibold leading-none text-foreground";
+
+function Kbd({ children }: { children: ReactNode }) {
+  return <kbd className={kbdCls}>{children}</kbd>;
+}
+
+function Shortcut({
+  keys,
+  alt = false,
+  shift = false,
+  mac,
+}: {
+  keys: string;
+  alt?: boolean;
+  shift?: boolean;
+  mac: boolean;
+}) {
+  const parts = mac
+    ? ["⌘", alt && "⌥", shift && "⇧", keys].filter(Boolean)
+    : ["Ctrl", alt && "Alt", shift && "Shift", keys].filter(Boolean);
+  return (
+    <span className="ml-auto inline-flex shrink-0 items-center gap-0.5">
+      {parts.map((p, i) => (
+        <Fragment key={i}>
+          {i > 0 && (
+            <span className="text-[10px] text-muted-foreground select-none">
+              +
+            </span>
+          )}
+          <Kbd>{p}</Kbd>
+        </Fragment>
+      ))}
+    </span>
+  );
 }
 
 export function Toolbar({
@@ -56,6 +107,11 @@ export function Toolbar({
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
+  const [isMac, setIsMac] = useState(true);
+
+  useEffect(() => {
+    setIsMac(/Mac|iPhone|iPad|iPod/.test(navigator.userAgent));
+  }, []);
 
   const state = useEditorState({
     editor,
@@ -75,7 +131,9 @@ export function Toolbar({
       blockquote: e.isActive("blockquote"),
       codeBlock: e.isActive("codeBlock"),
       fontFamily: (e.getAttributes("textStyle").fontFamily as string) ?? "",
-      fontSize: parsePx(e.getAttributes("textStyle").fontSize as string) ?? DEFAULT_FONT_SIZE,
+      fontSize:
+        parsePx(e.getAttributes("textStyle").fontSize as string) ??
+        DEFAULT_FONT_SIZE,
       canUndo: e.can().undo(),
       canRedo: e.can().redo(),
     }),
@@ -102,7 +160,9 @@ export function Toolbar({
   const insertImage = (file: File) => {
     const reader = new FileReader();
     reader.onload = () => {
-      chain().setImage({ src: reader.result as string, alt: file.name }).run();
+      chain()
+        .setImage({ src: reader.result as string, alt: file.name })
+        .run();
     };
     reader.readAsDataURL(file);
   };
@@ -110,159 +170,478 @@ export function Toolbar({
   const btn = (active: boolean) => `tb-btn${active ? " is-active" : ""}`;
 
   return (
-    <div className="toolbar">
-      {/* File */}
-      <div className="tb-group">
-        <button
-          className="tb-btn"
-          title="Open Markdown file"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          📂 Open
-        </button>
-        <div className="tb-dropdown" ref={exportRef}>
-          <button
-            className={`tb-btn${exportOpen ? " is-active" : ""}`}
-            title="Export note"
-            onClick={() => setExportOpen((v) => !v)}
-            disabled={exporting !== null}
-          >
-            {exporting ? `Exporting ${exporting.toUpperCase()}…` : "⬇ Export"}
-          </button>
-          {exportOpen && (
-            <div className="tb-menu">
-              {(["md", "html", "docx", "txt"] as ExportFormat[]).map((f) => (
+    <TooltipProvider>
+      <div className="toolbar">
+        {/* File */}
+        <div className="tb-group">
+          <Tooltip>
+            <TooltipTrigger
+              render={
                 <button
-                  key={f}
-                  className="tb-menu-item"
-                  onClick={() => {
-                    setExportOpen(false);
-                    onExport(f);
+                  className="tb-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  📂 Open
+                </button>
+              }
+            />
+            <TooltipContent>Open Markdown file</TooltipContent>
+          </Tooltip>
+          <div className="tb-dropdown" ref={exportRef}>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <button
+                    className={`tb-btn${exportOpen ? " is-active" : ""}`}
+                    onClick={() => setExportOpen((v) => !v)}
+                    disabled={exporting !== null}
+                  >
+                    {exporting
+                      ? `Exporting ${exporting.toUpperCase()}…`
+                      : "⬇ Export"}
+                  </button>
+                }
+              />
+              <TooltipContent>Export note</TooltipContent>
+            </Tooltip>
+            {exportOpen && (
+              <div className="tb-menu">
+                {(["md", "html", "docx", "txt"] as ExportFormat[]).map((f) => (
+                  <button
+                    key={f}
+                    className="tb-menu-item"
+                    onClick={() => {
+                      setExportOpen(false);
+                      onExport(f);
+                    }}
+                  >
+                    {f === "md" ? "Markdown (.md)" : f.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <span className="tb-sep" />
+
+        {/* History */}
+        <div className="tb-group">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className="tb-btn"
+                  disabled={!state.canUndo}
+                  onClick={() => chain().undo().run()}
+                >
+                  ↩
+                </button>
+              }
+            />
+            <TooltipContent>
+              Undo <Shortcut keys="Z" mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className="tb-btn"
+                  disabled={!state.canRedo}
+                  onClick={() => chain().redo().run()}
+                >
+                  ↪
+                </button>
+              }
+            />
+            <TooltipContent>
+              Redo <Shortcut keys="Z" shift mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
+        <span className="tb-sep" />
+
+        {/* Font family & size */}
+        <div className="tb-group">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <select
+                  className="tb-select"
+                  value={state.fontFamily}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v) chain().setFontFamily(v).run();
+                    else chain().unsetFontFamily().run();
                   }}
                 >
-                  {f === "md" ? "Markdown (.md)" : f.toUpperCase()}
+                  {FONT_FAMILIES.map((f) => (
+                    <option
+                      key={f.label}
+                      value={f.value}
+                      style={{ fontFamily: f.value || undefined }}
+                    >
+                      {f.label}
+                    </option>
+                  ))}
+                </select>
+              }
+            />
+            <TooltipContent>Font family</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className="tb-btn"
+                  onClick={() => setFontSize(state.fontSize - 2)}
+                >
+                  A−
                 </button>
-              ))}
-            </div>
-          )}
+              }
+            />
+            <TooltipContent>Decrease font size</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <select
+                  className="tb-select tb-select-size"
+                  value={state.fontSize}
+                  onChange={(e) => setFontSize(Number(e.target.value))}
+                >
+                  {!FONT_SIZES.includes(state.fontSize) && (
+                    <option value={state.fontSize}>{state.fontSize}</option>
+                  )}
+                  {FONT_SIZES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              }
+            />
+            <TooltipContent>Font size</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className="tb-btn"
+                  onClick={() => setFontSize(state.fontSize + 2)}
+                >
+                  A+
+                </button>
+              }
+            />
+            <TooltipContent>Increase font size</TooltipContent>
+          </Tooltip>
         </div>
-      </div>
 
-      <span className="tb-sep" />
+        <span className="tb-sep" />
 
-      {/* History */}
-      <div className="tb-group">
-        <button className="tb-btn" title="Undo (⌘Z)" disabled={!state.canUndo} onClick={() => chain().undo().run()}>↩</button>
-        <button className="tb-btn" title="Redo (⌘⇧Z)" disabled={!state.canRedo} onClick={() => chain().redo().run()}>↪</button>
-      </div>
+        {/* Inline marks */}
+        <div className="tb-group">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className={btn(state.bold)}
+                  onClick={() => chain().toggleBold().run()}
+                >
+                  <b>B</b>
+                </button>
+              }
+            />
+            <TooltipContent>
+              Bold <Shortcut keys="B" mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className={btn(state.italic)}
+                  onClick={() => chain().toggleItalic().run()}
+                >
+                  <i>I</i>
+                </button>
+              }
+            />
+            <TooltipContent>
+              Italic <Shortcut keys="I" mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className={btn(state.underline)}
+                  onClick={() => chain().toggleUnderline().run()}
+                >
+                  <u>U</u>
+                </button>
+              }
+            />
+            <TooltipContent>
+              Underline <Shortcut keys="U" mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className={btn(state.strike)}
+                  onClick={() => chain().toggleStrike().run()}
+                >
+                  <s>S</s>
+                </button>
+              }
+            />
+            <TooltipContent>
+              Strikethrough <Shortcut keys="S" shift mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className={btn(state.highlight)}
+                  onClick={() => chain().toggleHighlight().run()}
+                >
+                  <span className="hl-swatch">H</span>
+                </button>
+              }
+            />
+            <TooltipContent>
+              Highlight <Shortcut keys="H" shift mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className={btn(state.code)}
+                  onClick={() => chain().toggleCode().run()}
+                >
+                  {"/>"}
+                </button>
+              }
+            />
+            <TooltipContent>
+              Inline code <Shortcut keys="E" mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+        </div>
 
-      <span className="tb-sep" />
+        <span className="tb-sep" />
 
-      {/* Font family & size */}
-      <div className="tb-group">
-        <select
-          className="tb-select"
-          title="Font family"
-          value={state.fontFamily}
+        {/* Blocks */}
+        <div className="tb-group">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className={btn(state.h1)}
+                  onClick={() => chain().toggleHeading({ level: 1 }).run()}
+                >
+                  H1
+                </button>
+              }
+            />
+            <TooltipContent>
+              Heading 1 <Shortcut keys="1" alt mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className={btn(state.h2)}
+                  onClick={() => chain().toggleHeading({ level: 2 }).run()}
+                >
+                  H2
+                </button>
+              }
+            />
+            <TooltipContent>
+              Heading 2 <Shortcut keys="2" alt mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className={btn(state.h3)}
+                  onClick={() => chain().toggleHeading({ level: 3 }).run()}
+                >
+                  H3
+                </button>
+              }
+            />
+            <TooltipContent>
+              Heading 3 <Shortcut keys="3" alt mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className={btn(state.bulletList)}
+                  onClick={() => chain().toggleBulletList().run()}
+                >
+                  • List
+                </button>
+              }
+            />
+            <TooltipContent>
+              Bullet list <Shortcut keys="8" shift mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className={btn(state.orderedList)}
+                  onClick={() => chain().toggleOrderedList().run()}
+                >
+                  1. List
+                </button>
+              }
+            />
+            <TooltipContent>
+              Numbered list <Shortcut keys="7" shift mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className={btn(state.taskList)}
+                  onClick={() => chain().toggleTaskList().run()}
+                >
+                  ☑
+                </button>
+              }
+            />
+            <TooltipContent>Task list</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className={btn(state.blockquote)}
+                  onClick={() => chain().toggleBlockquote().run()}
+                >
+                  ❝
+                </button>
+              }
+            />
+            <TooltipContent>
+              Blockquote <Shortcut keys="B" shift mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className={btn(state.codeBlock)}
+                  onClick={() => chain().toggleCodeBlock().run()}
+                >
+                  {"{ }"}
+                </button>
+              }
+            />
+            <TooltipContent>
+              Code block <Shortcut keys="C" alt mac={isMac} />
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className="tb-btn"
+                  onClick={() => chain().setHorizontalRule().run()}
+                >
+                  ―
+                </button>
+              }
+            />
+            <TooltipContent>Horizontal rule</TooltipContent>
+          </Tooltip>
+        </div>
+
+        <span className="tb-sep" />
+
+        {/* Insert */}
+        <div className="tb-group">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className="tb-btn"
+                  onClick={() => imageInputRef.current?.click()}
+                >
+                  🖼 Image
+                </button>
+              }
+            />
+            <TooltipContent>Insert image</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <button
+                  className="tb-btn"
+                  onClick={() => chain().insertMermaid().run()}
+                >
+                  ◈ Diagram
+                </button>
+              }
+            />
+            <TooltipContent>Insert Mermaid diagram</TooltipContent>
+          </Tooltip>
+        </div>
+
+        <span className="tb-flex" />
+
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <button className={btn(showMarkdown)} onClick={onToggleMarkdown}>
+                Ⓜ Markdown
+              </button>
+            }
+          />
+          <TooltipContent>Toggle Markdown source pane</TooltipContent>
+        </Tooltip>
+
+        {/* Hidden inputs */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".md,.markdown,.txt,text/markdown,text/plain"
+          style={{ display: "none" }}
           onChange={(e) => {
-            const v = e.target.value;
-            if (v) chain().setFontFamily(v).run();
-            else chain().unsetFontFamily().run();
+            const file = e.target.files?.[0];
+            if (file) onOpenFile(file);
+            e.target.value = "";
           }}
-        >
-          {FONT_FAMILIES.map((f) => (
-            <option key={f.label} value={f.value} style={{ fontFamily: f.value || undefined }}>
-              {f.label}
-            </option>
-          ))}
-        </select>
-        <button className="tb-btn" title="Decrease font size" onClick={() => setFontSize(state.fontSize - 2)}>A−</button>
-        <select
-          className="tb-select tb-select-size"
-          title="Font size"
-          value={state.fontSize}
-          onChange={(e) => setFontSize(Number(e.target.value))}
-        >
-          {!FONT_SIZES.includes(state.fontSize) && (
-            <option value={state.fontSize}>{state.fontSize}</option>
-          )}
-          {FONT_SIZES.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-        <button className="tb-btn" title="Increase font size" onClick={() => setFontSize(state.fontSize + 2)}>A+</button>
+        />
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          style={{ display: "none" }}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) insertImage(file);
+            e.target.value = "";
+          }}
+        />
       </div>
-
-      <span className="tb-sep" />
-
-      {/* Inline marks */}
-      <div className="tb-group">
-        <button className={btn(state.bold)} title="Bold (⌘B)" onClick={() => chain().toggleBold().run()}><b>B</b></button>
-        <button className={btn(state.italic)} title="Italic (⌘I)" onClick={() => chain().toggleItalic().run()}><i>I</i></button>
-        <button className={btn(state.underline)} title="Underline (⌘U)" onClick={() => chain().toggleUnderline().run()}><u>U</u></button>
-        <button className={btn(state.strike)} title="Strikethrough" onClick={() => chain().toggleStrike().run()}><s>S</s></button>
-        <button className={btn(state.highlight)} title="Highlight" onClick={() => chain().toggleHighlight().run()}>
-          <span className="hl-swatch">H</span>
-        </button>
-        <button className={btn(state.code)} title="Inline code" onClick={() => chain().toggleCode().run()}>{"</>"}</button>
-      </div>
-
-      <span className="tb-sep" />
-
-      {/* Blocks */}
-      <div className="tb-group">
-        <button className={btn(state.h1)} title="Heading 1" onClick={() => chain().toggleHeading({ level: 1 }).run()}>H1</button>
-        <button className={btn(state.h2)} title="Heading 2" onClick={() => chain().toggleHeading({ level: 2 }).run()}>H2</button>
-        <button className={btn(state.h3)} title="Heading 3" onClick={() => chain().toggleHeading({ level: 3 }).run()}>H3</button>
-        <button className={btn(state.bulletList)} title="Bullet list" onClick={() => chain().toggleBulletList().run()}>• List</button>
-        <button className={btn(state.orderedList)} title="Numbered list" onClick={() => chain().toggleOrderedList().run()}>1. List</button>
-        <button className={btn(state.taskList)} title="Task list" onClick={() => chain().toggleTaskList().run()}>☑</button>
-        <button className={btn(state.blockquote)} title="Blockquote" onClick={() => chain().toggleBlockquote().run()}>❝</button>
-        <button className={btn(state.codeBlock)} title="Code block" onClick={() => chain().toggleCodeBlock().run()}>{"{ }"}</button>
-        <button className="tb-btn" title="Horizontal rule" onClick={() => chain().setHorizontalRule().run()}>―</button>
-      </div>
-
-      <span className="tb-sep" />
-
-      {/* Insert */}
-      <div className="tb-group">
-        <button className="tb-btn" title="Insert image" onClick={() => imageInputRef.current?.click()}>🖼 Image</button>
-        <button className="tb-btn" title="Insert Mermaid diagram" onClick={() => chain().insertMermaid().run()}>◈ Diagram</button>
-      </div>
-
-      <span className="tb-flex" />
-
-      <button
-        className={btn(showMarkdown)}
-        title="Toggle Markdown source pane"
-        onClick={onToggleMarkdown}
-      >
-        Ⓜ Markdown
-      </button>
-
-      {/* Hidden inputs */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".md,.markdown,.txt,text/markdown,text/plain"
-        style={{ display: "none" }}
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) onOpenFile(file);
-          e.target.value = "";
-        }}
-      />
-      <input
-        ref={imageInputRef}
-        type="file"
-        accept="image/*"
-        style={{ display: "none" }}
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) insertImage(file);
-          e.target.value = "";
-        }}
-      />
-    </div>
+    </TooltipProvider>
   );
 }
