@@ -162,6 +162,7 @@ export default function JSONToCSVPage() {
                     readOnly
                     height="fill"
                     downloadFileName="converted.csv"
+                    downloadExtension="csv"
                     className="h-full"
                   />
                 </TabsContent>

@@ -244,10 +244,11 @@ export default function MermaidDiagramPage() {
             <EditorPanel
               value={input}
               onChange={setInput}
-              language="plaintext"
+              language="mermaid"
               title=""
               sampleText={sampleMermaid}
               downloadFileName="diagram.mmd"
+              downloadExtension="mmd"
               height="fill"
               className="flex-1 min-h-0"
             />

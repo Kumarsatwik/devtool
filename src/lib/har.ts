@@ -203,9 +203,23 @@ const JWT_PATTERN =
   /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{5,}\b/;
 const EMAIL_PATTERN = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/;
 
+/**
+ * Mask a sensitive value while preserving its general shape:
+ * keeps the first and last characters, masks the middle with bullets,
+ * and keeps the length when reasonable. Short values (<= 4 chars) and
+ * empty strings are fully hidden so nothing leaks.
+ */
 export function maskValue(value: string): string {
-  void value;
-  return "••••••••";
+  if (value.length === 0) return "••••••••";
+  if (value.length <= 4) return "•".repeat(Math.min(value.length, 4));
+
+  // Very long values: cap the masked span so the UI stays readable.
+  const maxLen = 64;
+  const keep = Math.max(1, Math.min(2, Math.floor(value.length / 8)));
+  if (value.length > maxLen) {
+    return `${value.slice(0, keep)}${"•".repeat(8)}${value.slice(-keep)}`;
+  }
+  return `${value.slice(0, keep)}${"•".repeat(value.length - keep * 2)}${value.slice(-keep)}`;
 }
 
 export function isSensitiveHeader(name: string, value: string): boolean {

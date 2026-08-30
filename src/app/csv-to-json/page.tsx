@@ -145,6 +145,7 @@ export default function CSVToJSONPage() {
               language="plaintext"
               title="CSV Input"
               sampleText={sampleCSV}
+              accept=".csv,.tsv,.txt"
               height="fill"
               className="flex-1 min-h-0"
             />

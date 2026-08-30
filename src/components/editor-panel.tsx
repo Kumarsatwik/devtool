@@ -19,8 +19,25 @@ interface EditorPanelProps {
   title?: string;
   sampleText?: string;
   downloadFileName?: string;
+  /** File extensions allowed by the upload picker, e.g. ".csv,.tsv" (defaults derived from `language`). */
+  accept?: string;
+  /** MIME type used for the download blob (defaults derived from `language`). */
+  mimeType?: string;
+  /** File extension used for the download when `downloadFileName` has none (defaults derived from `language`). */
+  downloadExtension?: string;
   className?: string;
 }
+
+const DEFAULT_FILE_TYPE: Record<string, { extension: string; mimeType: string; accept: string }> = {
+  json: { extension: "json", mimeType: "application/json", accept: ".json" },
+  javascript: { extension: "js", mimeType: "text/javascript", accept: ".js,.mjs" },
+  markdown: { extension: "md", mimeType: "text/markdown", accept: ".md,.markdown,.txt" },
+  xml: { extension: "xml", mimeType: "application/xml", accept: ".xml" },
+  yaml: { extension: "yaml", mimeType: "text/yaml", accept: ".yaml,.yml" },
+  csv: { extension: "csv", mimeType: "text/csv", accept: ".csv" },
+  html: { extension: "html", mimeType: "text/html", accept: ".html,.htm" },
+  mermaid: { extension: "mmd", mimeType: "text/plain", accept: ".mmd,.mermaid,.txt" },
+};
 
 export function EditorPanel({
   value,
@@ -31,6 +48,9 @@ export function EditorPanel({
   title,
   sampleText,
   downloadFileName,
+  accept,
+  mimeType,
+  downloadExtension,
   className,
 }: EditorPanelProps) {
   const { resolvedTheme } = useTheme();
@@ -41,6 +61,12 @@ export function EditorPanel({
   useEffect(() => setMounted(true), []);
 
   const theme = mounted && resolvedTheme === "dark" ? "vs-dark" : "vs-light";
+
+  const fileType = DEFAULT_FILE_TYPE[language] ?? {
+    extension: "txt",
+    mimeType: "text/plain",
+    accept: "*",
+  };
 
   const handleCopy = async () => {
     if (!value) return;
@@ -55,12 +81,16 @@ export function EditorPanel({
 
   const handleDownload = () => {
     if (!value) return;
-    const extension = language === "json" ? "json" : language === "javascript" ? "js" : "txt";
-    const filename = downloadFileName || `file.${extension}`;
-    const mimeType = language === "json" ? "application/json" : language === "javascript" ? "text/javascript" : "text/plain";
-    
-    const blob = new Blob([value], { type: `${mimeType};charset=utf-8` });
-    saveAs(blob, filename);
+    const name =
+      downloadFileName ||
+      (title
+        ? `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "file"}.${fileType.extension}`
+        : `file.${fileType.extension}`);
+    const finalName = downloadExtension && !name.toLowerCase().endsWith(`.${downloadExtension.toLowerCase()}`)
+      ? `${name}.${downloadExtension}`
+      : name;
+    const blob = new Blob([value], { type: `${mimeType ?? fileType.mimeType};charset=utf-8` });
+    saveAs(blob, finalName);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,7 +150,7 @@ export function EditorPanel({
                   ref={fileInputRef}
                   className="hidden"
                   onChange={handleFileUpload}
-                  accept={language === "json" ? ".json" : language === "javascript" ? ".js" : "*"}
+                  accept={accept ?? fileType.accept}
                 />
                 <Button
                   variant="ghost"

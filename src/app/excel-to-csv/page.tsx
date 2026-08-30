@@ -273,6 +273,7 @@ export default function ExcelToCSVPage() {
                     readOnly
                     height="fill"
                     downloadFileName="converted.csv"
+                    downloadExtension="csv"
                     className="h-full"
                   />
                 </TabsContent>

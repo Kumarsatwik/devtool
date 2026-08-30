@@ -76,7 +76,7 @@ export default function JsonSanitizerPage() {
     if (!input.trim()) return null;
     try {
       return sanitizeJson(input, options);
-    } catch (err) {
+    } catch {
       return null;
     }
   }, [input, options]);

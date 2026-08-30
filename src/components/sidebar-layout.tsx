@@ -3,40 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import {
-  ArrowLeftRight,
-  Braces,
-  CheckCircle,
-  FileCode2,
-  FileSpreadsheet,
-  Sparkles,
-  Menu,
-  X,
-  Home,
-  Clock,
-  Workflow,
-  FileText,
-  Network,
-  ShieldCheck,
-} from "lucide-react";
+import { Braces, Menu, X, Home } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-
-const tools = [
-  { href: "/csv-to-json", label: "CSV → JSON", icon: FileSpreadsheet },
-  { href: "/json-to-csv", label: "JSON → CSV", icon: FileSpreadsheet },
-  { href: "/excel-to-csv", label: "Excel → CSV", icon: FileSpreadsheet },
-  { href: "/json-to-js", label: "JSON → JS", icon: FileCode2 },
-  { href: "/js-to-json", label: "JS → JSON", icon: FileCode2 },
-  { href: "/json-beautifier", label: "JSON Beautifier", icon: Sparkles },
-  { href: "/json-validator", label: "JSON Validator", icon: CheckCircle },
-  { href: "/json-compare", label: "JSON Compare", icon: ArrowLeftRight },
-  { href: "/epoch-converter", label: "Epoch Converter", icon: Clock },
-  { href: "/mermaid-diagram", label: "Mermaid Diagram", icon: Workflow },
-  { href: "/markdown-preview", label: "Markdown Notes", icon: FileText },
-  { href: "/har-analyzer", label: "HAR Analyzer", icon: Network },
-  { href: "/json-sanitizer", label: "JSON Sanitizer", icon: ShieldCheck },
-];
+import { tools } from "@/lib/tools";
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -71,7 +41,6 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
               </div>
               <nav className="space-y-0.5">
                 {tools.map((tool) => {
-                  const Icon = tool.icon;
                   const isActive = pathname === tool.href;
                   return (
                     <Link
@@ -84,8 +53,8 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
                           : "text-muted-foreground hover:text-foreground hover:bg-secondary/45 border border-transparent",
                       )}
                     >
-                      <Icon className="h-3.5 w-3.5" />
-                      <span>{tool.label}</span>
+                      <tool.icon className="h-3.5 w-3.5" />
+                      <span>{tool.title}</span>
                     </Link>
                   );
                 })}
@@ -148,7 +117,6 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
                 <div className="h-[1px] bg-border/50" />
                 <nav className="grid gap-1 pt-1">
                   {tools.map((tool) => {
-                    const Icon = tool.icon;
                     const isActive = pathname === tool.href;
                     return (
                       <Link
@@ -162,8 +130,8 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
                             : "text-muted-foreground hover:text-foreground hover:bg-secondary/50",
                         )}
                       >
-                        <Icon className="h-4 w-4" />
-                        <span>{tool.label}</span>
+                        <tool.icon className="h-4 w-4" />
+                        <span>{tool.title}</span>
                       </Link>
                     );
                   })}

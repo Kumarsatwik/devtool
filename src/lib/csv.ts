@@ -34,12 +34,20 @@ export function jsonToCSV(jsonData: unknown): string {
     throw new Error("Array is empty");
   }
 
+  const stringifyCell = (value: unknown): string => {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return "[Unserializable]";
+    }
+  };
+
   const flattened = jsonData.map((item) => {
     if (item === null || typeof item !== "object") return item;
     return Object.fromEntries(
       Object.entries(item).map(([key, value]) => [
         key,
-        value !== null && typeof value === "object" ? JSON.stringify(value) : value,
+        value !== null && typeof value === "object" ? stringifyCell(value) : value,
       ])
     );
   });

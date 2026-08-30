@@ -9,12 +9,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import {
-  ArrowLeftRight,
   Braces,
-  CheckCircle,
-  FileCode2,
-  FileSpreadsheet,
-  Sparkles,
   Search,
   Lock,
   Zap,
@@ -22,114 +17,9 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronUp,
-  Clock,
-  Workflow,
-  FileText,
-  Network,
-  ShieldCheck,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-
-const tools = [
-  {
-    href: "/excel-to-csv",
-    title: "Excel → CSV",
-    description:
-      "Convert Excel spreadsheets (.xlsx / .xls) into clean CSV sheets",
-    icon: FileSpreadsheet,
-    tag: "Excel to CSV",
-  },
-  {
-    href: "/csv-to-json",
-    title: "CSV → JSON",
-    description: "Convert tabular CSV data to a structured JSON array",
-    icon: FileSpreadsheet,
-    tag: "CSV to JSON",
-  },
-  {
-    href: "/json-to-csv",
-    title: "JSON → CSV",
-    description: "Convert JSON arrays into clean comma-separated CSV format",
-    icon: FileSpreadsheet,
-    tag: "JSON to CSV",
-  },
-  {
-    href: "/json-to-js",
-    title: "JSON → JS",
-    description:
-      "Convert standard JSON text to JavaScript object literal notation",
-    icon: FileCode2,
-    tag: "JSON to JS",
-  },
-  {
-    href: "/js-to-json",
-    title: "JS → JSON",
-    description:
-      "Convert JavaScript object literals back into strict, valid JSON",
-    icon: FileCode2,
-    tag: "JS to JSON",
-  },
-  {
-    href: "/json-beautifier",
-    title: "JSON Beautifier",
-    description: "Format, indent, or collapse raw JSON data to read it easily",
-    icon: Sparkles,
-    tag: "Format & Minify",
-  },
-  {
-    href: "/json-validator",
-    title: "JSON Validator",
-    description: "Validate JSON syntax and debug malformed keys or brackets",
-    icon: CheckCircle,
-    tag: "Validator",
-  },
-  {
-    href: "/json-compare",
-    title: "JSON Compare",
-    description: "Compare two JSON objects side-by-side and find discrepancies",
-    icon: ArrowLeftRight,
-    tag: "Diff Viewer",
-  },
-  {
-    href: "/epoch-converter",
-    title: "Epoch Converter",
-    description:
-      "Convert epoch timestamps to IST and UTC, and dates back to epoch",
-    icon: Clock,
-    tag: "Time",
-  },
-  {
-    href: "/mermaid-diagram",
-    title: "Mermaid Diagram",
-    description: "Write Mermaid syntax, preview diagrams, and export as images",
-    icon: Workflow,
-    tag: "Diagrams",
-  },
-  {
-    href: "/markdown-preview",
-    title: "Markdown Notes",
-    description:
-      "Rich Markdown note editor with diagrams, images, and export to PDF/HTML/DOCX/TXT/MD",
-    icon: FileText,
-    tag: "Docs",
-  },
-  {
-    href: "/har-analyzer",
-    title: "HAR Analyzer",
-    description:
-      "Analyze HTTP Archive files for performance, errors, CORS, and auth issues",
-    icon: Network,
-    tag: "Performance",
-  },
-  {
-    href: "/json-sanitizer",
-    title: "JSON Sanitizer",
-    description:
-      "Redact sensitive values from API responses and database records before sharing",
-    icon: ShieldCheck,
-    tag: "Privacy",
-  },
-];
+import { tools } from "@/lib/tools";
 
 const faqData = [
   {
