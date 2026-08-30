@@ -175,33 +175,29 @@ export function Toolbar({
         {/* File */}
         <div className="tb-group">
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className="tb-btn"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  📂 Open
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className="tb-btn"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                📂 Open
+              </button>
+            </TooltipTrigger>
             <TooltipContent>Open Markdown file</TooltipContent>
           </Tooltip>
           <div className="tb-dropdown" ref={exportRef}>
             <Tooltip>
-              <TooltipTrigger
-                render={
-                  <button
-                    className={`tb-btn${exportOpen ? " is-active" : ""}`}
-                    onClick={() => setExportOpen((v) => !v)}
-                    disabled={exporting !== null}
-                  >
-                    {exporting
-                      ? `Exporting ${exporting.toUpperCase()}…`
-                      : "⬇ Export"}
-                  </button>
-                }
-              />
+              <TooltipTrigger>
+                <button
+                  className={`tb-btn${exportOpen ? " is-active" : ""}`}
+                  onClick={() => setExportOpen((v) => !v)}
+                  disabled={exporting !== null}
+                >
+                  {exporting
+                    ? `Exporting ${exporting.toUpperCase()}…`
+                    : "⬇ Export"}
+                </button>
+              </TooltipTrigger>
               <TooltipContent>Export note</TooltipContent>
             </Tooltip>
             {exportOpen && (
@@ -228,33 +224,29 @@ export function Toolbar({
         {/* History */}
         <div className="tb-group">
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className="tb-btn"
-                  disabled={!state.canUndo}
-                  onClick={() => chain().undo().run()}
-                >
-                  ↩
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className="tb-btn"
+                disabled={!state.canUndo}
+                onClick={() => chain().undo().run()}
+              >
+                ↩
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Undo <Shortcut keys="Z" mac={isMac} />
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className="tb-btn"
-                  disabled={!state.canRedo}
-                  onClick={() => chain().redo().run()}
-                >
-                  ↪
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className="tb-btn"
+                disabled={!state.canRedo}
+                onClick={() => chain().redo().run()}
+              >
+                ↪
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Redo <Shortcut keys="Z" shift mac={isMac} />
             </TooltipContent>
@@ -266,76 +258,68 @@ export function Toolbar({
         {/* Font family & size */}
         <div className="tb-group">
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <select
-                  className="tb-select"
-                  value={state.fontFamily}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v) chain().setFontFamily(v).run();
-                    else chain().unsetFontFamily().run();
-                  }}
-                >
-                  {FONT_FAMILIES.map((f) => (
-                    <option
-                      key={f.label}
-                      value={f.value}
-                      style={{ fontFamily: f.value || undefined }}
-                    >
-                      {f.label}
-                    </option>
-                  ))}
-                </select>
-              }
-            />
+            <TooltipTrigger>
+              <select
+                className="tb-select"
+                value={state.fontFamily}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v) chain().setFontFamily(v).run();
+                  else chain().unsetFontFamily().run();
+                }}
+              >
+                {FONT_FAMILIES.map((f) => (
+                  <option
+                    key={f.label}
+                    value={f.value}
+                    style={{ fontFamily: f.value || undefined }}
+                  >
+                    {f.label}
+                  </option>
+                ))}
+              </select>
+            </TooltipTrigger>
             <TooltipContent>Font family</TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className="tb-btn"
-                  onClick={() => setFontSize(state.fontSize - 2)}
-                >
-                  A−
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className="tb-btn"
+                onClick={() => setFontSize(state.fontSize - 2)}
+              >
+                A−
+              </button>
+            </TooltipTrigger>
             <TooltipContent>Decrease font size</TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <select
-                  className="tb-select tb-select-size"
-                  value={state.fontSize}
-                  onChange={(e) => setFontSize(Number(e.target.value))}
-                >
-                  {!FONT_SIZES.includes(state.fontSize) && (
-                    <option value={state.fontSize}>{state.fontSize}</option>
-                  )}
-                  {FONT_SIZES.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              }
-            />
+            <TooltipTrigger>
+              <select
+                className="tb-select tb-select-size"
+                value={state.fontSize}
+                onChange={(e) => setFontSize(Number(e.target.value))}
+              >
+                {!FONT_SIZES.includes(state.fontSize) && (
+                  <option value={state.fontSize}>{state.fontSize}</option>
+                )}
+                {FONT_SIZES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </TooltipTrigger>
             <TooltipContent>Font size</TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className="tb-btn"
-                  onClick={() => setFontSize(state.fontSize + 2)}
-                >
-                  A+
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className="tb-btn"
+                onClick={() => setFontSize(state.fontSize + 2)}
+              >
+                A+
+              </button>
+            </TooltipTrigger>
             <TooltipContent>Increase font size</TooltipContent>
           </Tooltip>
         </div>
@@ -345,91 +329,79 @@ export function Toolbar({
         {/* Inline marks */}
         <div className="tb-group">
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className={btn(state.bold)}
-                  onClick={() => chain().toggleBold().run()}
-                >
-                  <b>B</b>
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className={btn(state.bold)}
+                onClick={() => chain().toggleBold().run()}
+              >
+                <b>B</b>
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Bold <Shortcut keys="B" mac={isMac} />
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className={btn(state.italic)}
-                  onClick={() => chain().toggleItalic().run()}
-                >
-                  <i>I</i>
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className={btn(state.italic)}
+                onClick={() => chain().toggleItalic().run()}
+              >
+                <i>I</i>
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Italic <Shortcut keys="I" mac={isMac} />
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className={btn(state.underline)}
-                  onClick={() => chain().toggleUnderline().run()}
-                >
-                  <u>U</u>
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className={btn(state.underline)}
+                onClick={() => chain().toggleUnderline().run()}
+              >
+                <u>U</u>
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Underline <Shortcut keys="U" mac={isMac} />
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className={btn(state.strike)}
-                  onClick={() => chain().toggleStrike().run()}
-                >
-                  <s>S</s>
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className={btn(state.strike)}
+                onClick={() => chain().toggleStrike().run()}
+              >
+                <s>S</s>
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Strikethrough <Shortcut keys="S" shift mac={isMac} />
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className={btn(state.highlight)}
-                  onClick={() => chain().toggleHighlight().run()}
-                >
-                  <span className="hl-swatch">H</span>
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className={btn(state.highlight)}
+                onClick={() => chain().toggleHighlight().run()}
+              >
+                <span className="hl-swatch">H</span>
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Highlight <Shortcut keys="H" shift mac={isMac} />
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className={btn(state.code)}
-                  onClick={() => chain().toggleCode().run()}
-                >
-                  {"/>"}
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className={btn(state.code)}
+                onClick={() => chain().toggleCode().run()}
+              >
+                {"/>"}
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Inline code <Shortcut keys="E" mac={isMac} />
             </TooltipContent>
@@ -441,134 +413,116 @@ export function Toolbar({
         {/* Blocks */}
         <div className="tb-group">
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className={btn(state.h1)}
-                  onClick={() => chain().toggleHeading({ level: 1 }).run()}
-                >
-                  H1
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className={btn(state.h1)}
+                onClick={() => chain().toggleHeading({ level: 1 }).run()}
+              >
+                H1
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Heading 1 <Shortcut keys="1" alt mac={isMac} />
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className={btn(state.h2)}
-                  onClick={() => chain().toggleHeading({ level: 2 }).run()}
-                >
-                  H2
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className={btn(state.h2)}
+                onClick={() => chain().toggleHeading({ level: 2 }).run()}
+              >
+                H2
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Heading 2 <Shortcut keys="2" alt mac={isMac} />
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className={btn(state.h3)}
-                  onClick={() => chain().toggleHeading({ level: 3 }).run()}
-                >
-                  H3
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className={btn(state.h3)}
+                onClick={() => chain().toggleHeading({ level: 3 }).run()}
+              >
+                H3
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Heading 3 <Shortcut keys="3" alt mac={isMac} />
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className={btn(state.bulletList)}
-                  onClick={() => chain().toggleBulletList().run()}
-                >
-                  • List
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className={btn(state.bulletList)}
+                onClick={() => chain().toggleBulletList().run()}
+              >
+                • List
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Bullet list <Shortcut keys="8" shift mac={isMac} />
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className={btn(state.orderedList)}
-                  onClick={() => chain().toggleOrderedList().run()}
-                >
-                  1. List
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className={btn(state.orderedList)}
+                onClick={() => chain().toggleOrderedList().run()}
+              >
+                1. List
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Numbered list <Shortcut keys="7" shift mac={isMac} />
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className={btn(state.taskList)}
-                  onClick={() => chain().toggleTaskList().run()}
-                >
-                  ☑
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className={btn(state.taskList)}
+                onClick={() => chain().toggleTaskList().run()}
+              >
+                ☑
+              </button>
+            </TooltipTrigger>
             <TooltipContent>Task list</TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className={btn(state.blockquote)}
-                  onClick={() => chain().toggleBlockquote().run()}
-                >
-                  ❝
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className={btn(state.blockquote)}
+                onClick={() => chain().toggleBlockquote().run()}
+              >
+                ❝
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Blockquote <Shortcut keys="B" shift mac={isMac} />
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className={btn(state.codeBlock)}
-                  onClick={() => chain().toggleCodeBlock().run()}
-                >
-                  {"{ }"}
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className={btn(state.codeBlock)}
+                onClick={() => chain().toggleCodeBlock().run()}
+              >
+                {"{ }"}
+              </button>
+            </TooltipTrigger>
             <TooltipContent>
               Code block <Shortcut keys="C" alt mac={isMac} />
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className="tb-btn"
-                  onClick={() => chain().setHorizontalRule().run()}
-                >
-                  ―
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className="tb-btn"
+                onClick={() => chain().setHorizontalRule().run()}
+              >
+                ―
+              </button>
+            </TooltipTrigger>
             <TooltipContent>Horizontal rule</TooltipContent>
           </Tooltip>
         </div>
@@ -578,29 +532,25 @@ export function Toolbar({
         {/* Insert */}
         <div className="tb-group">
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className="tb-btn"
-                  onClick={() => imageInputRef.current?.click()}
-                >
-                  🖼 Image
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className="tb-btn"
+                onClick={() => imageInputRef.current?.click()}
+              >
+                🖼 Image
+              </button>
+            </TooltipTrigger>
             <TooltipContent>Insert image</TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger
-              render={
-                <button
-                  className="tb-btn"
-                  onClick={() => chain().insertMermaid().run()}
-                >
-                  ◈ Diagram
-                </button>
-              }
-            />
+            <TooltipTrigger>
+              <button
+                className="tb-btn"
+                onClick={() => chain().insertMermaid().run()}
+              >
+                ◈ Diagram
+              </button>
+            </TooltipTrigger>
             <TooltipContent>Insert Mermaid diagram</TooltipContent>
           </Tooltip>
         </div>
@@ -608,13 +558,11 @@ export function Toolbar({
         <span className="tb-flex" />
 
         <Tooltip>
-          <TooltipTrigger
-            render={
-              <button className={btn(showMarkdown)} onClick={onToggleMarkdown}>
-                Ⓜ Markdown
-              </button>
-            }
-          />
+          <TooltipTrigger>
+            <button className={btn(showMarkdown)} onClick={onToggleMarkdown}>
+              Ⓜ Markdown
+            </button>
+          </TooltipTrigger>
           <TooltipContent>Toggle Markdown source pane</TooltipContent>
         </Tooltip>
 
