@@ -36,6 +36,7 @@ const DEFAULT_FILE_TYPE: Record<string, { extension: string; mimeType: string; a
   yaml: { extension: "yaml", mimeType: "text/yaml", accept: ".yaml,.yml" },
   csv: { extension: "csv", mimeType: "text/csv", accept: ".csv" },
   html: { extension: "html", mimeType: "text/html", accept: ".html,.htm" },
+  css: { extension: "css", mimeType: "text/css", accept: ".css" },
   mermaid: { extension: "mmd", mimeType: "text/plain", accept: ".mmd,.mermaid,.txt" },
 };
 

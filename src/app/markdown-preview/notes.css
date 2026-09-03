@@ -21,10 +21,10 @@
 
   display: flex;
   /* Fixed-height window: the page never scrolls; .editor-scroll and the
-     markdown pane scroll internally instead. Offset = ToolPageLayout chrome
-     (breadcrumb, paddings and gaps above/below the content area). */
-  height: calc(100dvh - 104px);
-  min-height: 360px;
+     markdown pane scroll internally instead. Offset = app chrome measured
+     from the viewport top: 57px top navbar + 1px layout border + 20px
+     layout padding + ~30px breadcrumb + 2x16px gaps + 20px bottom padding. */
+  height: calc(100dvh - 160px);
   /* clip (not hidden) keeps corner clipping without creating a scroll
      container, so the sticky toolbar can pin against the page scroll */
   overflow: clip;
@@ -34,6 +34,15 @@
   color: var(--nb-text);
   font-size: 14px;
   line-height: 1.5;
+}
+
+/* Page-locally clip body scrolling while the notes window is mounted:
+   the window is sized to the viewport (see .notes-app height), so the
+   layout shell's leftover min-h-screen space must not create a page
+   scrollbar. :has() stops matching as soon as this page unmounts,
+   leaving every other page's scrolling untouched. */
+body:has(.notes-app) {
+  overflow-y: clip;
 }
 
 /* Content-specific colors without a matching design token */

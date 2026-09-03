@@ -16,21 +16,6 @@ export function ToolPageLayout({ title, children }: ToolPageLayoutProps) {
     <SidebarLayout>
       <div className="mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4 w-full h-full flex flex-col">
 
-        {/* Header Breadcrumb Navigation */}
-        <div className="flex items-center justify-between pb-3 border-b border-border shrink-0">
-          <div className="flex items-center gap-2 text-[11px] text-muted-foreground select-none">
-            <Link
-              href="/"
-              className="flex items-center gap-1 hover:text-foreground transition-colors"
-            >
-              <Home className="h-3.5 w-3.5" />
-              <span>Home</span>
-            </Link>
-            <span>/</span>
-            <span className="text-foreground font-semibold">{title}</span>
-          </div>
-        </div>
-
         {/* Title Block */}
         <div className="space-y-1 select-none shrink-0">
           <h1 className="text-xl font-bold tracking-tight text-foreground">{title}</h1>

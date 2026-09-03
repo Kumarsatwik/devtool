@@ -342,6 +342,11 @@ export default function Home() {
                     JS → JSON
                   </Link>
                 </li>
+                <li>
+                  <Link href="/html-playground" className="hover:text-foreground">
+                    HTML Playground
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

@@ -7,6 +7,7 @@ import {
   Clock,
   Workflow,
   FileText,
+  MonitorPlay,
   Network,
   ShieldCheck,
   Table,
@@ -133,5 +134,13 @@ export const tools: ToolDefinition[] = [
       "Redact sensitive values from API responses and database records before sharing",
     icon: ShieldCheck,
     tag: "Privacy",
+  },
+  {
+    href: "/html-playground",
+    title: "HTML Playground",
+    description:
+      "Write HTML, CSS, and JavaScript with a live sandboxed preview, console output, and standalone HTML export",
+    icon: MonitorPlay,
+    tag: "Playground",
   },
 ];

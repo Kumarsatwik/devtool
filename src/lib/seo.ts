@@ -91,6 +91,13 @@ const TOOL_SEO: Record<string, ToolSeo> = {
     keywords:
       "markdown editor, markdown notes, rich text editor, markdown to pdf, markdown to docx, markdown preview",
   },
+  "/html-playground": {
+    title: "HTML Playground – Live HTML, CSS & JS Compiler | DataTools",
+    description:
+      "Write HTML, CSS, and JavaScript with an instant live preview in a sandboxed iframe, captured console output, and one-click standalone HTML export. 100% client-side.",
+    keywords:
+      "html playground, html editor online, javascript playground, html css js live preview, html compiler online, run javascript online, html sandbox",
+  },
   "/har-analyzer": {
     title: "HAR Analyzer – HTTP Archive Performance & Error Tool | DataTools",
     description:
