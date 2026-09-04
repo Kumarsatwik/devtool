@@ -74,7 +74,7 @@ export default function JSONBeautifierPage() {
               <Button
                 variant={mode === "beautify" ? "secondary" : "ghost"}
                 size="xs"
-                className="h-6 gap-1 px-3 rounded text-[11px] font-semibold"
+                className="h-6 gap-1 px-3 rounded text-xs font-semibold"
                 onClick={() => setMode("beautify")}
               >
                 <AlignLeft className="h-3 w-3" />
@@ -83,7 +83,7 @@ export default function JSONBeautifierPage() {
               <Button
                 variant={mode === "minify" ? "secondary" : "ghost"}
                 size="xs"
-                className="h-6 gap-1 px-3 rounded text-[11px] font-semibold"
+                className="h-6 gap-1 px-3 rounded text-xs font-semibold"
                 onClick={() => setMode("minify")}
               >
                 <Minimize2 className="h-3 w-3" />
@@ -101,7 +101,7 @@ export default function JSONBeautifierPage() {
                       key={option.label}
                       variant={spaces === option.value ? "secondary" : "ghost"}
                       size="xs"
-                      className="h-6 text-[10px] px-2.5 rounded font-semibold"
+                      className="h-6 text-xs px-2.5 rounded font-semibold"
                       onClick={() => setSpaces(option.value)}
                     >
                       {option.label}
@@ -181,7 +181,7 @@ export default function JSONBeautifierPage() {
             <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-destructive">Compilation Error</p>
-              <p className="text-muted-foreground text-[11px] mt-0.5">{error}</p>
+              <p className="text-muted-foreground text-xs mt-0.5">{error}</p>
             </div>
           </StatusMessage>
         )}
@@ -195,7 +195,7 @@ export default function JSONBeautifierPage() {
                   <div>
                     <span className="font-semibold text-foreground">Valid JSON structure check.</span>
                   </div>
-                  <div className="text-[11px] text-muted-foreground">
+                  <div className="text-xs text-muted-foreground">
                     Character length: <strong className="text-foreground">{input.length}</strong>
                   </div>
                 </div>
@@ -205,7 +205,7 @@ export default function JSONBeautifierPage() {
                 <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-destructive">Syntax validation failed</p>
-                  <p className="text-muted-foreground text-[11px] mt-0.5">{validation.error}</p>
+                  <p className="text-muted-foreground text-xs mt-0.5">{validation.error}</p>
                 </div>
               </>
             )}

@@ -10,7 +10,6 @@ import {
   MonitorPlay,
   Network,
   ShieldCheck,
-  Table,
   type LucideIcon,
 } from "lucide-react";
 
@@ -29,14 +28,6 @@ export interface ToolDefinition {
  * tool only needs to be added here.
  */
 export const tools: ToolDefinition[] = [
-  {
-    href: "/csv-editor",
-    title: "CSV Editor",
-    description:
-      "Edit CSV files in a spreadsheet-style grid with sorting, filtering, styling, and export",
-    icon: Table,
-    tag: "Spreadsheet",
-  },
   {
     href: "/csv-to-json",
     title: "CSV → JSON",

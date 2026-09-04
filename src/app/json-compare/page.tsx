@@ -161,7 +161,7 @@ export default function JSONComparePage() {
               <Button
                 variant={activeView === "edit" ? "secondary" : "ghost"}
                 size="xs"
-                className="h-6 gap-1 px-3 rounded text-[11px] font-semibold"
+                className="h-6 gap-1 px-3 rounded text-xs font-semibold"
                 onClick={() => setActiveView("edit")}
               >
                 <Edit3 className="h-3 w-3" />
@@ -170,7 +170,7 @@ export default function JSONComparePage() {
               <Button
                 variant={activeView === "diff" ? "secondary" : "ghost"}
                 size="xs"
-                className="h-6 gap-1 px-3 rounded text-[11px] font-semibold"
+                className="h-6 gap-1 px-3 rounded text-xs font-semibold"
                 onClick={handleCompare}
                 disabled={!validation1.valid || !validation2.valid}
               >
@@ -185,7 +185,7 @@ export default function JSONComparePage() {
                 <Button
                   variant={splitLayout ? "secondary" : "ghost"}
                   size="xs"
-                  className="h-6 gap-1 px-2.5 rounded text-[10px] font-semibold"
+                  className="h-6 gap-1 px-2.5 rounded text-xs font-semibold"
                   onClick={() => setSplitLayout(true)}
                 >
                   <Columns className="h-3 w-3" />
@@ -194,7 +194,7 @@ export default function JSONComparePage() {
                 <Button
                   variant={!splitLayout ? "secondary" : "ghost"}
                   size="xs"
-                  className="h-6 gap-1 px-2.5 rounded text-[10px] font-semibold"
+                  className="h-6 gap-1 px-2.5 rounded text-xs font-semibold"
                   onClick={() => setSplitLayout(false)}
                 >
                   <Rows className="h-3 w-3" />
@@ -220,7 +220,7 @@ export default function JSONComparePage() {
             <Button
               variant={sortKeys ? "secondary" : "ghost"}
               size="xs"
-              className="h-6 gap-1 text-[11px] font-semibold"
+              className="h-6 gap-1 text-xs font-semibold"
               aria-pressed={sortKeys}
               onClick={() => setSortKeys((v) => !v)}
               title="Sort keys alphabetically in both JSON files before comparing"
@@ -249,7 +249,7 @@ export default function JSONComparePage() {
               <p className="font-semibold text-destructive">
                 Comparison failed
               </p>
-              <p className="text-muted-foreground text-[11px] mt-0.5">
+              <p className="text-muted-foreground text-xs mt-0.5">
                 {error}
               </p>
             </div>
@@ -266,7 +266,7 @@ export default function JSONComparePage() {
         )}
 
         {sortKeys && (
-          <div className="flex items-center gap-2 text-[11px] text-muted-foreground select-none">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground select-none">
             <ArrowDownAZ className="h-3.5 w-3.5" />
             <span>
               Keys are sorted alphabetically (nested objects included) before
@@ -282,7 +282,7 @@ export default function JSONComparePage() {
               <p className="font-semibold text-destructive">
                 Key sorting failed
               </p>
-              <p className="text-muted-foreground text-[11px] mt-0.5">
+              <p className="text-muted-foreground text-xs mt-0.5">
                 {sortError}
               </p>
             </div>
@@ -343,7 +343,7 @@ export default function JSONComparePage() {
               <div className="lg:col-span-2 border border-border rounded overflow-hidden bg-card shadow-none flex flex-col min-h-0">
                 <div className="bg-muted/40 border-b border-border px-3 py-1.5 text-xs text-muted-foreground flex justify-between select-none shrink-0">
                   <span>Code Comparison</span>
-                  <span className="text-[10px] font-bold text-foreground">
+                  <span className="text-xs font-bold text-foreground">
                     GitHub-Style Diff View
                   </span>
                 </div>
@@ -380,14 +380,14 @@ export default function JSONComparePage() {
                     <ListTree className="h-3.5 w-3.5 text-muted-foreground" />
                     Changes
                   </span>
-                  <span className="text-[10px] font-bold text-muted-foreground">
+                  <span className="text-xs font-bold text-muted-foreground">
                     {summary.total} {summary.total === 1 ? "path" : "paths"}
                   </span>
                 </div>
 
                 <div className="flex-1 min-h-0 overflow-auto p-3 space-y-3">
                   {summary.total === 0 ? (
-                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground border border-dashed border-border rounded p-3">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground border border-dashed border-border rounded p-3">
                       <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-foreground" />
                       <span>No structural differences found.</span>
                     </div>
@@ -396,7 +396,7 @@ export default function JSONComparePage() {
                       {/* Counts */}
                       <div className="grid grid-cols-3 gap-1.5 text-center select-none">
                         <div className="border border-border rounded p-1.5 bg-background">
-                          <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                          <div className="flex items-center justify-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                             <PlusCircle className="h-3 w-3" />
                             <span>Added</span>
                           </div>
@@ -405,7 +405,7 @@ export default function JSONComparePage() {
                           </p>
                         </div>
                         <div className="border border-border rounded p-1.5 bg-background">
-                          <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-destructive">
+                          <div className="flex items-center justify-center gap-1 text-xs font-bold text-destructive">
                             <MinusCircle className="h-3 w-3" />
                             <span>Removed</span>
                           </div>
@@ -414,7 +414,7 @@ export default function JSONComparePage() {
                           </p>
                         </div>
                         <div className="border border-border rounded p-1.5 bg-background">
-                          <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                          <div className="flex items-center justify-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400">
                             <PencilLine className="h-3 w-3" />
                             <span>Modified</span>
                           </div>
@@ -450,10 +450,10 @@ export default function JSONComparePage() {
                               )}
                             </span>
                             <div className="min-w-0 flex-1">
-                              <p className="font-mono text-[11px] font-semibold text-foreground break-all leading-snug">
+                              <p className="font-mono text-xs font-semibold text-foreground break-all leading-snug">
                                 {diff.path}
                               </p>
-                              <p className="text-[10px] text-muted-foreground truncate leading-snug mt-0.5" title={formatDiffValue(diff.newValue ?? diff.oldValue)}>
+                              <p className="text-xs text-muted-foreground truncate leading-snug mt-0.5" title={formatDiffValue(diff.newValue ?? diff.oldValue)}>
                                 {formatDiffValue(diff.newValue ?? diff.oldValue)}
                               </p>
                             </div>

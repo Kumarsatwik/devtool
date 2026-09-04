@@ -21,8 +21,6 @@ interface EditorPanelProps {
   downloadFileName?: string;
   /** File extensions allowed by the upload picker, e.g. ".csv,.tsv" (defaults derived from `language`). */
   accept?: string;
-  /** MIME type used for the download blob (defaults derived from `language`). */
-  mimeType?: string;
   /** File extension used for the download when `downloadFileName` has none (defaults derived from `language`). */
   downloadExtension?: string;
   className?: string;
@@ -50,7 +48,6 @@ export function EditorPanel({
   sampleText,
   downloadFileName,
   accept,
-  mimeType,
   downloadExtension,
   className,
 }: EditorPanelProps) {
@@ -90,7 +87,7 @@ export function EditorPanel({
     const finalName = downloadExtension && !name.toLowerCase().endsWith(`.${downloadExtension.toLowerCase()}`)
       ? `${name}.${downloadExtension}`
       : name;
-    const blob = new Blob([value], { type: `${mimeType ?? fileType.mimeType};charset=utf-8` });
+    const blob = new Blob([value], { type: `${fileType.mimeType};charset=utf-8` });
     saveAs(blob, finalName);
   };
 
@@ -123,7 +120,7 @@ export function EditorPanel({
         <div className="flex items-center justify-between bg-muted/40 border-b border-border/85 px-3 py-1.5 text-xs select-none shrink-0">
           <div className="flex items-center gap-2">
             {title && <span className="font-semibold text-foreground">{title}</span>}
-            <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/50">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/50">
               {language === "plaintext" ? "Text" : language}
             </span>
           </div>

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
 import { FileUpload } from "@/components/file-upload";
 import {
   sanitizeJson,
+  collectAllKeys,
   PRESET_SENSITIVE_KEYS,
   type SanitizeOptions,
 } from "@/lib/sanitize";
@@ -24,11 +25,11 @@ import {
 
 const sampleJSON = `{
   "user": {
-    "id": 42,
-    "name": "Jane Doe",
-    "email": "jane@example.com",
+    "id": 8402,
+    "name": "Priya Raman",
+    "email": "priya.raman@arclight-systems.com",
     "password": "sup3r-secret",
-    "ssn": "123-45-6789"
+    "ssn": "531-42-8816"
   },
   "session": {
     "accessToken": "eyJhbGciOiJIUzI1NiIs...",
@@ -36,12 +37,12 @@ const sampleJSON = `{
     "expiresIn": 3600
   },
   "billing": {
-    "cardNumber": "4111111111111111",
-    "cvv": "123"
+    "cardNumber": "4921 8843 1109 2756",
+    "cvv": "317"
   },
   "orders": [
-    { "id": 101, "total": 59.99, "customerEmail": "jane@example.com" },
-    { "id": 102, "total": 12.5, "customerEmail": "jane@example.com" }
+    { "id": 51091, "total": 47.2, "customerEmail": "priya.raman@arclight-systems.com" },
+    { "id": 51244, "total": 12.87, "customerEmail": "priya.raman@arclight-systems.com" }
   ],
   "meta": {
     "api_key": "sk_live_9f8e7d6c",
@@ -65,11 +66,13 @@ export default function JsonSanitizerPage() {
   const [newKey, setNewKey] = useState("");
   const [matchMode, setMatchMode] = useState<SanitizeOptions["matchMode"]>("contains");
   const [redactionValue, setRedactionValue] = useState("[REDACTED]");
+  const [hideAllValues, setHideAllValues] = useState(false);
   const [autoSanitize, setAutoSanitize] = useState(true);
+  const preHideAllRef = useRef<{ keys: string[]; mode: SanitizeOptions["matchMode"] } | null>(null);
 
   const options = useMemo<SanitizeOptions>(
-    () => ({ sensitiveKeys, redactionValue, matchMode }),
-    [sensitiveKeys, redactionValue, matchMode],
+    () => ({ sensitiveKeys, redactionValue, matchMode, hideAllValues }),
+    [sensitiveKeys, redactionValue, matchMode, hideAllValues],
   );
 
   const stats = useMemo(() => {
@@ -117,6 +120,28 @@ export default function JsonSanitizerPage() {
     setSensitiveKeys((prev) => prev.filter((k) => k !== key));
   };
 
+  const handleHideAll = (checked: boolean) => {
+    setHideAllValues(checked);
+    if (checked) {
+      // Remember the current list so unchecking restores it.
+      preHideAllRef.current = { keys: sensitiveKeys, mode: matchMode };
+      setMatchMode("exact"); // exact matching so removing a key reliably un-hides it
+      const parsed = validateJSON(input);
+      if (parsed.valid && parsed.parsed != null) {
+        const allKeys = collectAllKeys(parsed.parsed);
+        setSensitiveKeys((prev) => {
+          const set = new Set(prev.map((k) => k.toLowerCase()));
+          allKeys.forEach((k) => set.add(k));
+          return [...set];
+        });
+      }
+    } else if (preHideAllRef.current) {
+      setSensitiveKeys(preHideAllRef.current.keys);
+      setMatchMode(preHideAllRef.current.mode);
+      preHideAllRef.current = null;
+    }
+  };
+
   const loadPresets = () => {
     setSensitiveKeys([...PRESET_SENSITIVE_KEYS]);
   };
@@ -142,7 +167,7 @@ export default function JsonSanitizerPage() {
                 <Button
                   variant={matchMode === "contains" ? "secondary" : "ghost"}
                   size="xs"
-                  className="h-6 px-3 rounded text-[11px] font-semibold"
+                  className="h-6 px-3 rounded text-xs font-semibold"
                   onClick={() => setMatchMode("contains")}
                   title="Match keys that contain the pattern anywhere"
                 >
@@ -151,7 +176,7 @@ export default function JsonSanitizerPage() {
                 <Button
                   variant={matchMode === "exact" ? "secondary" : "ghost"}
                   size="xs"
-                  className="h-6 px-3 rounded text-[11px] font-semibold"
+                  className="h-6 px-3 rounded text-xs font-semibold"
                   onClick={() => setMatchMode("exact")}
                   title="Match only exact key names"
                 >
@@ -182,6 +207,20 @@ export default function JsonSanitizerPage() {
               <span>Presets</span>
             </Button>
 
+            {/* Hide all values */}
+            <label
+              className="flex items-center gap-1.5 cursor-pointer font-semibold text-muted-foreground select-none hover:text-foreground"
+              title="Add every key from the input to the sensitive keys list — then remove keys to expose their values"
+            >
+              <input
+                type="checkbox"
+                checked={hideAllValues}
+                onChange={(e) => handleHideAll(e.target.checked)}
+                className="rounded border-border text-primary focus:ring-primary/15"
+              />
+              <span>Hide all values</span>
+            </label>
+
             {/* Auto sanitize toggle */}
             <label className="flex items-center gap-1.5 cursor-pointer font-semibold text-muted-foreground select-none hover:text-foreground">
               <input
@@ -206,7 +245,9 @@ export default function JsonSanitizerPage() {
               </span>
             </span>
             <span className="text-muted-foreground">
-              Values of fields whose key names match these patterns will be redacted.
+              {hideAllValues
+                ? "Every key from the input is hidden — remove keys below to expose their values."
+                : "Values of fields whose key names match these patterns will be redacted."}
             </span>
           </div>
 
@@ -219,7 +260,7 @@ export default function JsonSanitizerPage() {
               sensitiveKeys.map((key) => (
                 <span
                   key={key}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-destructive/25 bg-destructive/5 text-[11px] font-mono font-semibold text-foreground"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-destructive/25 bg-destructive/5 text-xs font-mono font-semibold text-foreground"
                 >
                   {key}
                   <button
@@ -330,7 +371,7 @@ export default function JsonSanitizerPage() {
             <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-destructive">Sanitization Error</p>
-              <p className="text-muted-foreground text-[11px] mt-0.5">{error}</p>
+              <p className="text-muted-foreground text-xs mt-0.5">{error}</p>
             </div>
           </StatusMessage>
         )}
@@ -347,7 +388,7 @@ export default function JsonSanitizerPage() {
                     </span>
                   </div>
                   {stats.redactedPaths.length > 0 && (
-                    <div className="text-[11px] text-muted-foreground max-w-xl truncate">
+                    <div className="text-xs text-muted-foreground max-w-xl truncate">
                       Fields:{" "}
                       <strong className="text-foreground">
                         {stats.redactedPaths.join(", ")}
@@ -375,7 +416,7 @@ export default function JsonSanitizerPage() {
             <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-destructive">Syntax validation failed</p>
-              <p className="text-muted-foreground text-[11px] mt-0.5">{validation.error}</p>
+              <p className="text-muted-foreground text-xs mt-0.5">{validation.error}</p>
             </div>
           </StatusMessage>
         )}

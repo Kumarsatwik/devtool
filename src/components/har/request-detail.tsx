@@ -139,7 +139,7 @@ function CopyDropdown({ entry, align = "right" }: { entry: HarEntry; align?: "ri
               )}
               <span className="min-w-0 flex-1">
                 <span className="block text-xs font-semibold text-foreground">{o.label}</span>
-                <span className="block text-[11px] text-muted-foreground truncate">{copiedLabel === o.key ? "Copied to clipboard" : o.hint}</span>
+                <span className="block text-xs text-muted-foreground truncate">{copiedLabel === o.key ? "Copied to clipboard" : o.hint}</span>
               </span>
             </button>
           ))}

@@ -16,7 +16,6 @@ import {
   Terminal,
   ArrowRight,
   ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { tools } from "@/lib/tools";
@@ -46,8 +45,6 @@ const faqData = [
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
-
   const filteredTools = useMemo(() => {
     return tools.filter(
       (tool) =>
@@ -57,32 +54,28 @@ export default function Home() {
     );
   }, [searchQuery]);
 
-  const toggleFaq = (index: number) => {
-    setExpandedFaq(expandedFaq === index ? null : index);
-  };
-
   return (
     <div className="neutral-grid-bg min-h-screen flex flex-col justify-between">
       {/* Homepage Main Content */}
       <div className="max-w-5xl mx-auto py-20 px-4 sm:px-6 lg:px-8 space-y-24 flex-1 w-full">
-        {/* Minimal Hero Section */}
-        <div className="text-center space-y-6 max-w-2xl mx-auto select-none">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded border border-border bg-card text-muted-foreground text-[10px] font-bold">
+        {/* Minimal Hero Section — left-aligned per anti-center bias */}
+        <div className="space-y-6 max-w-2xl lg:max-w-none select-none">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded border border-border bg-card text-muted-foreground text-xs font-bold">
             <Lock className="h-3 w-3" />
             <span>Local Browser Sandboxing</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground leading-none">
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground leading-none max-w-2xl">
             Clean, Focused Developer Utilities
           </h1>
 
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto">
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-[65ch]">
             A fast, enterprise-grade suite for JSON formatting, syntax
             validation, file comparisons, and CSV transformations. Runs fully
             client-side.
           </p>
 
-          <div className="flex justify-center gap-3 pt-2">
+          <div className="flex gap-3 pt-2">
             <Link
               href="/csv-to-json"
               className={buttonVariants({
@@ -147,7 +140,7 @@ export default function Home() {
                             <div className="flex h-7 w-7 items-center justify-center rounded border border-border bg-background text-foreground">
                               <Icon className="h-3.5 w-3.5" />
                             </div>
-                            <span className="text-[9px] font-semibold text-muted-foreground uppercase border border-border px-1.5 py-0.2 rounded">
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase border border-border px-1.5 py-0.2 rounded">
                               {tool.tag}
                             </span>
                           </div>
@@ -237,35 +230,23 @@ export default function Home() {
           </div>
 
           <div className="border border-border rounded divide-y divide-border bg-card">
-            {faqData.map((faq, index) => {
-              const isOpen = expandedFaq === index;
-              return (
-                <div key={index} className="transition-all duration-200">
-                  <button
-                    onClick={() => toggleFaq(index)}
-                    className="w-full flex items-center justify-between p-4 text-left font-semibold text-xs text-foreground hover:bg-secondary/40 select-none"
-                  >
-                    <span>{faq.question}</span>
-                    {isOpen ? (
-                      <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </button>
-                  {isOpen && (
-                    <div className="p-4 pt-0 text-xs text-muted-foreground leading-normal border-t border-border bg-muted/5 animate-in fade-in duration-150">
-                      <p className="pt-3">{faq.answer}</p>
-                    </div>
-                  )}
+            {faqData.map((faq, index) => (
+              <details key={index} className="group">
+                <summary className="flex items-center justify-between gap-4 p-4 text-left font-semibold text-xs text-foreground hover:bg-secondary/40 select-none cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                  <span>{faq.question}</span>
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="p-4 pt-0 text-xs text-muted-foreground leading-normal border-t border-border bg-muted/5">
+                  <p className="pt-3">{faq.answer}</p>
                 </div>
-              );
-            })}
+              </details>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Shared Platform Footer */}
-      <footer className="w-full border-t border-border bg-card py-8 select-none text-[11px] text-muted-foreground mt-12">
+      <footer className="w-full border-t border-border bg-card py-8 select-none text-xs text-muted-foreground mt-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between gap-6">
           <div className="space-y-2 max-w-xs">
             <div className="flex items-center gap-1.5 font-bold text-foreground">

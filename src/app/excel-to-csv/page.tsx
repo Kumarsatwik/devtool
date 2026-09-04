@@ -208,10 +208,10 @@ export default function ExcelToCSVPage() {
                   ) : workbook ? (
                     <>
                       <p className="text-xs font-semibold text-foreground">{workbook.fileName}</p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {(workbook.fileSize / 1024).toFixed(1)} KB · {workbook.sheets.length} sheet{workbook.sheets.length === 1 ? "" : "s"}
                       </p>
-                      <p className="text-[10px] text-muted-foreground mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Click to load a different file
                       </p>
                     </>
@@ -220,7 +220,7 @@ export default function ExcelToCSVPage() {
                       <p className="text-xs font-semibold text-foreground">
                         Drag and drop your Excel file here, or click to browse
                       </p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         Accepted formats: .xlsx, .xls (max 10MB)
                       </p>
                     </>
@@ -315,7 +315,7 @@ export default function ExcelToCSVPage() {
                   </div>
 
                   {rows.length > 50 && (
-                    <div className="bg-muted/20 border-t px-3 py-1.5 text-[10px] text-muted-foreground flex justify-between select-none">
+                    <div className="bg-muted/20 border-t px-3 py-1.5 text-xs text-muted-foreground flex justify-between select-none">
                       <span>Showing first 50 of {rows.length} rows</span>
                       <span className="font-semibold text-foreground">Tabular Preview</span>
                     </div>
@@ -332,7 +332,7 @@ export default function ExcelToCSVPage() {
             <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-destructive">Conversion failed</p>
-              <p className="text-muted-foreground text-[11px] mt-0.5">{error}</p>
+              <p className="text-muted-foreground text-xs mt-0.5">{error}</p>
             </div>
           </StatusMessage>
         )}
@@ -344,7 +344,7 @@ export default function ExcelToCSVPage() {
               <div>
                 <span className="font-semibold text-foreground">Sheet &quot;{sheetName}&quot; converted to CSV.</span>
               </div>
-              <div className="text-[11px] text-muted-foreground flex items-center gap-4">
+              <div className="text-xs text-muted-foreground flex items-center gap-4">
                 <span>Columns Detected: <strong className="text-foreground">{headers.length}</strong></span>
                 <span>Total Records: <strong className="text-foreground">{rows.length}</strong></span>
               </div>

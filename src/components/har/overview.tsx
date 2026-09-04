@@ -54,7 +54,7 @@ function OverviewCard({
       <p className={`text-2xl font-bold tracking-tight ${tone === "danger" && value !== "0" ? "text-destructive" : "text-foreground"}`}>
         {value}
       </p>
-      {children && <div className="text-[11px] text-muted-foreground leading-relaxed">{children}</div>}
+      {children && <div className="text-xs text-muted-foreground leading-relaxed">{children}</div>}
     </>
   );
 
@@ -231,7 +231,7 @@ export function OverviewDashboard({
               <button
                 key={c}
                 onClick={() => onInvestigate(c)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-border bg-card text-[11px] font-semibold text-foreground hover:bg-secondary/40 transition-colors focus:outline-none focus:ring-1 focus:ring-foreground"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-border bg-card text-xs font-semibold text-foreground hover:bg-secondary/40 transition-colors focus:outline-none focus:ring-1 focus:ring-foreground"
                 title={`View ${CATEGORY_META[c].label} requests`}
               >
                 {CATEGORY_META[c].label}
@@ -250,7 +250,7 @@ export function OverviewDashboard({
         {findings.length === 0 ? (
           <div className="border border-border rounded-lg bg-card px-4 py-5 text-center">
             <p className="text-sm font-semibold text-foreground">No obvious problems found</p>
-            <p className="text-[11px] text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               All requests completed without errors, and nothing unusually slow or large was detected.
             </p>
           </div>
@@ -275,8 +275,8 @@ export function OverviewDashboard({
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-xs font-bold text-foreground">{f.title}</span>
-                  <span className="block text-[11px] text-muted-foreground leading-relaxed mt-0.5">{f.detail}</span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground mt-1.5 group-hover:gap-1.5 transition-all">
+                  <span className="block text-xs text-muted-foreground leading-relaxed mt-0.5">{f.detail}</span>
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-foreground mt-1.5 group-hover:gap-1.5 transition-all">
                     {f.cta}
                     <ArrowRight className="h-3 w-3" aria-hidden="true" />
                   </span>

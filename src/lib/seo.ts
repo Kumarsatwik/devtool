@@ -7,13 +7,6 @@ interface ToolSeo {
 }
 
 const TOOL_SEO: Record<string, ToolSeo> = {
-  "/csv-editor": {
-    title: "CSV Editor Online – Edit, Sort & Style CSV Data | DataTools",
-    description:
-      "Edit CSV files in a spreadsheet-style grid: sort columns, filter rows, find & replace, restyle, and export to CSV or Excel. All in your browser, no uploads.",
-    keywords:
-      "csv editor, online csv editor, csv grid editor, edit csv online, csv sort, csv filter, csv to excel, csv styler",
-  },
   "/csv-to-json": {
     title: "CSV to JSON Converter – Free Online Tool | DataTools",
     description:

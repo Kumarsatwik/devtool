@@ -139,12 +139,12 @@ export function FileUpload({
             {loading ? "Reading file..." : success ? success : error ? error : label}
           </p>
           {!loading && !success && !error && (
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Accepted formats: {accept} (max {maxSizeMB}MB)
             </p>
           )}
           {error && (
-            <p className="text-[10px] text-destructive/80">
+            <p className="text-xs text-destructive/80">
               Click to try another file
             </p>
           )}

@@ -190,7 +190,7 @@ export default function CSVToJSONPage() {
             <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-destructive">Parsing Discrepancy</p>
-              <p className="text-muted-foreground text-[11px] mt-0.5">{error}</p>
+              <p className="text-muted-foreground text-xs mt-0.5">{error}</p>
             </div>
           </StatusMessage>
         )}
@@ -202,7 +202,7 @@ export default function CSVToJSONPage() {
               <div>
                 <span className="font-semibold text-foreground">Parsing successful.</span>
               </div>
-              <div className="text-[11px] text-muted-foreground flex items-center gap-4">
+              <div className="text-xs text-muted-foreground flex items-center gap-4">
                 <span>Columns: <strong className="text-foreground">{meta.columns}</strong></span>
                 <span>Records: <strong className="text-foreground">{meta.rows}</strong></span>
                 <span>File Size: <strong className="text-foreground">{(meta.size / 1024).toFixed(2)} KB</strong></span>

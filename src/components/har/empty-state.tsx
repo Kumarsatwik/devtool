@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
-import { Check, Lock, Upload } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { Check, Lock } from "lucide-react";
+import { FileUpload } from "@/components/file-upload";
 
 const CAPABILITIES = [
   "Requests & responses",
@@ -23,31 +23,8 @@ export function EmptyState({
   onLoadSample: () => void;
   error: string | null;
 }) {
-  const [dragActive, setDragActive] = useState(false);
-  const [fileError, setFileError] = useState<string | null>(null);
   const [showPaste, setShowPaste] = useState(false);
   const [pasteText, setPasteText] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleFile = useCallback(
-    (file: File) => {
-      setFileError(null);
-      if (file.size > 100 * 1024 * 1024) {
-        setFileError("File exceeds the 100 MB limit.");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result;
-        if (typeof result === "string") onFileLoaded(result);
-        else setFileError("Could not read the file contents.");
-      };
-      reader.onerror = () => setFileError("Could not read the file contents.");
-      reader.readAsText(file);
-    },
-    [onFileLoaded],
-  );
-
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-xl mx-auto py-10 px-4 space-y-6">
@@ -66,72 +43,28 @@ export function EmptyState({
         </div>
 
         {/* Drop zone */}
-        <div
-          onDragEnter={(e) => {
-            e.preventDefault();
-            setDragActive(true);
-          }}
-          onDragOver={(e) => e.preventDefault()}
-          onDragLeave={() => setDragActive(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setDragActive(false);
-            const file = e.dataTransfer.files?.[0];
-            if (file) handleFile(file);
-          }}
-          onClick={() => inputRef.current?.click()}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              inputRef.current?.click();
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          aria-label="Choose or drop a HAR file"
-          className={cn(
-            "flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all focus:outline-none focus:ring-1 focus:ring-foreground",
-            dragActive
-              ? "border-primary bg-primary/5"
-              : "border-border/80 hover:border-primary/50 bg-muted/20 hover:bg-muted/40",
-          )}
-        >
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".har,.json,application/json"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleFile(file);
-              e.target.value = "";
-            }}
-          />
-          <Upload className="h-10 w-10 text-muted-foreground" aria-hidden="true" />
-          <div>
-            <p className="text-base font-bold text-foreground">Drop your HAR file here</p>
-            <p className="text-sm text-muted-foreground mt-1">or click to choose a file (.har, .json)</p>
-          </div>
-          <span className="px-5 py-2.5 rounded bg-foreground text-background text-sm font-bold shadow-sm">
-            Choose HAR file
-          </span>
-        </div>
+        <FileUpload
+          onFileLoaded={(content) => onFileLoaded(content)}
+          accept=".har,.json"
+          maxSizeMB={100}
+          label="Drop your HAR file here, or click to choose a file"
+        />
 
         {/* Error reporting — friendly first, technical second */}
-        {(error || fileError) && (
+        {error && (
           <div className="border border-destructive/25 bg-destructive/5 rounded-lg px-4 py-3 space-y-1.5" role="alert">
             <p className="text-sm font-bold text-destructive">We couldn’t read this HAR file</p>
             <p className="text-sm text-muted-foreground leading-relaxed">
               The file doesn’t appear to contain a valid HAR structure. Try exporting the HAR again from your
               browser’s developer tools (Network panel → right-click → “Save all as HAR with content”).
             </p>
-            {(error || fileError) && (
+            {(error) && (
               <details className="text-sm">
                 <summary className="cursor-pointer font-semibold text-muted-foreground hover:text-foreground">
                   Technical error details
                 </summary>
                 <pre className="mt-1.5 font-mono text-xs text-destructive/90 whitespace-pre-wrap break-all">
-                  {error ?? fileError}
+                  {error}
                 </pre>
               </details>
             )}

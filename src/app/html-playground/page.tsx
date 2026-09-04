@@ -318,7 +318,7 @@ export default function HtmlPlaygroundPage() {
               <Button
                 onClick={() => run(panes)}
                 size="xs"
-                className="h-6 gap-1 px-3 text-[11px] font-semibold rounded shadow-none"
+                className="h-6 gap-1 px-3 text-xs font-semibold rounded shadow-none"
               >
                 <Play className="h-3 w-3" />
                 <span>Run</span>
@@ -343,7 +343,7 @@ export default function HtmlPlaygroundPage() {
                       key={item.id}
                       variant={activePane === item.id ? "secondary" : "ghost"}
                       size="xs"
-                      className="h-6 gap-1 px-2.5 rounded text-[10px] font-semibold"
+                      className="h-6 gap-1 px-2.5 rounded text-xs font-semibold"
                       onClick={() => setActivePane(item.id)}
                     >
                       <Icon className="h-3 w-3" />
@@ -378,7 +378,7 @@ export default function HtmlPlaygroundPage() {
               <div className="flex items-center justify-between bg-muted/40 border-b border-border/85 px-3 py-1.5 text-xs select-none shrink-0">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-foreground">Preview</span>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/50">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/50">
                     Sandbox
                   </span>
                 </div>
@@ -401,7 +401,7 @@ export default function HtmlPlaygroundPage() {
                   <Terminal className="h-3 w-3 text-muted-foreground" />
                   <span className="font-semibold text-foreground">Console</span>
                   {consoleEntries.length > 0 && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/50">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/50">
                       {consoleEntries.length}
                     </span>
                   )}
@@ -423,10 +423,10 @@ export default function HtmlPlaygroundPage() {
               {/* Console Body */}
               <div
                 ref={consoleScrollRef}
-                className="flex-1 min-h-0 overflow-y-auto p-2.5 font-mono text-[11px] leading-relaxed space-y-1"
+                className="flex-1 min-h-0 overflow-y-auto p-2.5 font-mono text-xs leading-relaxed space-y-1"
               >
                 {consoleEntries.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-[11px] text-muted-foreground font-sans">
+                  <div className="h-full flex items-center justify-center text-xs text-muted-foreground font-sans">
                     <span>Console output appears here…</span>
                   </div>
                 ) : (

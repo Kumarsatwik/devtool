@@ -146,7 +146,7 @@ export default function JSONValidatorPage() {
                       <h3 className="text-xs font-bold text-foreground">
                         {validation.valid ? "JSON is syntactically valid" : "Syntax errors found"}
                       </h3>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                      <p className="text-xs text-muted-foreground mt-0.5">
                         {validation.valid 
                           ? "Matches specifications." 
                           : "Format checks failed. Resolve error paths."}
@@ -165,15 +165,15 @@ export default function JSONValidatorPage() {
 
                     <div className="grid grid-cols-2 gap-3 text-xs leading-normal">
                       <div className="border border-border rounded p-2 bg-muted/10">
-                        <span className="text-[9px] text-muted-foreground block uppercase font-semibold">Type</span>
+                        <span className="text-[10px] text-muted-foreground block uppercase font-semibold">Type</span>
                         <strong className="text-sm font-bold text-foreground block mt-0.5">{metrics.type}</strong>
                       </div>
                       <div className="border border-border rounded p-2 bg-muted/10">
-                        <span className="text-[9px] text-muted-foreground block uppercase font-semibold">Root Keys</span>
+                        <span className="text-[10px] text-muted-foreground block uppercase font-semibold">Root Keys</span>
                         <strong className="text-sm font-bold text-foreground block mt-0.5">{metrics.keys}</strong>
                       </div>
                       <div className="border border-border rounded p-2 bg-muted/10 col-span-2">
-                        <span className="text-[9px] text-muted-foreground block uppercase font-semibold">Document Size</span>
+                        <span className="text-[10px] text-muted-foreground block uppercase font-semibold">Document Size</span>
                         <strong className="text-sm font-bold text-foreground block mt-0.5">{metrics.size}</strong>
                       </div>
                     </div>
@@ -207,8 +207,8 @@ export default function JSONValidatorPage() {
                           
                           {errorMeta.snippet && (
                             <div className="mt-2 space-y-1">
-                              <span className="text-[9px] text-muted-foreground block uppercase font-semibold">Context:</span>
-                              <pre className="font-mono bg-background text-[11px] p-2 border rounded overflow-x-auto text-muted-foreground">
+                              <span className="text-[10px] text-muted-foreground block uppercase font-semibold">Context:</span>
+                              <pre className="font-mono bg-background text-xs p-2 border rounded overflow-x-auto text-muted-foreground">
                                 {errorMeta.snippet}
                               </pre>
                             </div>

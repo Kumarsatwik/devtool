@@ -8,6 +8,35 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { tools } from "@/lib/tools";
 
+function ToolNavList({ onNavigate, size }: { onNavigate?: () => void; size: "desktop" | "mobile" }) {
+  const pathname = usePathname();
+  return (
+    <nav className={cn("space-y-0.5", size === "mobile" && "grid gap-1 pt-1")}>
+      {tools.map((tool) => {
+        const isActive = pathname === tool.href;
+        return (
+          <Link
+            key={tool.href}
+            href={tool.href}
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center gap-2.5 px-3 rounded-md transition-colors",
+              size === "mobile" ? "py-2.5 gap-3 rounded-lg text-xs" : "py-2 text-xs",
+              "font-medium",
+              isActive
+                ? "bg-secondary text-foreground font-semibold border border-border/80"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary/45 border border-transparent",
+            )}
+          >
+            <tool.icon className={size === "mobile" ? "h-4 w-4" : "h-3.5 w-3.5"} />
+            <span>{tool.title}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -16,6 +45,16 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
+
+  // Close the mobile drawer on Escape
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileOpen]);
 
   return (
     <div className="flex flex-1 min-h-screen bg-background border-t">
@@ -39,26 +78,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
                   Data Utilities
                 </p>
               </div>
-              <nav className="space-y-0.5">
-                {tools.map((tool) => {
-                  const isActive = pathname === tool.href;
-                  return (
-                    <Link
-                      key={tool.href}
-                      href={tool.href}
-                      className={cn(
-                        "flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-md transition-colors",
-                        isActive
-                          ? "bg-secondary text-foreground font-semibold border border-border/80"
-                          : "text-muted-foreground hover:text-foreground hover:bg-secondary/45 border border-transparent",
-                      )}
-                    >
-                      <tool.icon className="h-3.5 w-3.5" />
-                      <span>{tool.title}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
+              <ToolNavList size="desktop" />
             </div>
           </div>
         </div>
@@ -112,30 +132,10 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
 
               <div className="space-y-1.5">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Developer Utilities
+                  Data Utilities
                 </p>
                 <div className="h-[1px] bg-border/50" />
-                <nav className="grid gap-1 pt-1">
-                  {tools.map((tool) => {
-                    const isActive = pathname === tool.href;
-                    return (
-                      <Link
-                        key={tool.href}
-                        href={tool.href}
-                        onClick={() => setMobileOpen(false)}
-                        className={cn(
-                          "flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors",
-                          isActive
-                            ? "bg-secondary text-foreground font-semibold border border-border"
-                            : "text-muted-foreground hover:text-foreground hover:bg-secondary/50",
-                        )}
-                      >
-                        <tool.icon className="h-4 w-4" />
-                        <span>{tool.title}</span>
-                      </Link>
-                    );
-                  })}
-                </nav>
+                <ToolNavList size="mobile" onNavigate={() => setMobileOpen(false)} />
               </div>
             </div>
           </div>

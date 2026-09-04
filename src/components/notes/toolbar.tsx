@@ -59,7 +59,7 @@ function parsePx(value: string | undefined | null): number | null {
 }
 
 const kbdCls =
-  "inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded border border-border bg-muted px-1 font-mono text-[10px] font-semibold leading-none text-foreground";
+  "inline-flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded border border-border bg-muted px-1 font-mono text-xs font-semibold leading-none text-foreground";
 
 function Kbd({ children }: { children: ReactNode }) {
   return <kbd className={kbdCls}>{children}</kbd>;
@@ -84,7 +84,7 @@ function Shortcut({
       {parts.map((p, i) => (
         <Fragment key={i}>
           {i > 0 && (
-            <span className="text-[10px] text-muted-foreground select-none">
+            <span className="text-xs text-muted-foreground select-none">
               +
             </span>
           )}

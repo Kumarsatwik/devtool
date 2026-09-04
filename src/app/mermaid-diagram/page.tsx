@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import mermaid from "mermaid";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
@@ -100,6 +99,8 @@ export default function MermaidDiagramPage() {
     setError(null);
 
     try {
+      // lazy: mermaid is ~1MB; loaded on first render, then cached by the bundler
+      const mermaid = (await import("mermaid")).default;
       mermaid.initialize(getMermaidConfig(diagramTheme));
       const id = `mermaid-${Math.random().toString(36).slice(2, 11)}`;
       const { svg } = await mermaid.render(id, input);
@@ -175,7 +176,7 @@ export default function MermaidDiagramPage() {
                 onChange={(e) =>
                   handleThemeChange(e.target.value as DiagramTheme)
                 }
-                className="h-7 px-2 pr-6 rounded border border-border bg-background text-[11px] font-semibold text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/15 hover:border-primary/40 transition-colors"
+                className="h-7 px-2 pr-6 rounded border border-border bg-background text-xs font-semibold text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/15 hover:border-primary/40 transition-colors"
               >
                 {diagramThemes.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -200,7 +201,7 @@ export default function MermaidDiagramPage() {
                         exportFormat === option.value ? "secondary" : "ghost"
                       }
                       size="xs"
-                      className="h-6 gap-1 px-2.5 rounded text-[10px] font-semibold"
+                      className="h-6 gap-1 px-2.5 rounded text-xs font-semibold"
                       onClick={() => setExportFormat(option.value)}
                     >
                       <Icon className="h-3 w-3" />
@@ -215,7 +216,7 @@ export default function MermaidDiagramPage() {
             <Button
               onClick={handleExport}
               size="xs"
-              className="h-6 gap-1 px-3 text-[11px] font-semibold rounded shadow-none"
+              className="h-6 gap-1 px-3 text-xs font-semibold rounded shadow-none"
               disabled={!svgCode}
             >
               <Download className="h-3 w-3" />
@@ -263,7 +264,7 @@ export default function MermaidDiagramPage() {
               <div className="flex items-center justify-between bg-muted/40 border-b border-border/85 px-3 py-1.5 text-xs select-none shrink-0">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-foreground">Preview</span>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/50">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/50">
                     SVG
                   </span>
                 </div>
@@ -278,7 +279,7 @@ export default function MermaidDiagramPage() {
                   >
                     <Minus className="h-3 w-3" />
                   </Button>
-                  <span className="text-[10px] font-mono font-semibold text-foreground w-10 text-center tabular-nums">
+                  <span className="text-xs font-mono font-semibold text-foreground w-10 text-center tabular-nums">
                     {Math.round(zoom * 100)}%
                   </span>
                   <Button
@@ -372,7 +373,7 @@ export default function MermaidDiagramPage() {
             <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-destructive">Diagram Error</p>
-              <p className="text-muted-foreground text-[11px] mt-0.5">
+              <p className="text-muted-foreground text-xs mt-0.5">
                 {error}
               </p>
             </div>
@@ -386,7 +387,7 @@ export default function MermaidDiagramPage() {
               <span className="font-semibold text-foreground">
                 Diagram rendered successfully.
               </span>
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 Code length:{" "}
                 <strong className="text-foreground">{input.length}</strong>
               </span>

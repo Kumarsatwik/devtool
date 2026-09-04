@@ -7,12 +7,13 @@ import {
   ReactNodeViewRenderer,
   type NodeViewProps,
 } from "@tiptap/react";
-import mermaid from "mermaid";
 
 let mermaidReady = false;
 let renderSeq = 0;
 
 export async function renderMermaidSvg(code: string): Promise<string> {
+  // lazy: mermaid is ~1MB; only loaded when a mermaid block actually renders
+  const mermaid = (await import("mermaid")).default;
   if (!mermaidReady) {
     mermaid.initialize({ startOnLoad: false, theme: "neutral", securityLevel: "loose" });
     mermaidReady = true;

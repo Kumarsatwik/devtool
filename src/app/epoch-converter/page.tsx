@@ -46,7 +46,7 @@ function CopyButton({ text }: { text: string }) {
     } catch {}
   };
   return (
-    <button onClick={handleCopy} className="text-[11px] text-muted-foreground hover:text-foreground transition-colors ml-2 shrink-0 flex items-center gap-1">
+    <button onClick={handleCopy} className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-2 shrink-0 flex items-center gap-1">
       {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
       {copied ? "Copied" : "Copy"}
     </button>
@@ -111,7 +111,7 @@ export default function EpochConverterPage() {
             </span>
             <span>
               Epoch: <span className="font-semibold text-foreground">{nowSeconds}</span>
-              <span className="text-[10px] ml-1">({nowMs} ms)</span>
+              <span className="text-xs ml-1">({nowMs} ms)</span>
             </span>
           </div>
           <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />
@@ -129,7 +129,7 @@ export default function EpochConverterPage() {
                     <button
                       key={u}
                       onClick={() => setEpochUnit(u)}
-                      className={`h-6 px-2 text-[10px] font-semibold rounded transition-colors ${
+                      className={`h-6 px-2 text-xs font-semibold rounded transition-colors ${
                         epochUnit === u ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
@@ -137,7 +137,7 @@ export default function EpochConverterPage() {
                     </button>
                   ))}
                 </div>
-                <button onClick={() => { setEpochInput(nowSeconds.toString()); setEpochUnit("seconds"); }} className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1">
+                <button onClick={() => { setEpochInput(nowSeconds.toString()); setEpochUnit("seconds"); }} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
                   <RefreshCw className="h-3 w-3" /> Now
                 </button>
               </div>
@@ -152,7 +152,7 @@ export default function EpochConverterPage() {
                 placeholder="e.g. 1721030400"
                 className="flex-1 bg-background border border-border rounded px-3 py-2 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-foreground"
               />
-              <button onClick={pasteEpoch} className="text-[10px] font-semibold border border-border rounded px-2.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shrink-0">
+              <button onClick={pasteEpoch} className="text-xs font-semibold border border-border rounded px-2.5 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shrink-0">
                 Paste
               </button>
             </div>
@@ -175,7 +175,7 @@ export default function EpochConverterPage() {
           <div className="border border-border bg-card rounded p-5 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Date → Epoch</h3>
-              <button onClick={() => setDateInput(toLocalInput(new Date()))} className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1">
+              <button onClick={() => setDateInput(toLocalInput(new Date()))} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
                 <RefreshCw className="h-3 w-3" /> Now
               </button>
             </div>
@@ -211,7 +211,7 @@ function ResultRow({ label, value, extra, mono, copy }: { label: string; value: 
     <div className="flex flex-col gap-0.5 p-2.5 rounded bg-muted/10 text-xs border border-border/50">
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
-        {extra ? <span className="text-[10px] text-muted-foreground">{extra}</span> : <CopyButton text={copy} />}
+        {extra ? <span className="text-xs text-muted-foreground">{extra}</span> : <CopyButton text={copy} />}
       </div>
       <span className={`text-sm font-bold text-foreground break-all ${mono ? "font-mono" : ""}`}>{value}</span>
       {extra && <div className="flex items-center justify-end"><CopyButton text={copy} /></div>}

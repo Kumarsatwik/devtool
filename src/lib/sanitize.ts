@@ -7,6 +7,8 @@ export interface SanitizeOptions {
   redactionValue: string | null;
   /** How key names are matched. */
   matchMode: "exact" | "contains";
+  /** When true, every leaf value is redacted, regardless of sensitiveKeys. */
+  hideAllValues?: boolean;
 }
 
 export interface SanitizeResult {
@@ -90,7 +92,13 @@ function redact(
     seen.set(value, out);
     for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
       const keyPath = path ? `${path}.${key}` : key;
-      const isSensitive = options.sensitiveKeys.some((pattern) => matchesKey(key, pattern, options.matchMode));
+      // Container keys always recurse so nested structure survives; leaf values
+      // hide only when their key is in the list. With hideAllValues the list
+      // contains every key (populated by the UI), so all leaves are hidden
+      // except those the user removed from the list afterwards.
+      const isContainer = val !== null && typeof val === "object";
+      const inList = options.sensitiveKeys.some((pattern) => matchesKey(key, pattern, options.matchMode));
+      const isSensitive = options.hideAllValues ? inList && !isContainer : inList;
       if (isSensitive) {
         out[key] = options.redactionValue;
         result.count++;
@@ -105,6 +113,26 @@ function redact(
   }
 
   return value;
+}
+
+/**
+ * Collect every unique key name in a parsed JSON document (case-folded),
+ * recursing into objects and arrays. Used by the "hide all values" action.
+ */
+export function collectAllKeys(value: unknown): string[] {
+  const seen = new Set<string>();
+  const walk = (v: unknown) => {
+    if (Array.isArray(v)) {
+      v.forEach(walk);
+    } else if (v !== null && typeof v === "object") {
+      for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+        seen.add(k.toLowerCase());
+        walk(val);
+      }
+    }
+  };
+  walk(value);
+  return [...seen];
 }
 
 /**

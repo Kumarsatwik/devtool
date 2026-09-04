@@ -34,10 +34,10 @@ export function Navigation() {
           {isHomepage && (
             <div className="flex items-center gap-4">
               <Link
-                href="/csv-to-json"
+                href="/#tools"
                 className={buttonVariants({ variant: "outline", size: "xs", className: "h-7 text-xs font-semibold rounded" })}
               >
-                Launch App
+                Browse Tools
               </Link>
             </div>
           )}

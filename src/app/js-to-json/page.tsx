@@ -78,7 +78,7 @@ export default function JSToJSONPage() {
                     key={val}
                     variant={spaces === val ? "secondary" : "ghost"}
                     size="xs"
-                    className="h-6 text-[10px] px-2.5 rounded font-semibold"
+                    className="h-6 text-xs px-2.5 rounded font-semibold"
                     onClick={() => setSpaces(val)}
                   >
                     {val} Spaces
@@ -155,7 +155,7 @@ export default function JSToJSONPage() {
             <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-destructive">Compilation Error</p>
-              <p className="text-muted-foreground text-[11px] mt-0.5">{error}</p>
+              <p className="text-muted-foreground text-xs mt-0.5">{error}</p>
             </div>
           </StatusMessage>
         )}
@@ -169,7 +169,7 @@ export default function JSToJSONPage() {
                   <div>
                     <span className="font-semibold text-foreground">Valid JSON output.</span>
                   </div>
-                  <div className="text-[11px] text-muted-foreground flex items-center gap-4">
+                  <div className="text-xs text-muted-foreground flex items-center gap-4">
                     <span>Input Size: <strong className="text-foreground">{new Blob([input]).size} Bytes</strong></span>
                     <span>Output Size: <strong className="text-foreground">{new Blob([output]).size} Bytes</strong></span>
                   </div>
@@ -180,7 +180,7 @@ export default function JSToJSONPage() {
                 <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-destructive">Invalid JSON output</p>
-                  <p className="text-muted-foreground text-[11px] mt-0.5">{validation.error}</p>
+                  <p className="text-muted-foreground text-xs mt-0.5">{validation.error}</p>
                 </div>
               </>
             )}
