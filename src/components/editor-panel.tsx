@@ -7,8 +7,15 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/theme-provider";
 import { Copy, Check, Download, Trash2, FileText, Upload, RefreshCw } from "lucide-react";
 import { saveAs } from "file-saver";
+import { configureMonacoLoader } from "@/lib/monaco-config";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
+
+// Serve the editor from the self-hosted copy in public/monaco/vs (no CDN).
+configureMonacoLoader();
+
+/** Matches the size limit enforced by the drag-and-drop FileUpload component. */
+const MAX_UPLOAD_MB = 10;
 
 interface EditorPanelProps {
   value: string;
@@ -94,6 +101,27 @@ export function EditorPanel({
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!onChange || !e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
+    const accepted = accept ?? fileType.accept;
+
+    // Keep validation consistent with the drag-and-drop FileUpload component.
+    if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
+      window.alert(
+        `"${file.name}" is too large. Uploads are limited to ${MAX_UPLOAD_MB}MB.`,
+      );
+      e.target.value = "";
+      return;
+    }
+    if (accepted !== "*") {
+      const allowed = accepted.split(",").map((ext) => ext.trim().toLowerCase());
+      const dot = file.name.lastIndexOf(".");
+      const extension = dot === -1 ? "" : file.name.slice(dot).toLowerCase();
+      if (!allowed.includes(extension)) {
+        window.alert(`"${file.name}" is not a supported file type. Please upload: ${accepted}`);
+        e.target.value = "";
+        return;
+      }
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
       const content = event.target?.result;

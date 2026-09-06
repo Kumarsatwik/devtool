@@ -31,17 +31,6 @@ export function Navigation() {
 
         {/* Global Toolbar */}
         <div className="flex items-center gap-3">
-          {isHomepage && (
-            <div className="flex items-center gap-4">
-              <Link
-                href="/#tools"
-                className={buttonVariants({ variant: "outline", size: "xs", className: "h-7 text-xs font-semibold rounded" })}
-              >
-                Browse Tools
-              </Link>
-            </div>
-          )}
-          
           <div className="h-4 w-[1px] bg-border" />
           <ThemeToggle />
         </div>

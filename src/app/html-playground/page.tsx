@@ -138,6 +138,25 @@ const CONSOLE_BRIDGE = `<script>
 })();
 </script>`;
 
+/**
+ * Content-Security-Policy compiled into the preview/standalone document.
+ * The iframe `sandbox` attribute isolates the origin and storage, but it does
+ * NOT block network requests — this CSP denies every external fetch (scripts,
+ * styles, images, fonts, XHR/WebSockets, form navigations). Inline code and
+ * data:/blob: URLs stay allowed so normal playground code keeps working.
+ */
+const PREVIEW_CSP = [
+  "default-src 'none'",
+  "script-src 'unsafe-inline'",
+  "style-src 'unsafe-inline'",
+  "img-src data: blob:",
+  "font-src data: blob:",
+  "media-src data: blob:",
+  "connect-src data: blob:",
+  "form-action 'none'",
+  "base-uri 'none'",
+].join("; ");
+
 function buildDocument(html: string, css: string, js: string, includeBridge: boolean): string {
   return [
     "<!DOCTYPE html>",
@@ -145,6 +164,7 @@ function buildDocument(html: string, css: string, js: string, includeBridge: boo
     "<head>",
     '<meta charset="utf-8" />',
     '<meta name="viewport" content="width=device-width, initial-scale=1" />',
+    `<meta http-equiv="Content-Security-Policy" content="${PREVIEW_CSP}" />`,
     "<style>",
     css,
     "</style>",
@@ -255,7 +275,7 @@ export default function HtmlPlaygroundPage() {
   return (
     <ToolPageLayout
       title="HTML Playground"
-      description="Write HTML, CSS, and JavaScript with a live sandboxed preview and console."
+      description="Write HTML, CSS, and JavaScript with a live sandboxed preview and console. All network access is blocked inside the preview."
     >
       <div className="h-full flex flex-col gap-4">
         {/* Sandbox Bar */}
@@ -384,7 +404,8 @@ export default function HtmlPlaygroundPage() {
                 </div>
               </div>
 
-              {/* Preview Body — isolated origin: scripts run, parent storage stays unreachable */}
+              {/* Preview Body — isolated origin (scripts run, parent storage unreachable),
+                  plus a strict CSP so no external network requests are possible */}
               <iframe
                 ref={iframeRef}
                 title="HTML Preview"

@@ -24,7 +24,7 @@ const faqData = [
   {
     question: "Is my data secure when using DataTools?",
     answer:
-      "Yes, 100%. DataTools runs all computations locally in your browser. No files, logs, or payload strings are ever uploaded or transmitted to any server. You can even run the application fully offline.",
+      "Yes, 100%. DataTools runs all computations locally in your browser. No files, logs, or payload strings are ever uploaded or transmitted to any server. Even the code editor assets are served from the app itself, so you can run the application fully offline.",
   },
   {
     question: "What file size limitations exist?",

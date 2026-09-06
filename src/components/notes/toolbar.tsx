@@ -107,6 +107,10 @@ export function Toolbar({
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
+  const [tableOpen, setTableOpen] = useState(false);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const [colorOpen, setColorOpen] = useState(false);
+  const colorRef = useRef<HTMLDivElement>(null);
   const [isMac, setIsMac] = useState(true);
 
   useEffect(() => {
@@ -122,9 +126,12 @@ export function Toolbar({
       strike: e.isActive("strike"),
       highlight: e.isActive("highlight"),
       code: e.isActive("code"),
-      h1: e.isActive("heading", { level: 1 }),
-      h2: e.isActive("heading", { level: 2 }),
-      h3: e.isActive("heading", { level: 3 }),
+      heading: ([1, 2, 3, 4, 5, 6] as const).find(
+        (l) => e.isActive("heading", { level: l }),
+      ) ?? 0,
+      link: e.isActive("link"),
+      linkHref: (e.getAttributes("link").href as string) ?? "",
+      inTable: e.isActive("table"),
       bulletList: e.isActive("bulletList"),
       orderedList: e.isActive("orderedList"),
       taskList: e.isActive("taskList"),
@@ -141,8 +148,15 @@ export function Toolbar({
 
   useEffect(() => {
     const close = (ev: MouseEvent) => {
-      if (exportRef.current && !exportRef.current.contains(ev.target as Node)) {
+      const target = ev.target as Node;
+      if (exportRef.current && !exportRef.current.contains(target)) {
         setExportOpen(false);
+      }
+      if (tableRef.current && !tableRef.current.contains(target)) {
+        setTableOpen(false);
+      }
+      if (colorRef.current && !colorRef.current.contains(target)) {
+        setColorOpen(false);
       }
     };
     document.addEventListener("mousedown", close);
@@ -155,6 +169,17 @@ export function Toolbar({
     const clamped = Math.min(96, Math.max(8, size));
     if (clamped === DEFAULT_FONT_SIZE) chain().unsetFontSize().run();
     else chain().setFontSize(`${clamped}px`).run();
+  };
+
+  const setOrRemoveLink = () => {
+    const href = window.prompt(
+      "Link URL (leave empty to remove the link)",
+      state.linkHref || "https://",
+    );
+    if (href === null) return;
+    const url = href.trim();
+    if (!url) chain().unsetLink().run();
+    else chain().setLink({ href: url }).run();
   };
 
   const insertImage = (file: File) => {
@@ -406,6 +431,14 @@ export function Toolbar({
               Inline code <Shortcut keys="E" mac={isMac} />
             </TooltipContent>
           </Tooltip>
+          <Tooltip>
+            <TooltipTrigger>
+              <button className={btn(state.link)} onClick={setOrRemoveLink}>
+                🔗
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Add / edit / remove link</TooltipContent>
+          </Tooltip>
         </div>
 
         <span className="tb-sep" />
@@ -414,42 +447,24 @@ export function Toolbar({
         <div className="tb-group">
           <Tooltip>
             <TooltipTrigger>
-              <button
-                className={btn(state.h1)}
-                onClick={() => chain().toggleHeading({ level: 1 }).run()}
+              <select
+                className="tb-select"
+                value={state.heading ? `h${state.heading}` : "p"}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === "p") chain().setParagraph().run();
+                  else chain().toggleHeading({ level: Number(v.slice(1)) as 1 | 2 | 3 | 4 | 5 | 6 }).run();
+                }}
               >
-                H1
-              </button>
+                <option value="p">Body</option>
+                {[1, 2, 3, 4, 5, 6].map((l) => (
+                  <option key={l} value={`h${l}`}>
+                    {`Heading ${l}`}
+                  </option>
+                ))}
+              </select>
             </TooltipTrigger>
-            <TooltipContent>
-              Heading 1 <Shortcut keys="1" alt mac={isMac} />
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger>
-              <button
-                className={btn(state.h2)}
-                onClick={() => chain().toggleHeading({ level: 2 }).run()}
-              >
-                H2
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Heading 2 <Shortcut keys="2" alt mac={isMac} />
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger>
-              <button
-                className={btn(state.h3)}
-                onClick={() => chain().toggleHeading({ level: 3 }).run()}
-              >
-                H3
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              Heading 3 <Shortcut keys="3" alt mac={isMac} />
-            </TooltipContent>
+            <TooltipContent>Heading level</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger>
@@ -525,6 +540,145 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Horizontal rule</TooltipContent>
           </Tooltip>
+        </div>
+
+        <span className="tb-sep" />
+
+        {/* Table */}
+        <div className="tb-dropdown" ref={tableRef}>
+          <Tooltip>
+            <TooltipTrigger>
+              <button
+                className={`tb-btn${tableOpen ? " is-active" : ""}`}
+                onClick={() => setTableOpen((v) => !v)}
+              >
+                ▤ Table
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Insert & edit table</TooltipContent>
+          </Tooltip>
+          {tableOpen && (
+            <div className="tb-menu">
+              <button
+                className="tb-menu-item"
+                onClick={() => {
+                  chain()
+                    .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                    .run();
+                  setTableOpen(false);
+                }}
+              >
+                Insert 3×3 table
+              </button>
+              <button
+                className="tb-menu-item"
+                disabled={!state.inTable}
+                onClick={() => chain().addRowBefore().run()}
+              >
+                Row above
+              </button>
+              <button
+                className="tb-menu-item"
+                disabled={!state.inTable}
+                onClick={() => chain().addRowAfter().run()}
+              >
+                Row below
+              </button>
+              <button
+                className="tb-menu-item"
+                disabled={!state.inTable}
+                onClick={() => chain().deleteRow().run()}
+              >
+                Delete row
+              </button>
+              <button
+                className="tb-menu-item"
+                disabled={!state.inTable}
+                onClick={() => chain().addColumnBefore().run()}
+              >
+                Column before
+              </button>
+              <button
+                className="tb-menu-item"
+                disabled={!state.inTable}
+                onClick={() => chain().addColumnAfter().run()}
+              >
+                Column after
+              </button>
+              <button
+                className="tb-menu-item"
+                disabled={!state.inTable}
+                onClick={() => chain().deleteColumn().run()}
+              >
+                Delete column
+              </button>
+              <button
+                className="tb-menu-item"
+                disabled={!state.inTable}
+                onClick={() => chain().toggleHeaderRow().run()}
+              >
+                Toggle header row
+              </button>
+              <button
+                className="tb-menu-item"
+                disabled={!state.inTable}
+                onClick={() => chain().deleteTable().run()}
+              >
+                Delete table
+              </button>
+            </div>
+          )}
+        </div>
+
+        <span className="tb-sep" />
+
+        {/* Colors */}
+        <div className="tb-dropdown" ref={colorRef}>
+          <Tooltip>
+            <TooltipTrigger>
+              <button
+                className={`tb-btn${colorOpen ? " is-active" : ""}`}
+                onClick={() => setColorOpen((v) => !v)}
+              >
+                🎨
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Text & highlight color</TooltipContent>
+          </Tooltip>
+          {colorOpen && (
+            <div className="tb-menu">
+              <label className="tb-menu-item tb-color-row">
+                Text color
+                <input
+                  type="color"
+                  defaultValue="#000000"
+                  onChange={(e) => chain().setColor(e.target.value).run()}
+                />
+              </label>
+              <button
+                className="tb-menu-item"
+                onClick={() => chain().unsetColor().run()}
+              >
+                Reset text color
+              </button>
+              <label className="tb-menu-item tb-color-row">
+                Highlight
+                <input
+                  type="color"
+                  defaultValue="#fef08a"
+                  onChange={(e) =>
+                    chain().setHighlight({ color: e.target.value }).run()
+                  }
+                />
+              </label>
+              <button
+                className="tb-menu-item"
+                onClick={() => chain().unsetHighlight().run()}
+              >
+                Reset highlight
+              </button>
+            </div>
+          )}
         </div>
 
         <span className="tb-sep" />

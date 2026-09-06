@@ -208,6 +208,34 @@ body:has(.notes-app) {
   color: var(--accent-foreground);
 }
 
+.tb-menu-item[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.tb-menu-item[disabled]:hover {
+  background: none;
+  color: inherit;
+}
+
+.tb-color-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.tb-color-row input[type="color"] {
+  width: 30px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--nb-border);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+
 /* ================= Editor content ================= */
 
 .note-editor {

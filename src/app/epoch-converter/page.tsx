@@ -54,12 +54,21 @@ function CopyButton({ text }: { text: string }) {
 }
 
 export default function EpochConverterPage() {
-  const [epochInput, setEpochInput] = useState(() => Math.floor(Date.now() / 1000).toString());
+  // Inputs start empty and are filled with "now" after mount: time-dependent
+  // defaults would render different text on the server (build time) and the
+  // client (hydration time), causing a hydration mismatch.
+  const [epochInput, setEpochInput] = useState("");
   const [epochUnit, setEpochUnit] = useState<EpochUnit>("seconds");
-  const [dateInput, setDateInput] = useState(() => toLocalInput(new Date()));
-  const [nowTick, setNowTick] = useState(() => Date.now());
+  const [dateInput, setDateInput] = useState("");
+  // 0 until mounted: the server and client would otherwise render different
+  // clock values and React would report a hydration mismatch (error #418).
+  const [nowTick, setNowTick] = useState(0);
 
   useEffect(() => {
+    const now = Date.now();
+    setNowTick(now);
+    setEpochInput(Math.floor(now / 1000).toString());
+    setDateInput(toLocalInput(new Date(now)));
     const interval = setInterval(() => setNowTick(Date.now()), 1000);
     return () => clearInterval(interval);
   }, []);
@@ -104,14 +113,14 @@ export default function EpochConverterPage() {
         <div className="flex items-center justify-between text-xs border border-border rounded px-4 py-2.5 bg-card shrink-0 select-none">
           <div className="flex items-center gap-6 text-muted-foreground font-mono">
             <span>
-              UTC: <span className="font-semibold text-foreground">{new Date(nowMs).toISOString().replace("T", " ").slice(0, 19)}</span>
+              UTC: <span className="font-semibold text-foreground">{nowMs ? new Date(nowMs).toISOString().replace("T", " ").slice(0, 19) : "—"}</span>
             </span>
             <span>
-              IST: <span className="font-semibold text-foreground">{fmtTz(new Date(nowMs), IST_TIMEZONE)}</span>
+              IST: <span className="font-semibold text-foreground">{nowMs ? fmtTz(new Date(nowMs), IST_TIMEZONE) : "—"}</span>
             </span>
             <span>
-              Epoch: <span className="font-semibold text-foreground">{nowSeconds}</span>
-              <span className="text-xs ml-1">({nowMs} ms)</span>
+              Epoch: <span className="font-semibold text-foreground">{nowMs ? nowSeconds : "—"}</span>
+              {nowMs > 0 && <span className="text-xs ml-1">({nowMs} ms)</span>}
             </span>
           </div>
           <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />
@@ -163,7 +172,7 @@ export default function EpochConverterPage() {
               <div className="flex flex-col gap-2">
                 <ResultRow label="UTC" value={fmtTz(epochConversion.date, UTC_TIMEZONE)} extra="GMT +00:00" copy={epochConversion.date.toISOString()} />
                 <ResultRow label="IST" value={fmtTz(epochConversion.date, IST_TIMEZONE)} extra="GMT +05:30" copy={fmtTz(epochConversion.date, IST_TIMEZONE)} />
-                <ResultRow label="Local" value={epochConversion.date.toLocaleString()} extra="" copy={epochConversion.date.toISOString()} />
+                <ResultRow label="Local" value={nowMs > 0 ? epochConversion.date.toLocaleString() : "—"} extra="" copy={epochConversion.date.toISOString()} />
                 <ResultRow label="ISO 8601" value={epochConversion.date.toISOString()} extra="" mono copy={epochConversion.date.toISOString()} />
               </div>
             ) : (

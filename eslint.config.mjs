@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored static assets (copied by scripts/copy-monaco.mjs) — never lint bundles.
+    "public/**",
   ]),
 ]);
 

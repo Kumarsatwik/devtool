@@ -29,7 +29,7 @@ const extensions = [
     codeBlock: { HTMLAttributes: { class: "code-block" } },
   }),
   TextStyleKit,
-  Highlight.configure({ multicolor: false }),
+  Highlight.configure({ multicolor: true }),
   Image.configure({ inline: false, allowBase64: true }),
   TaskList,
   TaskItem.configure({ nested: true }),

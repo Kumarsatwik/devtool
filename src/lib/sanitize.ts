@@ -1,4 +1,4 @@
-import { validateJSON } from "@/lib/json";
+import { validateJSON, assignKey } from "@/lib/json";
 
 export interface SanitizeOptions {
   /** Key names whose values should be redacted. Matching is case-insensitive. */
@@ -7,7 +7,12 @@ export interface SanitizeOptions {
   redactionValue: string | null;
   /** How key names are matched. */
   matchMode: "exact" | "contains";
-  /** When true, every leaf value is redacted, regardless of sensitiveKeys. */
+  /**
+   * When true (the UI's "hide all values" toggle) the UI populates the key
+   * list with every key, so all leaf values are redacted — including items of
+   * primitive arrays — except those the user removes from the list afterwards.
+   * A bare root value or key-less root array is fully redacted.
+   */
   hideAllValues?: boolean;
 }
 
@@ -69,44 +74,61 @@ function stringifySafe(value: unknown): string {
   }, 2);
 }
 
-function redact(
-  value: unknown,
-  path: string,
-  options: SanitizeOptions,
-  result: { count: number; paths: string[] },
-  seen: WeakMap<object, unknown> = new WeakMap(),
-): unknown {
+interface RedactState {
+  options: SanitizeOptions;
+  count: number;
+  paths: string[];
+  seen: WeakMap<object, unknown>;
+}
+
+function redact(value: unknown, path: string, state: RedactState, force: boolean): unknown {
+  const { options } = state;
+
   if (Array.isArray(value)) {
-    if (seen.has(value)) return seen.get(value);
+    if (state.seen.has(value)) return state.seen.get(value);
     const copy: unknown[] = [];
-    seen.set(value, copy);
+    state.seen.set(value, copy);
     value.forEach((item, i) => {
-      copy.push(redact(item, `${path}[${i}]`, options, result, seen));
+      const itemPath = `${path}[${i}]`;
+      // Primitive items have no key of their own — when redaction was forced
+      // by an ancestor sensitive key (or hide-all), they are hidden too.
+      if (force && (item === null || typeof item !== "object")) {
+        copy.push(options.redactionValue);
+        state.count++;
+        if (state.paths.length < MAX_REDACTED_PATHS) state.paths.push(itemPath);
+      } else {
+        copy.push(redact(item, itemPath, state, force));
+      }
     });
     return copy;
   }
 
   if (value !== null && typeof value === "object") {
-    if (seen.has(value)) return seen.get(value);
+    if (state.seen.has(value)) return state.seen.get(value);
     const out: Record<string, unknown> = {};
-    seen.set(value, out);
+    state.seen.set(value, out);
     for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
       const keyPath = path ? `${path}.${key}` : key;
-      // Container keys always recurse so nested structure survives; leaf values
-      // hide only when their key is in the list. With hideAllValues the list
-      // contains every key (populated by the UI), so all leaves are hidden
-      // except those the user removed from the list afterwards.
       const isContainer = val !== null && typeof val === "object";
       const inList = options.sensitiveKeys.some((pattern) => matchesKey(key, pattern, options.matchMode));
-      const isSensitive = options.hideAllValues ? inList && !isContainer : inList;
-      if (isSensitive) {
-        out[key] = options.redactionValue;
-        result.count++;
-        if (result.paths.length < MAX_REDACTED_PATHS) {
-          result.paths.push(keyPath);
-        }
+
+      if (isContainer) {
+        // Containers always recurse so nested structure survives. A sensitive
+        // key also forces redaction of every leaf inside its subtree — this
+        // fixes the old leak where `{"emails": ["a@b.c"]}` or
+        // `{"authorization": {"bearer": "…"}}` slipped through untouched.
+        // In hide-all mode the leaf redaction still comes from the (fully
+        // populated) key list, so removing a key from the list keeps
+        // un-hiding it; primitive arrays directly under a listed key are the
+        // exception — their items have no key of their own to match.
+        const childForce = force || (inList && (!options.hideAllValues || Array.isArray(val)));
+        assignKey(out, key, redact(val, keyPath, state, childForce));
+      } else if (force || inList) {
+        assignKey(out, key, options.redactionValue);
+        state.count++;
+        if (state.paths.length < MAX_REDACTED_PATHS) state.paths.push(keyPath);
       } else {
-        out[key] = redact(val, keyPath, options, result, seen);
+        assignKey(out, key, val);
       }
     }
     return out;
@@ -150,13 +172,27 @@ export function sanitizeJson(jsonText: string, options: SanitizeOptions): Saniti
     throw new Error(error ?? "Invalid JSON");
   }
 
-  const result = { count: 0, paths: [] as string[] };
-  const sanitized = redact(parsed, "", options, result);
+  const state: RedactState = { options, count: 0, paths: [], seen: new WeakMap() };
+
+  // A bare root value (or a root array with no object keys at all) has no key
+  // names to match, so hide-all redacts it wholesale.
+  const rootIsContainer = parsed !== null && typeof parsed === "object";
+  if (!rootIsContainer && options.hideAllValues) {
+    return {
+      output: stringifySafe(options.redactionValue),
+      redactedCount: 1,
+      redactedPaths: ["(root)"],
+      inputChars: trimmed.length,
+    };
+  }
+  const rootForce =
+    options.hideAllValues === true && Array.isArray(parsed) && collectAllKeys(parsed).length === 0;
+  const sanitized = redact(parsed, "", state, rootForce);
 
   return {
     output: stringifySafe(sanitized),
-    redactedCount: result.count,
-    redactedPaths: result.paths,
+    redactedCount: state.count,
+    redactedPaths: state.paths,
     inputChars: trimmed.length,
   };
 }

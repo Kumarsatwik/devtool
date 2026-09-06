@@ -58,7 +58,7 @@ export default function JSToJSONPage() {
   const validation = validateJSON(output);
 
   return (
-    <ToolPageLayout title="JS to JSON" description="Convert JavaScript object literals into strict, standard JSON text.">
+    <ToolPageLayout title="JS to JSON" description="Convert JavaScript object literals into strict, standard JSON text — parsed safely, never executed.">
       <div className="h-full flex flex-col gap-4">
 
         {/* Settings Panel */}
