@@ -9,6 +9,7 @@ import Image from "@tiptap/extension-image";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table";
+import { CheckTick } from "@/components/notes/check-tick";
 
 import { ToolPageLayout } from "@/components/tool-page-layout";
 import { MermaidBlock } from "@/components/notes/mermaid-block";
@@ -37,6 +38,7 @@ const extensions = [
   TableRow,
   TableHeader,
   TableCell,
+  CheckTick,
   MermaidBlock,
 ];
 

@@ -10,7 +10,6 @@ import {
   compareJSON,
   sortJSONKeys,
   validateJSON,
-  summarizeDiff,
   type DiffItem,
 } from "@/lib/json";
 import {
@@ -24,10 +23,6 @@ import {
   Settings2,
   Trash2,
   ArrowDownAZ,
-  PlusCircle,
-  MinusCircle,
-  PencilLine,
-  ListTree,
 } from "lucide-react";
 
 const MonacoDiffEditor = dynamic(
@@ -127,8 +122,6 @@ export default function JSONComparePage() {
       setActiveView("edit");
     }
   }, [input1, input2, sortKeys]);
-
-  const summary = useMemo(() => summarizeDiff(diffs), [diffs]);
 
   const handleClear = () => {
     setInput1("");
@@ -338,9 +331,8 @@ export default function JSONComparePage() {
               </div>
             </div>
           ) : (
-            /* Diff workspace: Monaco diff + change summary */
-            <div className="h-full grid gap-4 lg:grid-cols-3">
-              <div className="lg:col-span-2 border border-border rounded overflow-hidden bg-card shadow-none flex flex-col min-h-0">
+            /* Diff workspace: Monaco diff */
+            <div className="h-full border border-border rounded overflow-hidden bg-card shadow-none flex flex-col min-h-0">
                 <div className="bg-muted/40 border-b border-border px-3 py-1.5 text-xs text-muted-foreground flex justify-between select-none shrink-0">
                   <span>Code Comparison</span>
                   <span className="text-xs font-bold text-foreground">
@@ -371,116 +363,10 @@ export default function JSONComparePage() {
                     </div>
                   )}
                 </div>
-              </div>
-
-              {/* Change summary */}
-              <aside className="border border-border rounded overflow-hidden bg-card flex flex-col min-h-0">
-                <div className="bg-muted/40 border-b border-border px-3 py-1.5 text-xs flex items-center justify-between select-none shrink-0">
-                  <span className="font-semibold text-foreground flex items-center gap-1.5">
-                    <ListTree className="h-3.5 w-3.5 text-muted-foreground" />
-                    Changes
-                  </span>
-                  <span className="text-xs font-bold text-muted-foreground">
-                    {summary.total} {summary.total === 1 ? "path" : "paths"}
-                  </span>
-                </div>
-
-                <div className="flex-1 min-h-0 overflow-auto p-3 space-y-3">
-                  {summary.total === 0 ? (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground border border-dashed border-border rounded p-3">
-                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-foreground" />
-                      <span>No structural differences found.</span>
-                    </div>
-                  ) : (
-                    <>
-                      {/* Counts */}
-                      <div className="grid grid-cols-3 gap-1.5 text-center select-none">
-                        <div className="border border-border rounded p-1.5 bg-background">
-                          <div className="flex items-center justify-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                            <PlusCircle className="h-3 w-3" />
-                            <span>Added</span>
-                          </div>
-                          <p className="text-sm font-bold text-foreground mt-0.5">
-                            {summary.added}
-                          </p>
-                        </div>
-                        <div className="border border-border rounded p-1.5 bg-background">
-                          <div className="flex items-center justify-center gap-1 text-xs font-bold text-destructive">
-                            <MinusCircle className="h-3 w-3" />
-                            <span>Removed</span>
-                          </div>
-                          <p className="text-sm font-bold text-foreground mt-0.5">
-                            {summary.removed}
-                          </p>
-                        </div>
-                        <div className="border border-border rounded p-1.5 bg-background">
-                          <div className="flex items-center justify-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400">
-                            <PencilLine className="h-3 w-3" />
-                            <span>Modified</span>
-                          </div>
-                          <p className="text-sm font-bold text-foreground mt-0.5">
-                            {summary.modified}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Path list */}
-                      <ul className="space-y-1">
-                        {diffs.map((diff, i) => (
-                          <li
-                            key={`${diff.path}-${i}`}
-                            className="group flex items-start gap-2 border border-border/70 rounded px-2 py-1.5 bg-background hover:bg-secondary/30 transition-colors"
-                          >
-                            <span
-                              className="mt-0.5 shrink-0"
-                              title={
-                                diff.type === "added"
-                                  ? "Added"
-                                  : diff.type === "removed"
-                                    ? "Removed"
-                                    : "Modified"
-                              }
-                            >
-                              {diff.type === "added" ? (
-                                <PlusCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                              ) : diff.type === "removed" ? (
-                                <MinusCircle className="h-3.5 w-3.5 text-destructive" />
-                              ) : (
-                                <PencilLine className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-                              )}
-                            </span>
-                            <div className="min-w-0 flex-1">
-                              <p className="font-mono text-xs font-semibold text-foreground break-all leading-snug">
-                                {diff.path}
-                              </p>
-                              <p className="text-xs text-muted-foreground truncate leading-snug mt-0.5" title={formatDiffValue(diff.newValue ?? diff.oldValue)}>
-                                {formatDiffValue(diff.newValue ?? diff.oldValue)}
-                              </p>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  )}
-                </div>
-              </aside>
             </div>
           )}
         </div>
       </div>
     </ToolPageLayout>
   );
-}
-
-function formatDiffValue(value: unknown): string {
-  if (value === null) return "null";
-  if (typeof value === "string") {
-    return value.length > 60 ? `${value.slice(0, 60)}…` : value;
-  }
-  try {
-    const json = JSON.stringify(value);
-    return json && json.length > 60 ? `${json.slice(0, 60)}…` : (json ?? "");
-  } catch {
-    return String(value);
-  }
 }
