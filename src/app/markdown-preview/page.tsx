@@ -8,8 +8,12 @@ import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
-import { Table, TableRow, TableCell, TableHeader } from "@tiptap/extension-table";
-import { CheckTick } from "@/components/notes/check-tick";
+import {
+  Table,
+  TableRow,
+  TableCell,
+  TableHeader,
+} from "@tiptap/extension-table";
 
 import { ToolPageLayout } from "@/components/tool-page-layout";
 import { MermaidBlock } from "@/components/notes/mermaid-block";
@@ -38,7 +42,6 @@ const extensions = [
   TableRow,
   TableHeader,
   TableCell,
-  CheckTick,
   MermaidBlock,
 ];
 
@@ -109,7 +112,9 @@ export default function MarkdownPreviewPage() {
       }
     } catch (err) {
       console.error(err);
-      window.alert(`Export failed: ${err instanceof Error ? err.message : String(err)}`);
+      window.alert(
+        `Export failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
     } finally {
       setExporting(null);
     }
