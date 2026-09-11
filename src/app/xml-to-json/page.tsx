@@ -59,10 +59,6 @@ export default function XMLToJSONPage() {
     }
   }, [input, smartTypes, autoConvert, handleConvert]);
 
-  const handleFileLoaded = (content: string) => {
-    setInput(content);
-  };
-
   return (
     <ToolPageLayout
       title="XML to JSON"
@@ -134,7 +130,7 @@ export default function XMLToJSONPage() {
         {!input && (
           <FileUpload
             accept=".xml,.xsl,.svg"
-            onFileLoaded={handleFileLoaded}
+            onFileLoaded={setInput}
             label="Drag and drop your XML file here, or click to browse"
           />
         )}
