@@ -1,6 +1,7 @@
 import {
   ArrowLeftRight,
   CheckCircle,
+  CodeXml,
   FileCode2,
   FileSpreadsheet,
   Sparkles,
@@ -49,6 +50,14 @@ export const tools: ToolDefinition[] = [
       "Convert Excel spreadsheets (.xlsx / .xls) into clean CSV sheets",
     icon: FileSpreadsheet,
     tag: "Excel to CSV",
+  },
+  {
+    href: "/xml-to-json",
+    title: "XML → JSON",
+    description:
+      "Convert XML documents into structured JSON with attributes, arrays, and nested elements",
+    icon: CodeXml,
+    tag: "XML to JSON",
   },
   {
     href: "/json-to-js",

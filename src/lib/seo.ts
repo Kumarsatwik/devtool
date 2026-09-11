@@ -28,6 +28,13 @@ const TOOL_SEO: Record<string, ToolSeo> = {
     keywords:
       "excel to csv, xlsx to csv, xls to csv, excel converter, convert excel to csv online",
   },
+  "/xml-to-json": {
+    title: "XML to JSON Converter – Free Online Tool | DataTools",
+    description:
+      "Convert XML documents into structured JSON instantly. Attributes become @-prefixed keys, repeated elements become arrays — 100% client-side.",
+    keywords:
+      "xml to json, xml to json converter, convert xml to json online, xml parser, xml to json array",
+  },
   "/json-to-js": {
     title: "JSON to JS Converter – JSON to JavaScript Object | DataTools",
     description:

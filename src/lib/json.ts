@@ -7,7 +7,7 @@ export interface ValidationResult {
 
 export function validateJSON(jsonText: string): ValidationResult {
   try {
-    const parsed = JSON.parse(jsonText);
+    const parsed = JSON.parse(jsonText.trim());
     return { valid: true, parsed };
   } catch (err) {
     const error = err instanceof Error ? err.message : "Invalid JSON";
@@ -52,109 +52,6 @@ export function jsToJSON(jsText: string, spaces: number | string = 2): string {
   return JSON.stringify(value, null, spaces) ?? "";
 }
 
-export interface DiffItem {
-  path: string;
-  type: "added" | "removed" | "modified";
-  oldValue?: unknown;
-  newValue?: unknown;
-}
-
-export interface DiffSummary {
-  added: number;
-  removed: number;
-  modified: number;
-  total: number;
-}
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return (
-    value !== null &&
-    typeof value === "object" &&
-    !Array.isArray(value) &&
-    Object.getPrototypeOf(value) === Object.prototype
-  );
-}
-
-function formatPathPart(key: string | number): string {
-  return typeof key === "number" || /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)
-    ? String(key)
-    : JSON.stringify(String(key));
-}
-
-function deepDiff(
-  a: unknown,
-  b: unknown,
-  path: string,
-  diffs: DiffItem[],
-): void {
-  if (Object.is(a, b)) return;
-
-  const bothObjects = isPlainObject(a) && isPlainObject(b);
-  const bothArrays = Array.isArray(a) && Array.isArray(b);
-
-  if (bothObjects) {
-    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
-    for (const key of keys) {
-      const childPath = path ? `${path}.${formatPathPart(key)}` : formatPathPart(key);
-      // hasOwnProperty (not `key in`) so inherited names like "toString"
-      // are not misclassified as existing on both sides.
-      const inA = Object.prototype.hasOwnProperty.call(a, key);
-      const inB = Object.prototype.hasOwnProperty.call(b, key);
-      if (inA && inB) {
-        deepDiff(a[key], b[key], childPath, diffs);
-      } else if (inB) {
-        diffs.push({ path: childPath, type: "added", newValue: b[key] });
-      } else {
-        diffs.push({ path: childPath, type: "removed", oldValue: a[key] });
-      }
-    }
-    return;
-  }
-
-  if (bothArrays) {
-    // Compare element by element: shared indices are diffed recursively and
-    // extra items are reported as added/removed instead of collapsing the
-    // whole array into a single "modified" entry.
-    const sharedLength = Math.min(a.length, b.length);
-    for (let i = 0; i < sharedLength; i++) {
-      deepDiff(a[i], b[i], `${path}[${i}]`, diffs);
-    }
-    for (let i = sharedLength; i < b.length; i++) {
-      diffs.push({ path: `${path}[${i}]`, type: "added", newValue: b[i] });
-    }
-    for (let i = sharedLength; i < a.length; i++) {
-      diffs.push({ path: `${path}[${i}]`, type: "removed", oldValue: a[i] });
-    }
-    return;
-  }
-
-  diffs.push({ path: path || "(root)", type: "modified", oldValue: a, newValue: b });
-}
-
-/**
- * Deep structural diff between two JSON documents. Produces one entry
- * per changed leaf with a full path (e.g. `environment.port` or
- * `modules[1]`), recursing into nested objects and comparing arrays element
- * by element (extra items are reported as added/removed).
- */
-export function compareJSON(json1: string, json2: string): DiffItem[] {
-  const result1 = validateJSON(json1);
-  const result2 = validateJSON(json2);
-
-  if (!result1.valid) throw new Error("First JSON is invalid");
-  if (!result2.valid) throw new Error("Second JSON is invalid");
-
-  const diffs: DiffItem[] = [];
-  deepDiff(result1.parsed, result2.parsed, "", diffs);
-  return diffs;
-}
-
-export function summarizeDiff(diffs: DiffItem[]): DiffSummary {
-  const summary: DiffSummary = { added: 0, removed: 0, modified: 0, total: diffs.length };
-  for (const d of diffs) summary[d.type]++;
-  return summary;
-}
-
 function sortKeysDeep(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(sortKeysDeep);
@@ -171,15 +68,9 @@ function sortKeysDeep(value: unknown): unknown {
   return value;
 }
 
-export function sortJSONKeys(jsonText: string, spaces: number | string = 2): string {
-  const trimmed = jsonText.trim();
-  if (!trimmed) return "";
-  const { valid, parsed, error } = validateJSON(trimmed);
-  if (!valid) {
-    throw new Error(error);
-  }
-  const sorted = sortKeysDeep(parsed);
-  return JSON.stringify(sorted, null, spaces);
+/** Deep-sort object keys of an already-parsed JSON value and serialize it. */
+export function sortJSONValue(value: unknown, spaces: number | string = 2): string {
+  return JSON.stringify(sortKeysDeep(value), null, spaces) ?? "";
 }
 
 /* ---------------------------------------------------------------------------
