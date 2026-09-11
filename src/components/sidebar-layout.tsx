@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Braces, Menu, X, Home } from "lucide-react";
+import { Menu, X, Home } from "lucide-react";
 import { useState, useEffect } from "react";
+import { DataToolsMark } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { tools } from "@/lib/tools";
 
@@ -117,7 +118,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
                   className="flex items-center gap-2 font-bold text-sm"
                   onClick={() => setMobileOpen(false)}
                 >
-                  <Braces className="h-4 w-4" />
+                  <DataToolsMark className="h-4 w-4" />
                   <span>DataTools</span>
                 </Link>
                 <Button

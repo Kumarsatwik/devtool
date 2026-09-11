@@ -18,6 +18,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { DataToolsMark } from "@/components/logo";
 import { tools } from "@/lib/tools";
 
 const faqData = [
@@ -250,7 +251,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between gap-6">
           <div className="space-y-2 max-w-xs">
             <div className="flex items-center gap-1.5 font-bold text-foreground">
-              <Braces className="h-4 w-4" />
+              <DataToolsMark className="h-4 w-4" />
               <span>DataTools</span>
             </div>
             <p className="leading-relaxed">

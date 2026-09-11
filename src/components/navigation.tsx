@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Braces } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
+import { DataToolsMark } from "@/components/logo";
 
 export function Navigation() {
   const pathname = usePathname();
@@ -21,7 +20,7 @@ export function Navigation() {
             className="flex items-center gap-2 font-bold text-sm tracking-tight"
           >
             <div className="flex h-7 w-7 items-center justify-center rounded bg-foreground text-background">
-              <Braces className="h-3.5 w-3.5" />
+              <DataToolsMark className="h-3.5 w-3.5" />
             </div>
             <span className="text-foreground font-semibold">
               DataTools
