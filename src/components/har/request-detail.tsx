@@ -318,7 +318,7 @@ export function RequestDetail({ entry, onBack }: { entry: AnalyzedEntry; onBack:
 
       {/* Tab body */}
       <div className="flex-1 min-h-0 overflow-y-auto pr-1">
-        <div className="max-w-4xl space-y-5 pb-6">
+        <div className="w-full space-y-5 pb-6">
           {tab === "overview" && (
             <>
               {explanation && (

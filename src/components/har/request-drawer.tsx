@@ -39,7 +39,7 @@ export function RequestDrawer({
         aria-modal="true"
         aria-label="Request details"
         tabIndex={-1}
-        className="relative w-full max-w-2xl h-full bg-background border-l border-border shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col overflow-hidden"
+        className="relative w-full max-w-5xl h-full bg-background border-l border-border shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col overflow-hidden"
         onKeyDown={(e) => {
           if (e.key === "Escape") onClose();
         }}
