@@ -2,7 +2,8 @@
 
 import { saveAs } from "file-saver";
 import { htmlToMarkdown } from "./markdown";
-import { renderMermaidSvg } from "@/components/notes/mermaid-block";
+import { detectDiagramKind, renderDiagramSvg, type DiagramKind } from "@/lib/diagrams";
+import { plantUmlBackground } from "@/lib/plantuml";
 
 /* ---------------- helpers ---------------- */
 
@@ -11,7 +12,7 @@ function sanitizeFilename(name: string): string {
 }
 
 /** Rasterize an SVG string to a PNG data URL (needed for DOCX/PDF fidelity). */
-async function svgToPngDataUrl(svg: string, scale = 2): Promise<string> {
+async function svgToPngDataUrl(svg: string, scale = 2, background = "#ffffff"): Promise<string> {
   const container = document.createElement("div");
   container.style.cssText = "position:fixed;left:-10000px;top:0;";
   container.innerHTML = svg;
@@ -36,37 +37,45 @@ async function svgToPngDataUrl(svg: string, scale = 2): Promise<string> {
   canvas.width = width * scale;
   canvas.height = height * scale;
   const ctx = canvas.getContext("2d")!;
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = background;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL("image/png");
 }
 
 /**
- * Replace mermaid code blocks in editor HTML with rendered diagrams.
+ * Replace diagram code blocks in editor HTML with rendered diagrams.
  * mode 'svg'  -> inline SVG (great for standalone HTML export)
  * mode 'png'  -> <img> with PNG data URL (needed for DOCX)
  */
-async function resolveMermaid(html: string, mode: "svg" | "png"): Promise<string> {
+async function resolveDiagrams(html: string, mode: "svg" | "png"): Promise<string> {
   const doc = new DOMParser().parseFromString(html, "text/html");
-  const blocks = Array.from(doc.querySelectorAll('pre[data-type="mermaid"]'));
+  const blocks = Array.from(
+    doc.querySelectorAll('pre[data-type="mermaid"], pre[data-type="plantuml"]'),
+  );
   for (const block of blocks) {
     const code = block.textContent ?? "";
     if (!code.trim()) {
       block.remove();
       continue;
     }
+    const fallback: DiagramKind =
+      block.getAttribute("data-type") === "plantuml" ? "plantuml" : "mermaid";
+    const kind = detectDiagramKind(code, fallback);
     try {
-      const svg = await renderMermaidSvg(code);
+      const svg = await renderDiagramSvg(kind, code);
+      // PlantUML themes may draw on their own (or no) background
+      const background = kind === "plantuml" ? plantUmlBackground(svg) : "#ffffff";
       const wrapper = doc.createElement("div");
       wrapper.className = "mermaid-diagram";
       if (mode === "svg") {
         wrapper.innerHTML = svg;
+        if (kind === "plantuml") wrapper.style.background = background;
       } else {
-        const png = await svgToPngDataUrl(svg);
+        const png = await svgToPngDataUrl(svg, 2, background);
         const img = doc.createElement("img");
         img.src = png;
-        img.alt = "Mermaid diagram";
+        img.alt = `${kind === "plantuml" ? "PlantUML" : "Mermaid"} diagram`;
         img.style.maxWidth = "100%";
         wrapper.appendChild(img);
       }
@@ -120,14 +129,14 @@ ${bodyHtml}
 /* ---------------- public exporters ---------------- */
 
 export async function exportAsHtml(title: string, editorHtml: string): Promise<void> {
-  const body = await resolveMermaid(editorHtml, "svg");
+  const body = await resolveDiagrams(editorHtml, "svg");
   const doc = buildDocument(title, `<h1>${title}</h1>\n${body}`);
   saveAs(new Blob([doc], { type: "text/html;charset=utf-8" }), `${sanitizeFilename(title)}.html`);
 }
 
 export async function exportAsDocx(title: string, editorHtml: string): Promise<void> {
   const { asBlob } = await import("html-docx-js-typescript");
-  const body = await resolveMermaid(editorHtml, "png");
+  const body = await resolveDiagrams(editorHtml, "png");
   const doc = buildDocument(title, `<h1>${title}</h1>\n${body}`);
   const blob = await asBlob(doc, { orientation: "portrait" });
   saveAs(blob as Blob, `${sanitizeFilename(title)}.docx`);
@@ -140,9 +149,10 @@ export function exportAsMarkdown(title: string, editorHtml: string): void {
 
 export function exportAsTxt(title: string, editorHtml: string): void {
   const doc = new DOMParser().parseFromString(editorHtml, "text/html");
-  // Represent mermaid diagrams by their source code in plain text
-  doc.querySelectorAll('pre[data-type="mermaid"]').forEach((el) => {
-    el.textContent = `[Mermaid diagram]\n${el.textContent ?? ""}\n`;
+  // Represent diagrams by their source code in plain text
+  doc.querySelectorAll('pre[data-type="mermaid"], pre[data-type="plantuml"]').forEach((el) => {
+    const label = el.getAttribute("data-type") === "plantuml" ? "PlantUML" : "Mermaid";
+    el.textContent = `[${label} diagram]\n${el.textContent ?? ""}\n`;
   });
   doc.querySelectorAll("img").forEach((img) => {
     img.replaceWith(doc.createTextNode(`[Image: ${img.alt || "embedded image"}]`));

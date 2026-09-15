@@ -43,6 +43,7 @@ const DEFAULT_FILE_TYPE: Record<string, { extension: string; mimeType: string; a
   html: { extension: "html", mimeType: "text/html", accept: ".html,.htm" },
   css: { extension: "css", mimeType: "text/css", accept: ".css" },
   mermaid: { extension: "mmd", mimeType: "text/plain", accept: ".mmd,.mermaid,.txt" },
+  plantuml: { extension: "puml", mimeType: "text/plain", accept: ".puml,.plantuml,.txt" },
 };
 
 export function EditorPanel({

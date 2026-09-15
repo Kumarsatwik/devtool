@@ -16,7 +16,7 @@ import {
 } from "@tiptap/extension-table";
 
 import { ToolPageLayout } from "@/components/tool-page-layout";
-import { MermaidBlock } from "@/components/notes/mermaid-block";
+import { DiagramBlock } from "@/components/notes/diagram-block";
 import { Toolbar, type ExportFormat } from "@/components/notes/toolbar";
 import { MarkdownPane } from "@/components/notes/markdown-pane";
 import { markdownToHtml } from "@/lib/notes/markdown";
@@ -42,7 +42,7 @@ const extensions = [
   TableRow,
   TableHeader,
   TableCell,
-  MermaidBlock,
+  DiagramBlock,
 ];
 
 const WELCOME_HTML = `
@@ -51,7 +51,7 @@ const WELCOME_HTML = `
 <ul>
   <li>Use the toolbar to format text, change fonts and sizes</li>
   <li>Insert images — they are embedded right into the note</li>
-  <li>Add Mermaid diagrams with a live preview</li>
+  <li>Add Mermaid or PlantUML diagrams with a live preview</li>
   <li>Open / save <code>.md</code> files, export to HTML, DOCX, TXT</li>
 </ul>
 <pre data-type="mermaid"><code>graph LR

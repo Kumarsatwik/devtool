@@ -1,11 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
 import { FileUpload } from "@/components/file-upload";
 import { exportMermaidSvg, exportMermaidImage } from "@/lib/mermaid-export";
+import { fetchPlantUmlSvg, plantUmlBackground } from "@/lib/plantuml";
 import {
   diagramThemes,
   defaultDiagramTheme,
@@ -29,6 +36,8 @@ import {
   Plus,
 } from "lucide-react";
 
+type DiagramEngine = "mermaid" | "plantuml";
+
 const sampleMermaid = `graph TD
     A([Start]):::flow-start --> B{Is it working?}
     B -->|Yes| C[Great!]
@@ -37,6 +46,21 @@ const sampleMermaid = `graph TD
     E --> B
     C --> F([Deploy]):::flow-start`;
 
+const samplePlantUml = `@startuml
+Alice -> Bob: Authentication Request
+Bob --> Alice: Authentication Response
+@enduml`;
+
+const samples: Record<DiagramEngine, string> = {
+  mermaid: sampleMermaid,
+  plantuml: samplePlantUml,
+};
+
+const engines = [
+  { value: "mermaid", label: "Mermaid" },
+  { value: "plantuml", label: "PlantUML" },
+] as const;
+
 const exportOptions = [
   { value: "svg", label: "SVG", icon: FileText },
   { value: "png", label: "PNG", icon: Image },
@@ -44,6 +68,7 @@ const exportOptions = [
 ] as const;
 
 export default function MermaidDiagramPage() {
+  const [engine, setEngine] = useState<DiagramEngine>("mermaid");
   const [input, setInput] = useState(sampleMermaid);
   const [svgCode, setSvgCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -57,20 +82,65 @@ export default function MermaidDiagramPage() {
   const previewRef = useRef<HTMLDivElement>(null);
   const zoomTargetRef = useRef<HTMLDivElement>(null);
   const previewScrollRef = useRef<HTMLDivElement>(null);
+  const zoomRef = useRef(1);
+  const renderIdRef = useRef(0);
+  const pendingZoomAnchorRef = useRef<{
+    fx: number;
+    fy: number;
+    x: number;
+    y: number;
+  } | null>(null);
 
   const minZoom = 0.25;
   const maxZoom = 3;
   const zoomStep = 0.1;
 
-  const updateZoom = useCallback((delta: number) => {
-    setZoom((prev) =>
-      Math.min(maxZoom, Math.max(minZoom, +(prev + delta).toFixed(3))),
-    );
-  }, []);
+  // Applies a new zoom. When an anchor (cursor point) is given, the content
+  // under that point stays put: the scroll offset is corrected in the layout
+  // effect below, once the zoomed layout has been committed.
+  const commitZoom = useCallback(
+    (next: number, anchor?: { x: number; y: number }) => {
+      const clamped = Math.min(maxZoom, Math.max(minZoom, +next.toFixed(3)));
+      if (clamped === zoomRef.current) return;
 
-  const resetZoom = useCallback(() => setZoom(1), []);
+      if (anchor) {
+        const rect = zoomTargetRef.current?.getBoundingClientRect();
+        if (rect && rect.width > 0 && rect.height > 0) {
+          pendingZoomAnchorRef.current = {
+            fx: (anchor.x - rect.left) / rect.width,
+            fy: (anchor.y - rect.top) / rect.height,
+            x: anchor.x,
+            y: anchor.y,
+          };
+        }
+      }
 
-  // Ctrl/Cmd + scroll (or trackpad pinch) zooms the preview.
+      zoomRef.current = clamped;
+      setZoom(clamped);
+    },
+    [],
+  );
+
+  const updateZoom = useCallback(
+    (delta: number) => commitZoom(zoomRef.current + delta),
+    [commitZoom],
+  );
+
+  const resetZoom = useCallback(() => commitZoom(1), [commitZoom]);
+
+  useLayoutEffect(() => {
+    const anchor = pendingZoomAnchorRef.current;
+    pendingZoomAnchorRef.current = null;
+    const el = previewScrollRef.current;
+    const target = zoomTargetRef.current;
+    if (!anchor || !el || !target) return;
+
+    const rect = target.getBoundingClientRect();
+    el.scrollLeft += rect.left + anchor.fx * rect.width - anchor.x;
+    el.scrollTop += rect.top + anchor.fy * rect.height - anchor.y;
+  }, [zoom]);
+
+  // Ctrl/Cmd + scroll (or trackpad pinch) zooms the preview around the cursor.
   // Native non-passive listener is required because React registers
   // wheel events passively, which blocks preventDefault.
   useEffect(() => {
@@ -81,12 +151,15 @@ export default function MermaidDiagramPage() {
       if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
       const step = e.deltaMode === 1 ? 0.05 : 0.0015;
-      updateZoom(-e.deltaY * step);
+      commitZoom(zoomRef.current - e.deltaY * step, {
+        x: e.clientX,
+        y: e.clientY,
+      });
     };
 
     el.addEventListener("wheel", handleWheel, { passive: false });
     return () => el.removeEventListener("wheel", handleWheel);
-  }, [updateZoom]);
+  }, [commitZoom]);
 
   const renderDiagram = useCallback(async () => {
     if (!input.trim()) {
@@ -95,26 +168,39 @@ export default function MermaidDiagramPage() {
       return;
     }
 
+    const renderId = ++renderIdRef.current;
     setIsRendering(true);
     setError(null);
 
     try {
+      if (engine === "plantuml") {
+        // Rendered by the PlantUML server; the SVG is inlined so the
+        // existing export path (and its same-origin canvas) keeps working.
+        const svg = await fetchPlantUmlSvg(input);
+        if (renderId === renderIdRef.current) setSvgCode(svg);
+        return;
+      }
+
       // lazy: mermaid is ~1MB; loaded on first render, then cached by the bundler
       const mermaid = (await import("mermaid")).default;
       mermaid.initialize(getMermaidConfig(diagramTheme));
       const id = `mermaid-${Math.random().toString(36).slice(2, 11)}`;
       const { svg } = await mermaid.render(id, input);
-      setSvgCode(svg);
+      if (renderId === renderIdRef.current) setSvgCode(svg);
     } catch (err) {
+      if (renderId !== renderIdRef.current) return;
       setSvgCode("");
       setError(err instanceof Error ? err.message : "Failed to render diagram");
     } finally {
-      setIsRendering(false);
+      if (renderId === renderIdRef.current) setIsRendering(false);
     }
-  }, [input, diagramTheme]);
+  }, [input, diagramTheme, engine]);
 
-  const handleThemeChange = (theme: DiagramTheme) => {
-    setDiagramTheme(theme);
+  const handleEngineChange = (next: DiagramEngine) => {
+    setEngine(next);
+    setInput((prev) =>
+      !prev.trim() || prev === samples[engine] ? samples[next] : prev,
+    );
   };
 
   useEffect(() => {
@@ -151,10 +237,13 @@ export default function MermaidDiagramPage() {
     setInput(content);
   };
 
+  const engineLabel = engine === "mermaid" ? "Mermaid" : "PlantUML";
+  const ext = engine === "mermaid" ? "mmd" : "puml";
+
   return (
     <ToolPageLayout
-      title="Mermaid Diagram"
-      description="Write Mermaid syntax and preview or export diagrams."
+      title="Mermaid & PlantUML Diagram"
+      description="Write Mermaid or PlantUML syntax and preview or export diagrams."
     >
       <div className="h-full flex flex-col gap-4">
         {/* Settings Bar */}
@@ -165,26 +254,48 @@ export default function MermaidDiagramPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            {/* Theme Selector */}
+            {/* Engine Selector */}
             <div className="flex items-center gap-1.5">
-              <Palette className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-muted-foreground font-semibold">
-                Theme:
+                Engine:
               </span>
-              <select
-                value={diagramTheme}
-                onChange={(e) =>
-                  handleThemeChange(e.target.value as DiagramTheme)
-                }
-                className="h-7 px-2 pr-6 rounded border border-border bg-background text-xs font-semibold text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/15 hover:border-primary/40 transition-colors"
-              >
-                {diagramThemes.map((option) => (
-                  <option key={option.value} value={option.value}>
+              <div className="flex border border-border rounded p-0.5 bg-background">
+                {engines.map((option) => (
+                  <Button
+                    key={option.value}
+                    variant={engine === option.value ? "secondary" : "ghost"}
+                    size="xs"
+                    className="h-6 px-2.5 rounded text-xs font-semibold"
+                    onClick={() => handleEngineChange(option.value)}
+                  >
                     {option.label}
-                  </option>
+                  </Button>
                 ))}
-              </select>
+              </div>
             </div>
+
+            {/* Theme Selector (Mermaid only) */}
+            {engine === "mermaid" && (
+              <div className="flex items-center gap-1.5">
+                <Palette className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-muted-foreground font-semibold">
+                  Theme:
+                </span>
+                <select
+                  value={diagramTheme}
+                  onChange={(e) =>
+                    setDiagramTheme(e.target.value as DiagramTheme)
+                  }
+                  className="h-7 px-2 pr-6 rounded border border-border bg-background text-xs font-semibold text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/15 hover:border-primary/40 transition-colors"
+                >
+                  {diagramThemes.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Export Format Selector */}
             <div className="flex items-center gap-1.5">
@@ -237,19 +348,19 @@ export default function MermaidDiagramPage() {
         </div>
 
         {/* Editor workspace — 30% code / 70% preview */}
-        <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-10">
+        <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-10 lg:grid-rows-1">
           <div className="lg:col-span-3 flex flex-col min-h-0 gap-2">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-              Mermaid Code
+              {engineLabel} Code
             </label>
             <EditorPanel
               value={input}
               onChange={setInput}
-              language="mermaid"
+              language={engine}
               title=""
-              sampleText={sampleMermaid}
-              downloadFileName="diagram.mmd"
-              downloadExtension="mmd"
+              sampleText={samples[engine]}
+              downloadFileName={`diagram.${ext}`}
+              downloadExtension={ext}
               height="fill"
               className="flex-1 min-h-0"
             />
@@ -322,11 +433,17 @@ export default function MermaidDiagramPage() {
                 </div>
               </div>
 
-              {/* Preview Body — canvas color follows the selected theme */}
+              {/* Preview Body — canvas color follows the selected theme;
+                  PlantUML diagrams carry (or imply) their own background */}
               <div
                 ref={previewScrollRef}
                 className="flex-1 relative overflow-auto p-4 min-h-0 transition-colors duration-200"
-                style={{ backgroundColor: getThemeSpec(diagramTheme).canvas }}
+                style={{
+                  backgroundColor:
+                    engine === "mermaid"
+                      ? getThemeSpec(diagramTheme).canvas
+                      : plantUmlBackground(svgCode),
+                }}
                 title="Ctrl/⌘ + scroll to zoom"
               >
                 {isRendering && (
@@ -338,7 +455,9 @@ export default function MermaidDiagramPage() {
 
                 {!svgCode && !error && !isRendering && (
                   <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
-                    <span>Enter Mermaid code to see the preview</span>
+                    <span>
+                      Enter {engineLabel} code to see the preview
+                    </span>
                   </div>
                 )}
 
@@ -348,7 +467,7 @@ export default function MermaidDiagramPage() {
                 <div ref={previewRef} className="min-h-full min-w-fit flex">
                   <div
                     ref={zoomTargetRef}
-                    className="m-auto transition-all duration-150 ease-out"
+                    className="m-auto"
                     style={{ zoom }}
                     dangerouslySetInnerHTML={{ __html: svgCode }}
                   />
@@ -361,9 +480,9 @@ export default function MermaidDiagramPage() {
         {/* File drop zone if empty */}
         {!input && (
           <FileUpload
-            accept=".mmd,.mermaid,.txt"
+            accept={engine === "mermaid" ? ".mmd,.mermaid,.txt" : ".puml,.plantuml,.txt"}
             onFileLoaded={handleFileLoaded}
-            label="Drag and drop your Mermaid file here, or click to browse"
+            label={`Drag and drop your ${engineLabel} file here, or click to browse`}
           />
         )}
 

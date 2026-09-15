@@ -16,9 +16,10 @@ export function markdownToHtml(md: string): string {
   const renderer = new marked.Renderer();
   const origCode = renderer.code.bind(renderer);
   renderer.code = (token) => {
-    if (token.lang === "mermaid") {
-      // Rendered by the MermaidBlock node in the editor
-      return `<pre data-type="mermaid"><code>${escapeHtml(token.text)}</code></pre>\n`;
+    if (token.lang === "mermaid" || token.lang === "plantuml" || token.lang === "puml") {
+      // Rendered by the DiagramBlock node in the editor
+      const kind = token.lang === "mermaid" ? "mermaid" : "plantuml";
+      return `<pre data-type="${kind}"><code>${escapeHtml(token.text)}</code></pre>\n`;
     }
     return origCode(token);
   };
@@ -60,13 +61,18 @@ function getTurndown(): TurndownService {
     replacement: (content) => `==${content}==`,
   });
 
-  // Mermaid blocks -> fenced code with mermaid language
-  turndown.addRule("mermaid", {
-    filter: (node) =>
-      node.nodeName === "PRE" && (node as HTMLElement).getAttribute("data-type") === "mermaid",
+  // Diagram blocks -> fenced code with the diagram language
+  turndown.addRule("diagram", {
+    filter: (node) => {
+      if (node.nodeName !== "PRE") return false;
+      const type = (node as HTMLElement).getAttribute("data-type");
+      return type === "mermaid" || type === "plantuml";
+    },
     replacement: (_content, node) => {
-      const code = (node as HTMLElement).textContent ?? "";
-      return `\n\n\`\`\`mermaid\n${code.trim()}\n\`\`\`\n\n`;
+      const el = node as HTMLElement;
+      const kind = el.getAttribute("data-type");
+      const code = el.textContent ?? "";
+      return `\n\n\`\`\`${kind}\n${code.trim()}\n\`\`\`\n\n`;
     },
   });
 

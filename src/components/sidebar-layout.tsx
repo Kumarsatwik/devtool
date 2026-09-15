@@ -58,7 +58,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
   }, [mobileOpen]);
 
   return (
-    <div className="flex flex-1 min-h-screen bg-background border-t">
+    <div className="flex flex-1 min-h-screen lg:flex-none lg:min-h-0 lg:h-[calc(100dvh-3.5rem)] bg-background border-t">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-60 border-r border-border bg-card/10 shrink-0 select-none">
         <div className="flex-1 flex flex-col justify-between py-6 px-4 space-y-6">

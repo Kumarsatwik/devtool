@@ -7,31 +7,36 @@ import {
   ReactNodeViewRenderer,
   type NodeViewProps,
 } from "@tiptap/react";
+import { detectDiagramKind, renderDiagramSvg, type DiagramKind } from "@/lib/diagrams";
+import { plantUmlBackground } from "@/lib/plantuml";
 
-let mermaidReady = false;
-let renderSeq = 0;
-
-export async function renderMermaidSvg(code: string): Promise<string> {
-  // lazy: mermaid is ~1MB; only loaded when a mermaid block actually renders
-  const mermaid = (await import("mermaid")).default;
-  if (!mermaidReady) {
-    mermaid.initialize({ startOnLoad: false, theme: "neutral", securityLevel: "loose" });
-    mermaidReady = true;
-  }
-  const id = `mermaid-svg-${++renderSeq}`;
-  const { svg } = await mermaid.render(id, code);
-  return svg;
-}
+const PLACEHOLDERS: Record<DiagramKind, string> = {
+  mermaid: "graph TD\n  A[Start] --> B{Decision}\n  B -->|Yes| C[OK]\n  B -->|No| D[Retry]",
+  plantuml: "@startuml\nAlice -> Bob: Hello\n@enduml",
+};
 
 /* ---------------- React node view ---------------- */
 
-function MermaidView({ node, updateAttributes, selected, editor }: NodeViewProps) {
+function DiagramView({ node, updateAttributes, selected, editor }: NodeViewProps) {
+  const declared: DiagramKind = node.attrs.language === "plantuml" ? "plantuml" : "mermaid";
   const code: string = node.attrs.code ?? "";
   const [editing, setEditing] = useState(code.trim() === "");
   const [draft, setDraft] = useState(code);
   const [svg, setSvg] = useState("");
   const [error, setError] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<HTMLTextAreaElement>(null);
+
+  // The kind follows the code, so typing @startuml flips a block to PlantUML
+  const kind = detectDiagramKind(editing ? draft : code, declared);
+
+  // The toolbar refocuses ProseMirror after inserting, which beats the
+  // textarea's autoFocus; focus it here once the editor is mounted.
+  // Focus the code editor on insert/edit. Inserting runs without the
+  // toolbar's focus() command so nothing steals this back.
+  useEffect(() => {
+    if (editing) editorRef.current?.focus();
+  }, [editing]);
 
   // Live render (also while typing in the code editor)
   useEffect(() => {
@@ -43,7 +48,7 @@ function MermaidView({ node, updateAttributes, selected, editor }: NodeViewProps
     }
     let cancelled = false;
     const t = setTimeout(() => {
-      renderMermaidSvg(source)
+      renderDiagramSvg(kind, source)
         .then((s) => {
           if (!cancelled) {
             setSvg(s);
@@ -60,7 +65,7 @@ function MermaidView({ node, updateAttributes, selected, editor }: NodeViewProps
       cancelled = true;
       clearTimeout(t);
     };
-  }, [code, draft, editing]);
+  }, [kind, code, draft, editing]);
 
   const save = useCallback(() => {
     updateAttributes({ code: draft });
@@ -70,10 +75,10 @@ function MermaidView({ node, updateAttributes, selected, editor }: NodeViewProps
   return (
     <NodeViewWrapper
       className={`mermaid-block ${selected ? "is-selected" : ""}`}
-      data-type="mermaid"
+      data-type={kind}
     >
       <div className="mermaid-block-header" contentEditable={false}>
-        <span className="mermaid-badge">Mermaid</span>
+        <span className="mermaid-badge">{kind === "plantuml" ? "PlantUML" : "Mermaid"}</span>
         {editing ? (
           <button className="mermaid-btn" onMouseDown={(e) => e.preventDefault()} onClick={save}>
             Done
@@ -96,22 +101,29 @@ function MermaidView({ node, updateAttributes, selected, editor }: NodeViewProps
       {editing && (
         <div contentEditable={false}>
           <textarea
+            ref={editorRef}
             className="mermaid-editor"
             value={draft}
             rows={Math.max(4, draft.split("\n").length + 1)}
-            placeholder={"graph TD\n  A[Start] --> B{Decision}\n  B -->|Yes| C[OK]\n  B -->|No| D[Retry]"}
+            placeholder={PLACEHOLDERS[kind]}
             onChange={(e) => setDraft(e.target.value)}
-            autoFocus
           />
         </div>
       )}
-      <div className="mermaid-preview" contentEditable={false} ref={previewRef}>
+      <div
+        className="mermaid-preview"
+        contentEditable={false}
+        ref={previewRef}
+        style={kind === "plantuml" && svg ? { background: plantUmlBackground(svg) } : undefined}
+      >
         {error ? (
           <pre className="mermaid-error">{error}</pre>
         ) : svg ? (
           <div dangerouslySetInnerHTML={{ __html: svg }} />
         ) : (
-          <span className="mermaid-placeholder">Empty diagram — click Edit and type Mermaid code</span>
+          <span className="mermaid-placeholder">
+            Empty diagram — click Edit and type {kind === "plantuml" ? "PlantUML" : "Mermaid"} code
+          </span>
         )}
       </div>
     </NodeViewWrapper>
@@ -120,8 +132,8 @@ function MermaidView({ node, updateAttributes, selected, editor }: NodeViewProps
 
 /* ---------------- TipTap node ---------------- */
 
-export const MermaidBlock = Node.create({
-  name: "mermaidBlock",
+export const DiagramBlock = Node.create({
+  name: "diagramBlock",
   group: "block",
   atom: true,
   draggable: true,
@@ -131,6 +143,7 @@ export const MermaidBlock = Node.create({
   addAttributes() {
     return {
       code: { default: "" },
+      language: { default: "mermaid" },
     };
   },
 
@@ -139,21 +152,36 @@ export const MermaidBlock = Node.create({
       {
         tag: 'pre[data-type="mermaid"]',
         priority: 100,
-        getAttrs: (el) => ({ code: (el as HTMLElement).textContent ?? "" }),
+        getAttrs: (el) => ({
+          code: (el as HTMLElement).textContent ?? "",
+          language: "mermaid",
+        }),
+      },
+      {
+        tag: 'pre[data-type="plantuml"]',
+        priority: 100,
+        getAttrs: (el) => ({
+          code: (el as HTMLElement).textContent ?? "",
+          language: "plantuml",
+        }),
       },
     ];
   },
 
   renderHTML({ node, HTMLAttributes }) {
+    const kind = detectDiagramKind(
+      node.attrs.code as string,
+      node.attrs.language === "plantuml" ? "plantuml" : "mermaid",
+    );
     return [
       "pre",
-      mergeAttributes(HTMLAttributes, { "data-type": "mermaid" }),
+      mergeAttributes(HTMLAttributes, { "data-type": kind }),
       ["code", {}, node.attrs.code as string],
     ];
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(MermaidView, {
+    return ReactNodeViewRenderer(DiagramView, {
       // Let the code textarea / buttons handle their own keyboard & mouse
       // events instead of ProseMirror hijacking them.
       stopEvent: ({ event }) => {
@@ -168,15 +196,20 @@ export const MermaidBlock = Node.create({
       insertMermaid:
         () =>
         ({ commands }) =>
-          commands.insertContent({ type: this.name, attrs: { code: "" } }),
+          commands.insertContent({ type: this.name, attrs: { code: "", language: "mermaid" } }),
+      insertPlantUml:
+        () =>
+        ({ commands }) =>
+          commands.insertContent({ type: this.name, attrs: { code: "", language: "plantuml" } }),
     };
   },
 });
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
-    mermaidBlock: {
+    diagram: {
       insertMermaid: () => ReturnType;
+      insertPlantUml: () => ReturnType;
     };
   }
 }

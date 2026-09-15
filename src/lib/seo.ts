@@ -78,18 +78,18 @@ const TOOL_SEO: Record<string, ToolSeo> = {
       "epoch converter, unix timestamp converter, epoch to date, timestamp to ist, date to epoch, epoch ms",
   },
   "/mermaid-diagram": {
-    title: "Mermaid Diagram Editor – Flowcharts & Diagrams Online | DataTools",
+    title: "Mermaid & PlantUML Diagram Editor – Flowcharts & UML | DataTools",
     description:
-      "Write Mermaid syntax and preview flowcharts, sequence diagrams, and more with live rendering. Export to SVG, PNG, or JPG.",
+      "Write Mermaid or PlantUML syntax and preview flowcharts, sequence diagrams, UML, and more with live rendering. Export to SVG, PNG, or JPG.",
     keywords:
-      "mermaid editor, mermaid diagram, mermaid flowchart, mermaid online, mermaid to png, mermaid to svg",
+      "mermaid editor, mermaid diagram, mermaid flowchart, mermaid online, mermaid to png, mermaid to svg, plantuml editor, plantuml online, plantuml to png, plantuml to svg",
   },
   "/markdown-preview": {
-    title: "Markdown Notes Editor – Rich Text & Mermaid | DataTools",
+    title: "Markdown Notes Editor – Rich Text, Mermaid & PlantUML | DataTools",
     description:
-      "A rich Markdown note editor with live preview, embedded Mermaid diagrams, images, and export to PDF, HTML, DOCX, TXT, and MD.",
+      "A rich Markdown note editor with live preview, embedded Mermaid and PlantUML diagrams, images, and export to PDF, HTML, DOCX, TXT, and MD.",
     keywords:
-      "markdown editor, markdown notes, rich text editor, markdown to pdf, markdown to docx, markdown preview",
+      "markdown editor, markdown notes, rich text editor, markdown to pdf, markdown to docx, markdown preview, plantuml diagram",
   },
   "/html-playground": {
     title: "HTML Playground – Live HTML, CSS & JS Compiler | DataTools",
