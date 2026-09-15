@@ -7,11 +7,13 @@ import {
   plantUmlErrorMessage,
 } from "../src/lib/plantuml.ts";
 
-// Known-answer vector from the PlantUML URL API (verified against the server).
+// Known-answer vector — verified against plantuml.com server.
+// Encoding uses pako (pure JS deflate-raw at level 9) for cross-platform
+// determinism; CompressionStream / system zlib may differ by OS.
 test("encodes PlantUML source into a stable URL path", async () => {
   assert.equal(
     await encodePlantUml("@startuml\nAlice -> Bob: hello\n@enduml"),
-    "SoWkIImgAStDuNBCoKnELT2rKt3AJx9Io4ZDoSddSaZDIm7A0G00",
+    "SoWkIImgAStDuNBCoKnELT2rKt3AJx9Io4ZDoSddSaZDIodDpG40",
   );
 });
 

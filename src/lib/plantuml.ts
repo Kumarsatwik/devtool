@@ -1,7 +1,12 @@
 "use client";
 
+import * as pako from "pako";
+
 // PlantUML URL API: source text -> raw deflate -> PlantUML's 6-bit alphabet.
-// Browsers ship deflate-raw natively, so no pako/plantuml-encoder dependency.
+// Using pako (pure JS zlib) instead of CompressionStream for deterministic,
+// cross-platform encoded output — CompressionStream wraps the system zlib
+// which can produce different byte streams on different OS/zlib versions,
+// breaking CI tests that assert on exact encoded URL paths.
 const PLANTUML_SERVER =
   process.env.NEXT_PUBLIC_PLANTUML_SERVER ?? "https://www.plantuml.com/plantuml";
 
@@ -27,10 +32,8 @@ function encode64(data: Uint8Array): string {
 }
 
 export async function encodePlantUml(text: string): Promise<string> {
-  const deflated = new Blob([text])
-    .stream()
-    .pipeThrough(new CompressionStream("deflate-raw"));
-  return encode64(new Uint8Array(await new Response(deflated).arrayBuffer()));
+  const compressed = pako.deflateRaw(text, { level: 9 });
+  return encode64(new Uint8Array(compressed));
 }
 
 export async function fetchPlantUmlSvg(text: string): Promise<string> {
