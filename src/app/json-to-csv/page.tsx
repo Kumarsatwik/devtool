@@ -8,7 +8,13 @@ import { FileUpload } from "@/components/file-upload";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { jsonToCSV } from "@/lib/csv";
 import { validateJSON } from "@/lib/json";
-import { AlertCircle, CheckCircle2, List, Table, Settings2 } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  List,
+  Table,
+  Settings2,
+} from "lucide-react";
 
 const sampleJSON = `[
   {"name": "John Doe", "age": 25, "city": "New York", "role": "Frontend Eng"},
@@ -24,7 +30,7 @@ export default function JSONToCSVPage() {
   const [error, setError] = useState<string | null>(null);
   const [autoConvert, setAutoConvert] = useState(true);
   const [previewTab, setPreviewTab] = useState<string>("raw");
-  
+
   // Table states
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
@@ -68,7 +74,11 @@ export default function JSONToCSVPage() {
 
       // Extract unique keys as headers
       const allKeys = Array.from(
-        new Set(parsedData.flatMap((item) => (item && typeof item === "object" ? Object.keys(item) : [])))
+        new Set(
+          parsedData.flatMap((item) =>
+            item && typeof item === "object" ? Object.keys(item) : [],
+          ),
+        ),
       );
       setHeaders(allKeys);
       setRows(parsedData as Record<string, unknown>[]);
@@ -90,12 +100,12 @@ export default function JSONToCSVPage() {
     setInput(content);
   };
 
-  const previewRows = rows.slice(0, 50);
-
   return (
-    <ToolPageLayout title="JSON to CSV" description="Convert JSON array structures into standard spreadsheet-ready CSV sheets.">
+    <ToolPageLayout
+      title="JSON to CSV"
+      description="Convert JSON array structures into standard spreadsheet-ready CSV sheets."
+    >
       <div className="h-full flex flex-col gap-4">
-
         {/* Settings Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none shrink-0">
           <div className="flex items-center gap-2 font-bold text-foreground">
@@ -118,9 +128,10 @@ export default function JSONToCSVPage() {
 
         {/* Input vs Output Editors */}
         <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-2">
-
           <div className="flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">Source JSON Array</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+              Source JSON Array
+            </label>
             <EditorPanel
               value={input}
               onChange={setInput}
@@ -133,12 +144,21 @@ export default function JSONToCSVPage() {
           </div>
 
           <div className="flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">Output CSV</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+              Output CSV
+            </label>
 
-            <Tabs value={previewTab} onValueChange={setPreviewTab} className="w-full flex flex-col min-h-0 flex-1">
+            <Tabs
+              value={previewTab}
+              onValueChange={setPreviewTab}
+              className="w-full flex flex-col min-h-0 flex-1"
+            >
               <div className="flex items-center justify-between bg-muted/40 border border-border border-b-0 px-3 py-1.5 rounded-t select-none shrink-0">
                 <TabsList variant="line" className="h-6 gap-2">
-                  <TabsTrigger value="raw" className="text-xs gap-1 py-0 px-2.5 h-6 rounded">
+                  <TabsTrigger
+                    value="raw"
+                    className="text-xs gap-1 py-0 px-2.5 h-6 rounded"
+                  >
                     <List className="h-3.5 w-3.5" />
                     <span>Raw Text</span>
                   </TabsTrigger>
@@ -151,11 +171,16 @@ export default function JSONToCSVPage() {
                     <span>Table Grid</span>
                   </TabsTrigger>
                 </TabsList>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded border border-border">CSV</span>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase bg-muted px-1.5 py-0.5 rounded border border-border">
+                  CSV
+                </span>
               </div>
 
               <div className="border border-border rounded-b overflow-hidden shadow-none flex-1 min-h-0">
-                <TabsContent value="raw" className="p-0 m-0 h-full data-[state=inactive]:hidden">
+                <TabsContent
+                  value="raw"
+                  className="p-0 m-0 h-full data-[state=inactive]:hidden"
+                >
                   <EditorPanel
                     value={output}
                     language="plaintext"
@@ -167,31 +192,51 @@ export default function JSONToCSVPage() {
                   />
                 </TabsContent>
 
-                <TabsContent value="preview" className="p-0 m-0 bg-background h-full data-[state=inactive]:hidden">
+                <TabsContent
+                  value="preview"
+                  className="p-0 m-0 bg-background h-full data-[state=inactive]:hidden"
+                >
                   <div className="h-full overflow-auto relative">
                     {rows.length > 0 ? (
                       <table className="w-full text-xs text-left border-collapse">
                         <thead className="bg-muted/65 text-muted-foreground font-semibold border-b sticky top-0 bg-background z-10">
                           <tr>
-                            <th className="p-2 border-r border-border text-center w-10 bg-muted/60">#</th>
+                            <th className="p-2 border-r border-border text-center w-10 bg-muted/60">
+                              #
+                            </th>
                             {headers.map((h) => (
-                              <th key={h} className="p-2 border-r border-border capitalize font-bold text-foreground bg-muted/60">
+                              <th
+                                key={h}
+                                className="p-2 border-r border-border capitalize font-bold text-foreground bg-muted/60"
+                              >
                                 {h}
                               </th>
                             ))}
                           </tr>
                         </thead>
                         <tbody>
-                          {previewRows.map((row, idx) => (
-                            <tr key={idx} className="border-b hover:bg-muted/20 transition-colors odd:bg-background even:bg-muted/5">
+                          {rows.map((row, idx) => (
+                            <tr
+                              key={idx}
+                              className="border-b hover:bg-muted/20 transition-colors odd:bg-background even:bg-muted/5"
+                            >
                               <td className="p-2 text-center text-muted-foreground border-r border-border font-mono bg-muted/5">
                                 {idx + 1}
                               </td>
                               {headers.map((h) => {
                                 const val = row[h];
                                 return (
-                                  <td key={h} className="p-2 border-r border-border font-mono max-w-[180px] truncate text-foreground">
-                                    {val === null ? "null" : val === undefined ? "" : typeof val === "object" ? JSON.stringify(val) : String(val)}
+                                  <td
+                                    key={h}
+                                    className="p-2 border-r border-border font-mono max-w-[180px] truncate text-foreground"
+                                  >
+                                    {val === null
+                                      ? "null"
+                                      : val === undefined
+                                        ? ""
+                                        : typeof val === "object"
+                                          ? JSON.stringify(val)
+                                          : String(val)}
                                   </td>
                                 );
                               })}
@@ -205,13 +250,6 @@ export default function JSONToCSVPage() {
                       </div>
                     )}
                   </div>
-
-                  {rows.length > 50 && (
-                    <div className="bg-muted/20 border-t px-3 py-1.5 text-xs text-muted-foreground flex justify-between select-none">
-                      <span>Showing first 50 of {rows.length} rows</span>
-                      <span className="font-semibold text-foreground">Tabular Preview</span>
-                    </div>
-                  )}
                 </TabsContent>
               </div>
             </Tabs>
@@ -230,7 +268,11 @@ export default function JSONToCSVPage() {
         {/* Manual compiler */}
         {!autoConvert && (
           <div className="flex items-center gap-2">
-            <Button onClick={handleConvert} size="sm" className="font-semibold rounded shadow-none">
+            <Button
+              onClick={handleConvert}
+              size="sm"
+              className="font-semibold rounded shadow-none"
+            >
               Convert JSON
             </Button>
           </div>
@@ -241,7 +283,9 @@ export default function JSONToCSVPage() {
           <StatusMessage type="error">
             <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-destructive">Compilation failed</p>
+              <p className="font-semibold text-destructive">
+                Compilation failed
+              </p>
               <p className="text-muted-foreground text-xs mt-0.5">{error}</p>
             </div>
           </StatusMessage>
@@ -252,16 +296,23 @@ export default function JSONToCSVPage() {
             <CheckCircle2 className="h-4 w-4 shrink-0 text-foreground" />
             <div className="flex flex-wrap items-center gap-x-6 gap-y-1">
               <div>
-                <span className="font-semibold text-foreground">Successfully parsed JSON array.</span>
+                <span className="font-semibold text-foreground">
+                  Successfully parsed JSON array.
+                </span>
               </div>
               <div className="text-xs text-muted-foreground flex items-center gap-4">
-                <span>Columns Detected: <strong className="text-foreground">{headers.length}</strong></span>
-                <span>Total Records: <strong className="text-foreground">{rows.length}</strong></span>
+                <span>
+                  Columns Detected:{" "}
+                  <strong className="text-foreground">{headers.length}</strong>
+                </span>
+                <span>
+                  Total Records:{" "}
+                  <strong className="text-foreground">{rows.length}</strong>
+                </span>
               </div>
             </div>
           </StatusMessage>
         )}
-
       </div>
     </ToolPageLayout>
   );
