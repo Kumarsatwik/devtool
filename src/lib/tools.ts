@@ -11,6 +11,7 @@ import {
   MonitorPlay,
   Network,
   ShieldCheck,
+  PenTool,
   type LucideIcon,
 } from "lucide-react";
 
@@ -143,5 +144,13 @@ export const tools: ToolDefinition[] = [
       "Write HTML, CSS, and JavaScript with a live sandboxed preview, console output, and standalone HTML export",
     icon: MonitorPlay,
     tag: "Playground",
+  },
+  {
+    href: "/svg-to-react",
+    title: "SVG → React",
+    description:
+      "Convert SVG markup into React components with live preview, TypeScript support, and configurable props",
+    icon: PenTool,
+    tag: "SVG",
   },
 ];

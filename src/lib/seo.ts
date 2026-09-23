@@ -112,6 +112,13 @@ const TOOL_SEO: Record<string, ToolSeo> = {
     keywords:
       "json sanitizer, redact json, remove sensitive data json, json data masking, api response sanitizer",
   },
+  "/svg-to-react": {
+    title: "SVG to React Component Converter – Free Online Tool | DataTools",
+    description:
+      "Convert SVG markup into React components with TypeScript support, configurable props, forwardRef, and a live visual preview. Runs entirely in your browser.",
+    keywords:
+      "svg to react, svg to react component, svg to jsx, convert svg to react, svg react converter online, svg to typescript react",
+  },
 };
 
 const SITE_NAME = "DataTools";

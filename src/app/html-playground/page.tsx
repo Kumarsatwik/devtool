@@ -10,6 +10,8 @@ import {
   AlertTriangle,
   Braces,
   Download,
+  Copy,
+  Check,
   Eraser,
   ExternalLink,
   FileCode2,
@@ -200,6 +202,7 @@ export default function HtmlPlaygroundPage() {
   const [autoRun, setAutoRun] = useState(true);
   const [srcDoc, setSrcDoc] = useState(() => buildDocument(SAMPLE_HTML, SAMPLE_CSS, SAMPLE_JS, true));
   const [consoleEntries, setConsoleEntries] = useState<ConsoleEntry[]>([]);
+  const [consoleCopied, setConsoleCopied] = useState(false);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const consoleScrollRef = useRef<HTMLDivElement>(null);
@@ -268,6 +271,18 @@ export default function HtmlPlaygroundPage() {
     const url = URL.createObjectURL(blob);
     window.open(url, "_blank", "noopener,noreferrer");
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  };
+
+  const handleCopyConsole = async () => {
+    if (consoleEntries.length === 0) return;
+    const text = consoleEntries.map((e) => `[${e.level}] ${e.text}`).join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      setConsoleCopied(true);
+      setTimeout(() => setConsoleCopied(false), 2000);
+    } catch {
+      // ignore
+    }
   };
 
   const pane = PANES.find((p) => p.id === activePane) ?? PANES[0];
@@ -428,16 +443,28 @@ export default function HtmlPlaygroundPage() {
                   )}
                 </div>
                 {consoleEntries.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    className="h-6 gap-1 px-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/70"
-                    onClick={() => setConsoleEntries([])}
-                    title="Clear console"
-                  >
-                    <Eraser className="h-3 w-3" />
-                    <span>Clear</span>
-                  </Button>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      className="h-6 gap-1 px-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/70"
+                      onClick={handleCopyConsole}
+                      title="Copy console output"
+                    >
+                      {consoleCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                      <span>{consoleCopied ? "Copied" : "Copy"}</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      className="h-6 gap-1 px-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => setConsoleEntries([])}
+                      title="Clear console"
+                    >
+                      <Eraser className="h-3 w-3" />
+                      <span>Clear</span>
+                    </Button>
+                  </div>
                 )}
               </div>
 
