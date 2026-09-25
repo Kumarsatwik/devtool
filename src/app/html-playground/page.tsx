@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import type { LucideIcon } from "lucide-react";
 import { saveAs } from "file-saver";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import {
   Eraser,
   ExternalLink,
   FileCode2,
+  GripVertical,
   Info,
   MonitorPlay,
   Palette,
@@ -203,10 +205,47 @@ export default function HtmlPlaygroundPage() {
   const [srcDoc, setSrcDoc] = useState(() => buildDocument(SAMPLE_HTML, SAMPLE_CSS, SAMPLE_JS, true));
   const [consoleEntries, setConsoleEntries] = useState<ConsoleEntry[]>([]);
   const [consoleCopied, setConsoleCopied] = useState(false);
+  const [outputView, setOutputView] = useState<"preview" | "console">("preview");
+  const [splitPercent, setSplitPercent] = useState(50);
+  const [isResizing, setIsResizing] = useState(false);
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const consoleScrollRef = useRef<HTMLDivElement>(null);
   const entryIdRef = useRef(0);
+  const workspaceRef = useRef<HTMLDivElement>(null);
+
+  const MIN_SPLIT_PERCENT = 20;
+  const MAX_SPLIT_PERCENT = 80;
+  const SPLIT_STEP = 2;
+
+  const clampSplit = (percent: number) =>
+    Math.min(MAX_SPLIT_PERCENT, Math.max(MIN_SPLIT_PERCENT, percent));
+
+  const handleDividerPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setIsResizing(true);
+  };
+
+  const handleDividerPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!isResizing) return;
+    const el = workspaceRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setSplitPercent(clampSplit(((event.clientX - rect.left) / rect.width) * 100));
+  };
+
+  const endResize = () => setIsResizing(false);
+
+  const handleDividerKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      setSplitPercent((prev) => clampSplit(prev - SPLIT_STEP));
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      setSplitPercent((prev) => clampSplit(prev + SPLIT_STEP));
+    }
+  };
 
   const run = useCallback((next: Record<PaneId, string>) => {
     setConsoleEntries([]);
@@ -362,10 +401,14 @@ export default function HtmlPlaygroundPage() {
           </div>
         </div>
 
-        {/* Workspace — 50% code / 50% output */}
-        <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-2">
+        {/* Workspace — draggable split between code and output */}
+        <div
+          ref={workspaceRef}
+          className={`flex-1 min-h-0 flex flex-col lg:flex-row gap-1 lg:gap-0 ${isResizing ? "select-none" : ""}`}
+          style={{ "--split": `${splitPercent}%` } as CSSProperties}
+        >
           {/* Source Panes */}
-          <div className="flex flex-col min-h-0 gap-2">
+          <div className="flex flex-col min-h-0 gap-2 flex-1 lg:flex-none w-full lg:w-[var(--split)] lg:shrink-0">
             <div className="flex items-center justify-between shrink-0">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Source Code
@@ -402,47 +445,68 @@ export default function HtmlPlaygroundPage() {
             />
           </div>
 
-          {/* Preview + Console */}
-          <div className="flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-              Output
-            </label>
+          {/* Drag handle — resize code vs output width */}
+          <div
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize code and output panes"
+            aria-valuenow={Math.round(splitPercent)}
+            aria-valuemin={MIN_SPLIT_PERCENT}
+            aria-valuemax={MAX_SPLIT_PERCENT}
+            tabIndex={0}
+            onPointerDown={handleDividerPointerDown}
+            onPointerMove={handleDividerPointerMove}
+            onPointerUp={endResize}
+            onPointerCancel={endResize}
+            onKeyDown={handleDividerKeyDown}
+            className="hidden lg:flex shrink-0 items-center justify-center w-3 cursor-col-resize group outline-none touch-none"
+          >
+            <GripVertical
+              className={`h-4 w-4 transition-colors ${
+                isResizing
+                  ? "text-primary"
+                  : "text-border group-hover:text-primary/70 group-focus-visible:text-primary/70"
+              }`}
+            />
+          </div>
 
-            <div className="flex flex-col border border-border/80 rounded-xl overflow-hidden shadow-sm bg-card hover:border-border transition-colors duration-200 flex-1 min-h-0">
-              {/* Preview Header */}
-              <div className="flex items-center justify-between bg-muted/40 border-b border-border/85 px-3 py-1.5 text-xs select-none shrink-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-foreground">Preview</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/50">
-                    Sandbox
-                  </span>
-                </div>
-              </div>
-
-              {/* Preview Body — isolated origin (scripts run, parent storage unreachable),
-                  plus a strict CSP so no external network requests are possible */}
-              <iframe
-                ref={iframeRef}
-                title="HTML Preview"
-                sandbox="allow-scripts allow-modals allow-forms allow-popups"
-                srcDoc={srcDoc}
-                className="flex-1 w-full border-0 bg-white"
-              />
-            </div>
-
-            <div className="flex flex-col border border-border/80 rounded-xl overflow-hidden shadow-sm bg-card hover:border-border transition-colors duration-200 h-40 shrink-0">
-              {/* Console Header */}
-              <div className="flex items-center justify-between bg-muted/40 border-b border-border/85 px-3 py-1.5 text-xs select-none shrink-0">
-                <div className="flex items-center gap-2">
-                  <Terminal className="h-3 w-3 text-muted-foreground" />
-                  <span className="font-semibold text-foreground">Console</span>
+          {/* Output — full-height section, switch between Preview and Console */}
+          <div className="flex flex-col border border-border/80 rounded-xl overflow-hidden shadow-sm bg-card hover:border-border transition-colors duration-200 flex-1 min-h-0 min-w-0">
+            <div className="flex items-center justify-between gap-2 bg-muted/40 border-b border-border/85 px-2 py-1.5 text-xs select-none shrink-0">
+              <div className="flex items-center gap-1 p-0.5 rounded border border-border/50 bg-background">
+                <Button
+                  variant={outputView === "preview" ? "secondary" : "ghost"}
+                  size="xs"
+                  className="h-6 gap-1 px-2.5 rounded text-xs font-semibold"
+                  onClick={() => setOutputView("preview")}
+                  title="Show the sandboxed live preview"
+                >
+                  <MonitorPlay className="h-3 w-3" />
+                  <span>Preview</span>
+                </Button>
+                <Button
+                  variant={outputView === "console" ? "secondary" : "ghost"}
+                  size="xs"
+                  className="h-6 gap-1 px-2.5 rounded text-xs font-semibold"
+                  onClick={() => setOutputView("console")}
+                  title="Show the console output"
+                >
+                  <Terminal className="h-3 w-3" />
+                  <span>Console</span>
                   {consoleEntries.length > 0 && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/50">
+                    <span className="text-[10px] font-bold tabular-nums text-muted-foreground bg-muted px-1.5 rounded border border-border/50">
                       {consoleEntries.length}
                     </span>
                   )}
-                </div>
-                {consoleEntries.length > 0 && (
+                </Button>
+              </div>
+
+              {outputView === "preview" ? (
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/50">
+                  Sandbox
+                </span>
+              ) : (
+                consoleEntries.length > 0 && (
                   <div className="flex items-center gap-1.5">
                     <Button
                       variant="ghost"
@@ -465,30 +529,45 @@ export default function HtmlPlaygroundPage() {
                       <span>Clear</span>
                     </Button>
                   </div>
-                )}
-              </div>
+                )
+              )}
+            </div>
 
-              {/* Console Body */}
-              <div
-                ref={consoleScrollRef}
-                className="flex-1 min-h-0 overflow-y-auto p-2.5 font-mono text-xs leading-relaxed space-y-1"
-              >
-                {consoleEntries.length === 0 ? (
-                  <div className="h-full flex items-center justify-center text-xs text-muted-foreground font-sans">
-                    <span>Console output appears here…</span>
-                  </div>
-                ) : (
-                  consoleEntries.map((entry) => {
-                    const { icon: Icon, className } = LEVEL_STYLES[entry.level];
-                    return (
-                      <div key={entry.id} className={`flex items-start gap-1.5 ${className}`}>
-                        <Icon className="h-3 w-3 mt-0.5 shrink-0 opacity-70" />
-                        <span className="whitespace-pre-wrap break-words min-w-0">{entry.text}</span>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+            {/* Preview Body — kept mounted so switching views never re-runs the
+                sandboxed code; isolated origin (scripts run, parent storage
+                unreachable) plus a strict CSP blocks all external requests */}
+            <div className={`flex-1 min-h-0 ${outputView === "preview" ? "" : "hidden"}`}>
+              <iframe
+                ref={iframeRef}
+                title="HTML Preview"
+                sandbox="allow-scripts allow-modals allow-forms allow-popups"
+                srcDoc={srcDoc}
+                className={`w-full h-full border-0 bg-white ${isResizing ? "pointer-events-none" : ""}`}
+              />
+            </div>
+
+            {/* Console Body */}
+            <div
+              ref={consoleScrollRef}
+              className={`flex-1 min-h-0 overflow-y-auto p-2.5 font-mono text-xs leading-relaxed space-y-1 ${
+                outputView === "console" ? "" : "hidden"
+              }`}
+            >
+              {consoleEntries.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-xs text-muted-foreground font-sans">
+                  <span>Console output appears here…</span>
+                </div>
+              ) : (
+                consoleEntries.map((entry) => {
+                  const { icon: Icon, className } = LEVEL_STYLES[entry.level];
+                  return (
+                    <div key={entry.id} className={`flex items-start gap-1.5 ${className}`}>
+                      <Icon className="h-3 w-3 mt-0.5 shrink-0 opacity-70" />
+                      <span className="whitespace-pre-wrap break-words min-w-0">{entry.text}</span>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
