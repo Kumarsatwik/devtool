@@ -1,4 +1,4 @@
-import { validateJSON, assignKey } from "@/lib/json";
+import { validateJSON, assignKey } from "./json.ts";
 
 export interface SanitizeOptions {
   /** Key names whose values should be redacted. Matching is case-insensitive. */
@@ -55,7 +55,11 @@ export const PRESET_SENSITIVE_KEYS = [
 
 const MAX_REDACTED_PATHS = 50;
 
-function matchesKey(key: string, pattern: string, mode: SanitizeOptions["matchMode"]): boolean {
+function matchesKey(
+  key: string,
+  pattern: string,
+  mode: SanitizeOptions["matchMode"],
+): boolean {
   const k = key.toLowerCase();
   const p = pattern.trim().toLowerCase();
   if (!p) return false;
@@ -65,13 +69,17 @@ function matchesKey(key: string, pattern: string, mode: SanitizeOptions["matchMo
 /** Stringify a value without crashing on circular references (renders them as "[Circular]"). */
 function stringifySafe(value: unknown): string {
   const seen = new WeakSet<object>();
-  return JSON.stringify(value, (_key, val) => {
-    if (val !== null && typeof val === "object") {
-      if (seen.has(val)) return "[Circular]";
-      seen.add(val);
-    }
-    return val;
-  }, 2);
+  return JSON.stringify(
+    value,
+    (_key, val) => {
+      if (val !== null && typeof val === "object") {
+        if (seen.has(val)) return "[Circular]";
+        seen.add(val);
+      }
+      return val;
+    },
+    2,
+  );
 }
 
 interface RedactState {
@@ -81,7 +89,13 @@ interface RedactState {
   seen: WeakMap<object, unknown>;
 }
 
-function redact(value: unknown, path: string, state: RedactState, force: boolean): unknown {
+function redact(
+  value: unknown,
+  path: string,
+  state: RedactState,
+  force: boolean,
+  hideUnkeyed = false,
+): unknown {
   const { options } = state;
 
   if (Array.isArray(value)) {
@@ -90,14 +104,25 @@ function redact(value: unknown, path: string, state: RedactState, force: boolean
     state.seen.set(value, copy);
     value.forEach((item, i) => {
       const itemPath = `${path}[${i}]`;
-      // Primitive items have no key of their own — when redaction was forced
-      // by an ancestor sensitive key (or hide-all), they are hidden too.
-      if (force && (item === null || typeof item !== "object")) {
+      // Primitive items have no key of their own, so hide-all must redact
+      // them independently from key-based redaction of object properties.
+      if (
+        (force || hideUnkeyed) &&
+        (item === null || typeof item !== "object")
+      ) {
         copy.push(options.redactionValue);
         state.count++;
         if (state.paths.length < MAX_REDACTED_PATHS) state.paths.push(itemPath);
       } else {
-        copy.push(redact(item, itemPath, state, force));
+        copy.push(
+          redact(
+            item,
+            itemPath,
+            state,
+            force,
+            hideUnkeyed && Array.isArray(item),
+          ),
+        );
       }
     });
     return copy;
@@ -110,19 +135,26 @@ function redact(value: unknown, path: string, state: RedactState, force: boolean
     for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
       const keyPath = path ? `${path}.${key}` : key;
       const isContainer = val !== null && typeof val === "object";
-      const inList = options.sensitiveKeys.some((pattern) => matchesKey(key, pattern, options.matchMode));
+      const inList = options.sensitiveKeys.some((pattern) =>
+        matchesKey(key, pattern, options.matchMode),
+      );
 
       if (isContainer) {
         // Containers always recurse so nested structure survives. A sensitive
         // key also forces redaction of every leaf inside its subtree — this
         // fixes the old leak where `{"emails": ["a@b.c"]}` or
         // `{"authorization": {"bearer": "…"}}` slipped through untouched.
-        // In hide-all mode the leaf redaction still comes from the (fully
-        // populated) key list, so removing a key from the list keeps
-        // un-hiding it; primitive arrays directly under a listed key are the
-        // exception — their items have no key of their own to match.
-        const childForce = force || (inList && (!options.hideAllValues || Array.isArray(val)));
-        assignKey(out, key, redact(val, keyPath, state, childForce));
+        // In hide-all mode, matching object keys control their own leaves so
+        // removing a nested key exposes it. Unkeyed primitive array entries
+        // are still masked by the array branch above.
+        const childForce = force || (inList && !options.hideAllValues);
+        const childHideUnkeyed =
+          Array.isArray(val) && options.hideAllValues === true && inList;
+        assignKey(
+          out,
+          key,
+          redact(val, keyPath, state, childForce, childHideUnkeyed),
+        );
       } else if (force || inList) {
         assignKey(out, key, options.redactionValue);
         state.count++;
@@ -161,7 +193,10 @@ export function collectAllKeys(value: unknown): string[] {
  * Sanitize a JSON document by redacting the values of fields whose key names
  * are marked sensitive. Processes nested objects and arrays recursively.
  */
-export function sanitizeJson(jsonText: string, options: SanitizeOptions): SanitizeResult {
+export function sanitizeJson(
+  jsonText: string,
+  options: SanitizeOptions,
+): SanitizeResult {
   const trimmed = jsonText.trim();
   if (!trimmed) {
     return { output: "", redactedCount: 0, redactedPaths: [], inputChars: 0 };
@@ -172,7 +207,12 @@ export function sanitizeJson(jsonText: string, options: SanitizeOptions): Saniti
     throw new Error(error ?? "Invalid JSON");
   }
 
-  const state: RedactState = { options, count: 0, paths: [], seen: new WeakMap() };
+  const state: RedactState = {
+    options,
+    count: 0,
+    paths: [],
+    seen: new WeakMap(),
+  };
 
   // A bare root value (or a root array with no object keys at all) has no key
   // names to match, so hide-all redacts it wholesale.
@@ -186,8 +226,16 @@ export function sanitizeJson(jsonText: string, options: SanitizeOptions): Saniti
     };
   }
   const rootForce =
-    options.hideAllValues === true && Array.isArray(parsed) && collectAllKeys(parsed).length === 0;
-  const sanitized = redact(parsed, "", state, rootForce);
+    options.hideAllValues === true &&
+    Array.isArray(parsed) &&
+    collectAllKeys(parsed).length === 0;
+  const sanitized = redact(
+    parsed,
+    "",
+    state,
+    rootForce,
+    options.hideAllValues === true && Array.isArray(parsed),
+  );
 
   return {
     output: stringifySafe(sanitized),

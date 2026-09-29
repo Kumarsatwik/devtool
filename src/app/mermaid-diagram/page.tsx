@@ -12,7 +12,6 @@ import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
 import { FileUpload } from "@/components/file-upload";
 import { exportMermaidSvg, exportMermaidImage } from "@/lib/mermaid-export";
-import { fetchPlantUmlSvg, plantUmlBackground } from "@/lib/plantuml";
 import {
   diagramThemes,
   defaultDiagramTheme,
@@ -36,8 +35,6 @@ import {
   Plus,
 } from "lucide-react";
 
-type DiagramEngine = "mermaid" | "plantuml";
-
 const sampleMermaid = `graph TD
     A([Start]):::flow-start --> B{Is it working?}
     B -->|Yes| C[Great!]
@@ -46,21 +43,6 @@ const sampleMermaid = `graph TD
     E --> B
     C --> F([Deploy]):::flow-start`;
 
-const samplePlantUml = `@startuml
-Alice -> Bob: Authentication Request
-Bob --> Alice: Authentication Response
-@enduml`;
-
-const samples: Record<DiagramEngine, string> = {
-  mermaid: sampleMermaid,
-  plantuml: samplePlantUml,
-};
-
-const engines = [
-  { value: "mermaid", label: "Mermaid" },
-  { value: "plantuml", label: "PlantUML" },
-] as const;
-
 const exportOptions = [
   { value: "svg", label: "SVG", icon: FileText },
   { value: "png", label: "PNG", icon: Image },
@@ -68,7 +50,6 @@ const exportOptions = [
 ] as const;
 
 export default function MermaidDiagramPage() {
-  const [engine, setEngine] = useState<DiagramEngine>("mermaid");
   const [input, setInput] = useState(sampleMermaid);
   const [svgCode, setSvgCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -173,14 +154,6 @@ export default function MermaidDiagramPage() {
     setError(null);
 
     try {
-      if (engine === "plantuml") {
-        // Rendered by the PlantUML server; the SVG is inlined so the
-        // existing export path (and its same-origin canvas) keeps working.
-        const svg = await fetchPlantUmlSvg(input);
-        if (renderId === renderIdRef.current) setSvgCode(svg);
-        return;
-      }
-
       // lazy: mermaid is ~1MB; loaded on first render, then cached by the bundler
       const mermaid = (await import("mermaid")).default;
       mermaid.initialize(getMermaidConfig(diagramTheme));
@@ -194,14 +167,7 @@ export default function MermaidDiagramPage() {
     } finally {
       if (renderId === renderIdRef.current) setIsRendering(false);
     }
-  }, [input, diagramTheme, engine]);
-
-  const handleEngineChange = (next: DiagramEngine) => {
-    setEngine(next);
-    setInput((prev) =>
-      !prev.trim() || prev === samples[engine] ? samples[next] : prev,
-    );
-  };
+  }, [input, diagramTheme]);
 
   useEffect(() => {
     if (autoRender) {
@@ -237,13 +203,10 @@ export default function MermaidDiagramPage() {
     setInput(content);
   };
 
-  const engineLabel = engine === "mermaid" ? "Mermaid" : "PlantUML";
-  const ext = engine === "mermaid" ? "mmd" : "puml";
-
   return (
     <ToolPageLayout
-      title="Mermaid & PlantUML Diagram"
-      description="Write Mermaid or PlantUML syntax and preview or export diagrams."
+      title="Mermaid Diagram"
+      description="Write Mermaid syntax and preview or export diagrams."
     >
       <div className="h-full flex flex-col gap-4">
         {/* Settings Bar */}
@@ -254,48 +217,26 @@ export default function MermaidDiagramPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            {/* Engine Selector */}
+            {/* Theme Selector */}
             <div className="flex items-center gap-1.5">
+              <Palette className="h-3.5 w-3.5 text-muted-foreground" />
               <span className="text-muted-foreground font-semibold">
-                Engine:
+                Theme:
               </span>
-              <div className="flex border border-border rounded p-0.5 bg-background">
-                {engines.map((option) => (
-                  <Button
-                    key={option.value}
-                    variant={engine === option.value ? "secondary" : "ghost"}
-                    size="xs"
-                    className="h-6 px-2.5 rounded text-xs font-semibold"
-                    onClick={() => handleEngineChange(option.value)}
-                  >
+              <select
+                value={diagramTheme}
+                onChange={(e) =>
+                  setDiagramTheme(e.target.value as DiagramTheme)
+                }
+                className="h-7 px-2 pr-6 rounded border border-border bg-background text-xs font-semibold text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/15 hover:border-primary/40 transition-colors"
+              >
+                {diagramThemes.map((option) => (
+                  <option key={option.value} value={option.value}>
                     {option.label}
-                  </Button>
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
-
-            {/* Theme Selector (Mermaid only) */}
-            {engine === "mermaid" && (
-              <div className="flex items-center gap-1.5">
-                <Palette className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-muted-foreground font-semibold">
-                  Theme:
-                </span>
-                <select
-                  value={diagramTheme}
-                  onChange={(e) =>
-                    setDiagramTheme(e.target.value as DiagramTheme)
-                  }
-                  className="h-7 px-2 pr-6 rounded border border-border bg-background text-xs font-semibold text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/15 hover:border-primary/40 transition-colors"
-                >
-                  {diagramThemes.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
 
             {/* Export Format Selector */}
             <div className="flex items-center gap-1.5">
@@ -351,16 +292,16 @@ export default function MermaidDiagramPage() {
         <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-10 lg:grid-rows-1">
           <div className="lg:col-span-3 flex flex-col min-h-0 gap-2">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-              {engineLabel} Code
+              Mermaid Code
             </label>
             <EditorPanel
               value={input}
               onChange={setInput}
-              language={engine}
+              language="mermaid"
               title=""
-              sampleText={samples[engine]}
-              downloadFileName={`diagram.${ext}`}
-              downloadExtension={ext}
+              sampleText={sampleMermaid}
+              downloadFileName="diagram.mmd"
+              downloadExtension="mmd"
               height="fill"
               className="flex-1 min-h-0"
             />
@@ -433,16 +374,12 @@ export default function MermaidDiagramPage() {
                 </div>
               </div>
 
-              {/* Preview Body — canvas color follows the selected theme;
-                  PlantUML diagrams carry (or imply) their own background */}
+              {/* Preview body follows the selected Mermaid theme. */}
               <div
                 ref={previewScrollRef}
                 className="flex-1 relative overflow-auto p-4 min-h-0 transition-colors duration-200"
                 style={{
-                  backgroundColor:
-                    engine === "mermaid"
-                      ? getThemeSpec(diagramTheme).canvas
-                      : plantUmlBackground(svgCode),
+                  backgroundColor: getThemeSpec(diagramTheme).canvas,
                 }}
                 title="Ctrl/⌘ + scroll to zoom"
               >
@@ -455,9 +392,7 @@ export default function MermaidDiagramPage() {
 
                 {!svgCode && !error && !isRendering && (
                   <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
-                    <span>
-                      Enter {engineLabel} code to see the preview
-                    </span>
+                    <span>Enter Mermaid code to see the preview</span>
                   </div>
                 )}
 
@@ -480,9 +415,9 @@ export default function MermaidDiagramPage() {
         {/* File drop zone if empty */}
         {!input && (
           <FileUpload
-            accept={engine === "mermaid" ? ".mmd,.mermaid,.txt" : ".puml,.plantuml,.txt"}
+            accept=".mmd,.mermaid,.txt"
             onFileLoaded={handleFileLoaded}
-            label={`Drag and drop your ${engineLabel} file here, or click to browse`}
+            label="Drag and drop a Mermaid file here, or click to browse"
           />
         )}
 
@@ -492,9 +427,7 @@ export default function MermaidDiagramPage() {
             <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-destructive">Diagram Error</p>
-              <p className="text-muted-foreground text-xs mt-0.5">
-                {error}
-              </p>
+              <p className="text-muted-foreground text-xs mt-0.5">{error}</p>
             </div>
           </StatusMessage>
         )}

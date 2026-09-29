@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
 import { FileUpload } from "@/components/file-upload";
-import { svgToReactComponent, SAMPLE_SVG, type SvgToReactOptions } from "@/lib/svg-to-react";
+import {
+  svgToReactComponent,
+  SAMPLE_SVG,
+  type SvgToReactOptions,
+} from "@/lib/svg-to-react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -25,6 +29,7 @@ const DEFAULT_COMPONENT_NAME = "MyIcon";
 export default function SvgToReactPage() {
   const [svgInput, setSvgInput] = useState(SAMPLE_SVG);
   const [output, setOutput] = useState("");
+  const [previewSvg, setPreviewSvg] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<"preview" | "code">("preview");
@@ -33,10 +38,18 @@ export default function SvgToReactPage() {
   const [typescript, setTypescript] = useState(true);
   const [forwardRef, setForwardRef] = useState(false);
   const [includeProps, setIncludeProps] = useState(true);
-  const [exportStyle, setExportStyle] = useState<"default" | "named">("default");
+  const [exportStyle, setExportStyle] = useState<"default" | "named">(
+    "default",
+  );
 
   const options: SvgToReactOptions = useMemo(
-    () => ({ componentName: componentName || DEFAULT_COMPONENT_NAME, typescript, forwardRef, exportStyle, includeProps }),
+    () => ({
+      componentName: componentName || DEFAULT_COMPONENT_NAME,
+      typescript,
+      forwardRef,
+      exportStyle,
+      includeProps,
+    }),
     [componentName, typescript, forwardRef, exportStyle, includeProps],
   );
 
@@ -47,7 +60,11 @@ export default function SvgToReactPage() {
       return;
     }
     try {
-      const result = svgToReactComponent(svgInput, options);
+      const safeSvg = sanitizeSvgForPreview(svgInput);
+      if (!safeSvg) {
+        throw new Error("Input must be well-formed SVG before it can be converted.");
+      }
+      const result = svgToReactComponent(safeSvg, options);
       setOutput(result);
       setError(null);
     } catch (err) {
@@ -59,6 +76,10 @@ export default function SvgToReactPage() {
   useEffect(() => {
     handleConvert();
   }, [handleConvert]);
+
+  useEffect(() => {
+    setPreviewSvg(sanitizeSvgForPreview(svgInput));
+  }, [svgInput]);
 
   const handleCopy = async () => {
     if (!output) return;
@@ -252,7 +273,11 @@ export default function SvgToReactPage() {
                     onClick={handleCopy}
                     title="Copy component code"
                   >
-                    {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                    {copied ? (
+                      <Check className="h-3 w-3 text-emerald-500" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
                     <span>{copied ? "Copied" : "Copy"}</span>
                   </Button>
                 )}
@@ -279,21 +304,26 @@ export default function SvgToReactPage() {
                 <div className="flex items-center justify-between bg-muted/40 border-b border-border/85 px-3 py-1.5 text-xs select-none shrink-0">
                   <div className="flex items-center gap-2">
                     <Eye className="h-3 w-3 text-muted-foreground" />
-                    <span className="font-semibold text-foreground">SVG Preview</span>
+                    <span className="font-semibold text-foreground">
+                      Component Preview
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Sanitized SVG; generated JSX is not executed
+                    </span>
                   </div>
                 </div>
 
                 {/* Preview body */}
                 <div className="flex-1 min-h-0 flex items-center justify-center p-8 bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220%22%20height%3D%2220%22%3E%3Crect%20width%3D%2210%22%20height%3D%2210%22%20fill%3D%22%23e4e4e7%22%20opacity%3D%220.3%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%2210%22%20width%3D%2210%22%20height%3D%2210%22%20fill%3D%22%23e4e4e7%22%20opacity%3D%220.3%22%2F%3E%3C%2Fsvg%3E')] overflow-auto">
-                  {svgInput.trim() && !error ? (
+                  {svgInput.trim() && output && !error && previewSvg ? (
                     <div
                       className="max-w-full max-h-full [&>svg]:w-48 [&>svg]:h-48"
-                      dangerouslySetInnerHTML={{ __html: cleanSvgForPreview(svgInput) }}
+                      dangerouslySetInnerHTML={{ __html: previewSvg }}
                     />
                   ) : (
                     <div className="text-xs text-muted-foreground text-center">
                       <PenTool className="h-8 w-8 mx-auto mb-2 opacity-40" />
-                      <p>Paste SVG on the left to see a preview</p>
+                      <p>Valid SVG component preview will appear here</p>
                     </div>
                   )}
                 </div>
@@ -337,7 +367,12 @@ export default function SvgToReactPage() {
           <StatusMessage type="success">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-foreground" />
             <span className="font-semibold text-foreground">
-              Component <code className="text-[11px] bg-muted/60 px-1 py-0.5 rounded">{componentName || DEFAULT_COMPONENT_NAME}</code> generated ({typescript ? "TypeScript" : "JavaScript"}, {exportStyle} export{forwardRef ? ", forwardRef" : ""})
+              Component{" "}
+              <code className="text-[11px] bg-muted/60 px-1 py-0.5 rounded">
+                {componentName || DEFAULT_COMPONENT_NAME}
+              </code>{" "}
+              generated ({typescript ? "TypeScript" : "JavaScript"},{" "}
+              {exportStyle} export{forwardRef ? ", forwardRef" : ""})
             </span>
           </StatusMessage>
         )}
@@ -346,10 +381,104 @@ export default function SvgToReactPage() {
   );
 }
 
-function cleanSvgForPreview(svg: string): string {
-  return svg
-    .replace(/<\?xml[^?]*\?>\s*/gi, "")
-    .replace(/<!DOCTYPE[^>]*>\s*/gi, "")
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .trim();
+const SAFE_SVG_ELEMENTS = new Set([
+  "svg",
+  "g",
+  "defs",
+  "path",
+  "rect",
+  "circle",
+  "ellipse",
+  "line",
+  "polyline",
+  "polygon",
+  "text",
+  "tspan",
+  "textPath",
+  "title",
+  "desc",
+  "linearGradient",
+  "radialGradient",
+  "stop",
+  "clipPath",
+  "mask",
+  "pattern",
+  "marker",
+  "symbol",
+  "use",
+  "filter",
+  "feBlend",
+  "feColorMatrix",
+  "feComponentTransfer",
+  "feComposite",
+  "feConvolveMatrix",
+  "feDiffuseLighting",
+  "feDisplacementMap",
+  "feDistantLight",
+  "feDropShadow",
+  "feFlood",
+  "feFuncA",
+  "feFuncB",
+  "feFuncG",
+  "feFuncR",
+  "feGaussianBlur",
+  "feMerge",
+  "feMergeNode",
+  "feMorphology",
+  "feOffset",
+  "fePointLight",
+  "feSpecularLighting",
+  "feSpotLight",
+  "feTile",
+  "feTurbulence",
+]);
+
+function sanitizeSvgForPreview(svg: string): string {
+  const parsed = new DOMParser().parseFromString(svg, "image/svg+xml");
+  const root = parsed.documentElement;
+
+  if (
+    parsed.querySelector("parsererror") ||
+    root.localName !== "svg" ||
+    (root.namespaceURI && root.namespaceURI !== "http://www.w3.org/2000/svg")
+  ) {
+    return "";
+  }
+
+  for (const element of Array.from(root.querySelectorAll("*")).reverse()) {
+    if (!SAFE_SVG_ELEMENTS.has(element.localName)) {
+      element.remove();
+      continue;
+    }
+
+    for (const attribute of Array.from(element.attributes)) {
+      const name = attribute.name.toLowerCase();
+      const value = attribute.value.trim();
+
+      if (
+        name.startsWith("on") ||
+        name === "style" ||
+        name === "src" ||
+        name === "xml:base"
+      ) {
+        element.removeAttribute(attribute.name);
+        continue;
+      }
+
+      if (name === "href" || name === "xlink:href") {
+        if (!/^#[\w:.-]+$/.test(value)) element.removeAttribute(attribute.name);
+        continue;
+      }
+
+      if (
+        /\b(?:javascript|vbscript|data):/i.test(value) ||
+        (/url\s*\(/i.test(value) &&
+          !/^(?:[^)]|url\s*\(\s*#[\w:.-]+\s*\))*$/i.test(value))
+      ) {
+        element.removeAttribute(attribute.name);
+      }
+    }
+  }
+
+  return new XMLSerializer().serializeToString(root);
 }

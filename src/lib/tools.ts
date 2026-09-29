@@ -107,9 +107,9 @@ export const tools: ToolDefinition[] = [
   },
   {
     href: "/mermaid-diagram",
-    title: "Mermaid & PlantUML",
+    title: "Mermaid Diagram",
     description:
-      "Write Mermaid or PlantUML syntax, preview diagrams, and export as images",
+      "Write Mermaid syntax, preview diagrams, and export as images",
     icon: Workflow,
     tag: "Diagrams",
   },

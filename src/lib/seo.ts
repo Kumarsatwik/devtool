@@ -78,11 +78,11 @@ const TOOL_SEO: Record<string, ToolSeo> = {
       "epoch converter, unix timestamp converter, epoch to date, timestamp to ist, date to epoch, epoch ms",
   },
   "/mermaid-diagram": {
-    title: "Mermaid & PlantUML Diagram Editor – Flowcharts & UML | DataTools",
+    title: "Mermaid Diagram Editor – Flowcharts & UML | DataTools",
     description:
-      "Write Mermaid or PlantUML syntax and preview flowcharts, sequence diagrams, UML, and more with live rendering. Export to SVG, PNG, or JPG.",
+      "Write Mermaid syntax and preview flowcharts, sequence diagrams, UML, and more with live rendering. Export to SVG, PNG, or JPG.",
     keywords:
-      "mermaid editor, mermaid diagram, mermaid flowchart, mermaid online, mermaid to png, mermaid to svg, plantuml editor, plantuml online, plantuml to png, plantuml to svg",
+      "mermaid editor, mermaid diagram, mermaid flowchart, mermaid online, mermaid to png, mermaid to svg",
   },
   "/markdown-preview": {
     title: "Markdown Notes Editor – Rich Text, Mermaid & PlantUML | DataTools",
