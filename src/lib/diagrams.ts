@@ -1,13 +1,11 @@
 "use client";
 
-import { fetchPlantUmlSvg } from "./plantuml.ts";
-
-export type DiagramKind = "mermaid" | "plantuml";
+export type DiagramKind = "mermaid";
 
 let mermaidReady = false;
 let renderSeq = 0;
 
-async function renderMermaidSvg(code: string): Promise<string> {
+export async function renderMermaidSvg(code: string): Promise<string> {
   // lazy: mermaid is ~1MB; only loaded when a mermaid diagram actually renders
   const mermaid = (await import("mermaid")).default;
   if (!mermaidReady) {
@@ -19,17 +17,11 @@ async function renderMermaidSvg(code: string): Promise<string> {
   return svg;
 }
 
-export function renderDiagramSvg(kind: DiagramKind, code: string): Promise<string> {
-  return kind === "plantuml" ? fetchPlantUmlSvg(code) : renderMermaidSvg(code);
+export function renderDiagramSvg(_kind: DiagramKind, code: string): Promise<string> {
+  return renderMermaidSvg(code);
 }
 
-/**
- * Pick the renderer from the code itself. PlantUML sources are wrapped in
- * @start…/@end… markers, which Mermaid never uses; anything else falls back
- * to the kind the diagram was created with.
- * ponytail: marker heuristic — upgrade to a real parser if unwrapped
- * PlantUML (no @startuml) ever needs to be auto-detected.
- */
-export function detectDiagramKind(code: string, fallback: DiagramKind): DiagramKind {
-  return /^\s*@(start|end)\w+/m.test(code) ? "plantuml" : fallback;
+export function detectDiagramKind(_code: string, fallback: DiagramKind = "mermaid"): DiagramKind {
+  return fallback;
 }
+

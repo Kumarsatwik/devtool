@@ -17,6 +17,8 @@ import {
 
 import { ToolPageLayout } from "@/components/tool-page-layout";
 import { DiagramBlock } from "@/components/notes/diagram-block";
+import { NotePreview } from "@/components/notes/note-preview";
+import { SlideDeck } from "@/components/notes/slide-deck";
 import { Toolbar, type ExportFormat } from "@/components/notes/toolbar";
 import { MarkdownPane } from "@/components/notes/markdown-pane";
 import { markdownToHtml } from "@/lib/notes/markdown";
@@ -51,7 +53,7 @@ const WELCOME_HTML = `
 <ul>
   <li>Use the toolbar to format text, change fonts and sizes</li>
   <li>Insert images — they are embedded right into the note</li>
-  <li>Add Mermaid or PlantUML diagrams with a live preview</li>
+  <li>Add Mermaid diagrams with a live preview</li>
   <li>Open / save <code>.md</code> files, export to HTML, DOCX, TXT</li>
 </ul>
 <pre data-type="mermaid"><code>graph LR
@@ -67,6 +69,8 @@ export default function MarkdownPreviewPage() {
   const [title, setTitle] = useState("Welcome");
   const [html, setHtml] = useState(WELCOME_HTML);
   const [showMarkdown, setShowMarkdown] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [slidesOpen, setSlidesOpen] = useState(false);
   const [exporting, setExporting] = useState<ExportFormat | null>(null);
 
   const editor = useEditor({
@@ -126,30 +130,54 @@ export default function MarkdownPreviewPage() {
       description="Rich Markdown note editor with live diagrams and multi-format export."
     >
       {editor ? (
-        <div className="notes-app">
-          <main className="notes-main">
-            <input
-              className="title-input"
-              value={title}
-              placeholder="Untitled note"
-              onChange={(e) => setTitle(e.target.value)}
-            />
-            <Toolbar
-              editor={editor}
-              onOpenFile={handleOpenFile}
-              onExport={handleExport}
-              exporting={exporting}
-              showMarkdown={showMarkdown}
-              onToggleMarkdown={() => setShowMarkdown((v) => !v)}
-            />
-            <div className={`notes-workspace${showMarkdown ? " split" : ""}`}>
-              <div className="editor-scroll">
-                <EditorContent editor={editor} />
+        <>
+          <div className="notes-app">
+            <main className="notes-main">
+              <input
+                className="title-input"
+                value={title}
+                placeholder="Untitled note"
+                onChange={(e) => setTitle(e.target.value)}
+              />
+              <Toolbar
+                editor={editor}
+                onOpenFile={handleOpenFile}
+                onExport={handleExport}
+                exporting={exporting}
+                showMarkdown={showMarkdown}
+                onToggleMarkdown={() => setShowMarkdown((v) => !v)}
+                onPreview={() => {
+                  setSlidesOpen(false);
+                  setPreviewOpen(true);
+                }}
+                onSlides={() => {
+                  setPreviewOpen(false);
+                  setSlidesOpen(true);
+                }}
+              />
+              <div className={`notes-workspace${showMarkdown ? " split" : ""}`}>
+                <div className="editor-scroll">
+                  <EditorContent editor={editor} />
+                </div>
+                {showMarkdown && <MarkdownPane editor={editor} />}
               </div>
-              {showMarkdown && <MarkdownPane editor={editor} />}
-            </div>
-          </main>
-        </div>
+            </main>
+          </div>
+          {previewOpen && (
+            <NotePreview
+              title={title}
+              editorHtml={editor.getHTML()}
+              onClose={() => setPreviewOpen(false)}
+            />
+          )}
+          {slidesOpen && (
+            <SlideDeck
+              title={title}
+              editorHtml={editor.getHTML()}
+              onClose={() => setSlidesOpen(false)}
+            />
+          )}
+        </>
       ) : (
         <div className="h-full flex items-center justify-center text-xs text-muted-foreground border border-border rounded-xl bg-card">
           Loading editor…

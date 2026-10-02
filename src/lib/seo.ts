@@ -85,11 +85,11 @@ const TOOL_SEO: Record<string, ToolSeo> = {
       "mermaid editor, mermaid diagram, mermaid flowchart, mermaid online, mermaid to png, mermaid to svg",
   },
   "/markdown-preview": {
-    title: "Markdown Notes Editor – Rich Text, Mermaid & PlantUML | DataTools",
+    title: "Markdown Notes Editor – Rich Text & Mermaid | DataTools",
     description:
-      "A rich Markdown note editor with live preview, embedded Mermaid and PlantUML diagrams, images, and export to PDF, HTML, DOCX, TXT, and MD.",
+      "A rich Markdown note editor with live preview, embedded Mermaid diagrams, images, and export to PDF, HTML, DOCX, TXT, and MD.",
     keywords:
-      "markdown editor, markdown notes, rich text editor, markdown to pdf, markdown to docx, markdown preview, plantuml diagram",
+      "markdown editor, markdown notes, rich text editor, markdown to pdf, markdown to docx, markdown preview, mermaid diagram",
   },
   "/html-playground": {
     title: "HTML Playground – Live HTML, CSS & JS Compiler | DataTools",

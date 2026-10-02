@@ -16,6 +16,8 @@ import {
   Terminal,
   ArrowRight,
   ChevronDown,
+  Sparkles,
+  X,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { DataToolsMark } from "@/components/logo";
@@ -46,6 +48,7 @@ const faqData = [
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const filteredTools = useMemo(() => {
     return tools.filter(
       (tool) =>
@@ -57,11 +60,47 @@ export default function Home() {
 
   return (
     <div className="neutral-grid-bg min-h-screen flex flex-col justify-between">
+      {/* Top Announcement Banner */}
+      {!bannerDismissed && (
+        <aside
+          aria-label="Announcement"
+          className="relative border-b border-border/70 bg-gradient-to-r from-primary/[0.03] via-primary/[0.09] to-primary/[0.03] px-10 py-2.5 text-xs text-foreground backdrop-blur-md transition-all sm:px-14"
+        >
+          <div className="mx-auto flex max-w-5xl items-center justify-center">
+            <Link
+              href="/markdown-preview"
+              className="group inline-flex flex-wrap items-center justify-center gap-2 text-center transition-colors"
+            >
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary shadow-xs">
+                <Sparkles className="h-3 w-3 text-primary animate-pulse" />
+                <span>New Release</span>
+              </span>
+              <span className="font-medium text-muted-foreground transition-colors group-hover:text-foreground">
+                Preview/Slide options are added in the Markdown Preview
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2.5 py-0.5 text-[11px] font-semibold text-primary shadow-xs transition-all duration-200 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-sm">
+                Try here
+                <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          </div>
+          <button
+            type="button"
+            onClick={() => setBannerDismissed(true)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground/80 transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring sm:right-6"
+            aria-label="Dismiss banner"
+            title="Dismiss banner"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </aside>
+      )}
+
       {/* Homepage Main Content */}
       <div className="max-w-5xl mx-auto py-20 px-4 sm:px-6 lg:px-8 space-y-24 flex-1 w-full">
         {/* Minimal Hero Section — left-aligned per anti-center bias */}
         <div className="space-y-6 max-w-2xl lg:max-w-none select-none">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded border border-border bg-card text-muted-foreground text-xs font-bold">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border bg-card text-muted-foreground text-xs font-bold">
             <Lock className="h-3 w-3" />
             <span>Local Browser Sandboxing</span>
           </div>

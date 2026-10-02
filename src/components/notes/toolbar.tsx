@@ -20,6 +20,8 @@ interface ToolbarProps {
   exporting: ExportFormat | null;
   showMarkdown: boolean;
   onToggleMarkdown: () => void;
+  onPreview: () => void;
+  onSlides: () => void;
 }
 
 const FONT_FAMILIES = [
@@ -102,6 +104,8 @@ export function Toolbar({
   exporting,
   showMarkdown,
   onToggleMarkdown,
+  onPreview,
+  onSlides,
 }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -111,8 +115,6 @@ export function Toolbar({
   const tableRef = useRef<HTMLDivElement>(null);
   const [colorOpen, setColorOpen] = useState(false);
   const colorRef = useRef<HTMLDivElement>(null);
-  const [diagramOpen, setDiagramOpen] = useState(false);
-  const diagramRef = useRef<HTMLDivElement>(null);
   const [isMac, setIsMac] = useState(true);
 
   useEffect(() => {
@@ -159,9 +161,6 @@ export function Toolbar({
       }
       if (colorRef.current && !colorRef.current.contains(target)) {
         setColorOpen(false);
-      }
-      if (diagramRef.current && !diagramRef.current.contains(target)) {
-        setDiagramOpen(false);
       }
     };
     document.addEventListener("mousedown", close);
@@ -694,6 +693,17 @@ export function Toolbar({
             <TooltipTrigger>
               <button
                 className="tb-btn"
+                onClick={() => chain().setHorizontalRule().run()}
+              >
+                ⤓ Break
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Insert slide break (—)</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger>
+              <button
+                className="tb-btn"
                 onClick={() => imageInputRef.current?.click()}
               >
                 🖼 Image
@@ -701,45 +711,40 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Insert image</TooltipContent>
           </Tooltip>
-          <div className="tb-dropdown" ref={diagramRef}>
-            <Tooltip>
-              <TooltipTrigger>
-                <button
-                  className={`tb-btn${diagramOpen ? " is-active" : ""}`}
-                  onClick={() => setDiagramOpen((v) => !v)}
-                >
-                  ◈ Diagram
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Insert diagram</TooltipContent>
-            </Tooltip>
-            {diagramOpen && (
-              <div className="tb-menu">
-                <button
-                  className="tb-menu-item"
-                  onClick={() => {
-                    // No .focus() here: the block's code editor takes focus
-                    editor.chain().insertMermaid().run();
-                    setDiagramOpen(false);
-                  }}
-                >
-                  Mermaid
-                </button>
-                <button
-                  className="tb-menu-item"
-                  onClick={() => {
-                    editor.chain().insertPlantUml().run();
-                    setDiagramOpen(false);
-                  }}
-                >
-                  PlantUML
-                </button>
-              </div>
-            )}
-          </div>
+          <Tooltip>
+            <TooltipTrigger>
+              <button
+                className="tb-btn"
+                onClick={() => {
+                  editor.chain().insertMermaid().run();
+                }}
+              >
+                ◈ Diagram
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Insert diagram</TooltipContent>
+          </Tooltip>
         </div>
 
         <span className="tb-flex" />
+
+        <Tooltip>
+          <TooltipTrigger>
+            <button className="tb-btn" onClick={onSlides}>
+              ▤ Slides
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Slides from this note — --- between sections</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger>
+            <button className="tb-btn" onClick={onPreview}>
+              ⛶ Preview
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Fullscreen preview — Esc to close</TooltipContent>
+        </Tooltip>
 
         <Tooltip>
           <TooltipTrigger>

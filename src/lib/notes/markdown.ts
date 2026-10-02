@@ -16,10 +16,9 @@ export function markdownToHtml(md: string): string {
   const renderer = new marked.Renderer();
   const origCode = renderer.code.bind(renderer);
   renderer.code = (token) => {
-    if (token.lang === "mermaid" || token.lang === "plantuml" || token.lang === "puml") {
+    if (token.lang === "mermaid") {
       // Rendered by the DiagramBlock node in the editor
-      const kind = token.lang === "mermaid" ? "mermaid" : "plantuml";
-      return `<pre data-type="${kind}"><code>${escapeHtml(token.text)}</code></pre>\n`;
+      return `<pre data-type="mermaid"><code>${escapeHtml(token.text)}</code></pre>\n`;
     }
     return origCode(token);
   };
@@ -61,16 +60,22 @@ function getTurndown(): TurndownService {
     replacement: (content) => `==${content}==`,
   });
 
+  // Horizontal rules -> --- (deck authors read them as slide separators)
+  turndown.addRule("slideBreak", {
+    filter: ["hr"],
+    replacement: () => "\n\n---\n\n",
+  });
+
   // Diagram blocks -> fenced code with the diagram language
   turndown.addRule("diagram", {
     filter: (node) => {
       if (node.nodeName !== "PRE") return false;
       const type = (node as HTMLElement).getAttribute("data-type");
-      return type === "mermaid" || type === "plantuml";
+      return type === "mermaid";
     },
     replacement: (_content, node) => {
       const el = node as HTMLElement;
-      const kind = el.getAttribute("data-type");
+      const kind = el.getAttribute("data-type") ?? "mermaid";
       const code = el.textContent ?? "";
       return `\n\n\`\`\`${kind}\n${code.trim()}\n\`\`\`\n\n`;
     },
