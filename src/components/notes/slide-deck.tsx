@@ -17,6 +17,7 @@ import {
   Minimize,
   Palette,
   Presentation,
+  Sliders,
   X,
 } from "lucide-react";
 
@@ -26,9 +27,11 @@ import {
   SLIDE_BRIDGE_TAG,
   SLIDE_CMD_TAG,
   SLIDE_THEMES,
+  SLIDE_TRANSITIONS,
   type SlideDeckInfo,
   type SlideSeparator,
   type SlideTheme,
+  type SlideTransition,
 } from "@/lib/notes/slides";
 
 interface SlideDeckProps {
@@ -55,9 +58,9 @@ const SEPARATORS: { value: SlideSeparator; label: string; hint: string }[] = [
 ];
 
 /**
- * Slide deck presenting notes page-by-page without animations.
- * Features theme presets, temporary fading drawing marker, content font resize,
- * and responsive stage scaling.
+ * Slide deck presenting notes with configurable transitions.
+ * Features theme presets, transitions (fade, slide, zoom, flip, none),
+ * temporary fading drawing marker, content font resize, and responsive stage scaling.
  */
 export function SlideDeck({ title, editorHtml, onClose }: SlideDeckProps) {
   const [snapshot] = useState(() => ({
@@ -66,6 +69,7 @@ export function SlideDeck({ title, editorHtml, onClose }: SlideDeckProps) {
   }));
   const [separator, setSeparator] = useState<SlideSeparator>("hr");
   const [theme, setTheme] = useState<SlideTheme>("dark");
+  const [transition, setTransition] = useState<SlideTransition>("fade");
 
   const [doc, setDoc] = useState<string | null>(null);
   const [, setInfo] = useState<SlideDeckInfo | null>(null);
@@ -87,12 +91,21 @@ export function SlideDeck({ title, editorHtml, onClose }: SlideDeckProps) {
     onCloseRef.current = onClose;
   }, [onClose]);
 
+  const transitionRef = useRef(transition);
+  useEffect(() => {
+    transitionRef.current = transition;
+  }, [transition]);
+
   // Build the deck whenever snapshot, separator, or theme changes
   useEffect(() => {
     let cancelled = false;
     setDoc(null);
     setError(null);
-    buildSlideDeck(snapshot.title, snapshot.html, { separator, theme })
+    buildSlideDeck(snapshot.title, snapshot.html, {
+      separator,
+      theme,
+      transition: transitionRef.current,
+    })
       .then(({ doc: html, info: next }) => {
         if (cancelled) return;
         setInfo(next);
@@ -325,6 +338,28 @@ export function SlideDeck({ title, editorHtml, onClose }: SlideDeckProps) {
               {(Object.keys(SLIDE_THEMES) as SlideTheme[]).map((t) => (
                 <option key={t} value={t}>
                   {SLIDE_THEMES[t].label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Transition selector */}
+          <div className="flex shrink-0 items-center gap-1">
+            <Sliders className="h-3.5 w-3.5 text-muted-foreground" />
+            <select
+              aria-label="Slide transition"
+              title="Slide transition style"
+              value={transition}
+              onChange={(e) => {
+                const next = e.target.value as SlideTransition;
+                setTransition(next);
+                sendCommand({ type: "setTransition", transition: next });
+              }}
+              className="h-7 shrink-0 rounded-md border border-border bg-background px-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              {SLIDE_TRANSITIONS.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
                 </option>
               ))}
             </select>

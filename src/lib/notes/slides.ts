@@ -7,6 +7,15 @@ import { escapeHtml } from "./markdown";
 
 export type SlideSeparator = "hr" | "heading" | "both";
 export type SlideTheme = "dark" | "light" | "navy" | "nord";
+export type SlideTransition = "none" | "fade" | "slide" | "zoom" | "flip";
+
+export const SLIDE_TRANSITIONS: { value: SlideTransition; label: string }[] = [
+  { value: "fade", label: "Fade" },
+  { value: "slide", label: "Slide" },
+  { value: "zoom", label: "Zoom" },
+  { value: "flip", label: "Flip" },
+  { value: "none", label: "Instant" },
+];
 
 export interface Slide {
   index: number;
@@ -144,6 +153,7 @@ export const SLIDE_THEMES: Record<
 export interface SlideDeckOptions {
   separator: SlideSeparator;
   theme?: SlideTheme;
+  transition?: SlideTransition;
   standalone?: boolean;
 }
 
@@ -176,9 +186,11 @@ const BASE_DECK_CSS = `
     overflow: hidden;
     position: relative;
     --slide-font-size: 30px;
+    perspective: 1200px;
   }
   .slide {
-    display: none;
+    position: absolute;
+    inset: 0;
     width: 100%; height: 100%;
     padding: 56px 96px;
     box-sizing: border-box;
@@ -187,8 +199,96 @@ const BASE_DECK_CSS = `
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition: opacity 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                visibility 280ms step-end;
+    will-change: transform, opacity;
   }
-  .slide.is-active { display: block; }
+  .slide.is-active {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+    transform: translate3d(0, 0, 0) scale(1) rotateY(0deg);
+    z-index: 2;
+    transition: opacity 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                visibility 0ms;
+  }
+
+  /* Transition: None (Instant) */
+  #stage[data-transition="none"] .slide {
+    transition: none !important;
+  }
+  #stage[data-transition="none"] .slide.is-active {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+  }
+  #stage[data-transition="none"] .slide:not(.is-active) {
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  /* Transition: Fade */
+  #stage[data-transition="fade"] .slide {
+    transform: none !important;
+  }
+  #stage[data-transition="fade"] .slide.is-past,
+  #stage[data-transition="fade"] .slide.is-future {
+    opacity: 0;
+  }
+
+  /* Transition: Slide (Horizontal push) */
+  #stage[data-transition="slide"] .slide.is-past {
+    transform: translate3d(-100%, 0, 0);
+    opacity: 0;
+  }
+  #stage[data-transition="slide"] .slide.is-future {
+    transform: translate3d(100%, 0, 0);
+    opacity: 0;
+  }
+  #stage[data-transition="slide"] .slide.is-active {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+
+  /* Transition: Zoom */
+  #stage[data-transition="zoom"] .slide.is-past {
+    transform: scale(1.08);
+    opacity: 0;
+  }
+  #stage[data-transition="zoom"] .slide.is-future {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  #stage[data-transition="zoom"] .slide.is-active {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  /* Transition: Flip */
+  #stage[data-transition="flip"] .slide {
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+  }
+  #stage[data-transition="flip"] .slide.is-past {
+    transform: rotateY(-70deg) translate3d(-20%, 0, 0);
+    opacity: 0;
+  }
+  #stage[data-transition="flip"] .slide.is-future {
+    transform: rotateY(70deg) translate3d(20%, 0, 0);
+    opacity: 0;
+  }
+  #stage[data-transition="flip"] .slide.is-active {
+    transform: rotateY(0deg) translate3d(0, 0, 0);
+    opacity: 1;
+  }
   .slide > :first-child { margin-top: 0; }
   .slide h1 { font-size: 2.1em; margin: 0 0 0.5em; line-height: 1.15; }
   .slide h2 { font-size: 1.6em; margin: 0 0 0.6em; line-height: 1.2; }
@@ -286,7 +386,7 @@ const DECK_CHROME_CSS = `
   #empty code { background: rgb(255 255 255 / 12%); padding: 2px 10px; border-radius: 6px; }
 `;
 
-function deckScript(total: number): string {
+function deckScript(total: number, initialTransition: SlideTransition = "fade"): string {
   return `<script>
 (function () {
   var TAG = "${DECK_BRIDGE_TAG}";
@@ -303,6 +403,8 @@ function deckScript(total: number): string {
   var total = ${total};
   var index = 0;
   var markerActive = false;
+  var transition = "${initialTransition}";
+  stage.setAttribute("data-transition", transition);
 
   // Font resize state (base = 30px)
   var baseFontSize = 30;
@@ -332,7 +434,8 @@ function deckScript(total: number): string {
         total: total,
         overview: overview.classList.contains("is-open"),
         marker: markerActive,
-        fontScale: Math.round(fontScale * 100)
+        fontScale: Math.round(fontScale * 100),
+        transition: stage.getAttribute("data-transition") || transition
       };
       msg[TAG] = true;
       parent.postMessage(msg, "*");
@@ -368,6 +471,8 @@ function deckScript(total: number): string {
     clearStrokes();
     slides.forEach(function (s, i) {
       s.classList.toggle("is-active", i === index);
+      s.classList.toggle("is-past", i < index);
+      s.classList.toggle("is-future", i > index);
     });
     hudCount.textContent = total === 0 ? "0 / 0" : (index + 1) + " / " + total;
     progress.style.width = total === 0 ? "0" : ((index + 1) / total * 100) + "%";
@@ -589,6 +694,13 @@ function deckScript(total: number): string {
     else if (cmd === "increaseFontSize") increaseFontSize();
     else if (cmd === "decreaseFontSize") decreaseFontSize();
     else if (cmd === "resetFontSize") resetFontSize();
+    else if (cmd && (cmd.type === "setTransition" || cmd.action === "setTransition")) {
+      var t = cmd.transition || cmd.value;
+      if (t) {
+        stage.setAttribute("data-transition", t);
+        send();
+      }
+    }
     else if (typeof cmd === "object" && cmd.type === "goTo") go(cmd.index);
   });
 
@@ -662,18 +774,18 @@ function slideDoc(
 /**
  * Build the interactive deck for the in-app present overlay.
  * Diagrams are resolved once on the full document before slicing.
- * Slides switch instantly page-by-page without animation.
+ * Supports configurable transitions (instant, fade, slide, zoom, flip).
  */
 export async function buildSlideDeck(
   title: string,
   editorHtml: string,
   options: SlideDeckOptions,
 ): Promise<{ doc: string; info: SlideDeckInfo }> {
-  const { separator, theme = "dark" } = options;
+  const { separator, theme = "dark", transition = "fade" } = options;
   const deckTitle = title.trim() || "Untitled note";
   const resolvedHtml = await resolveDiagrams(editorHtml);
   const slides = splitSlides(resolvedHtml, { mode: separator });
-  const script = deckScript(slides.length);
+  const script = deckScript(slides.length, transition);
   const doc = slideDoc(deckTitle, slides, script, { theme });
   return { doc, info: { deckTitle, slides } };
 }

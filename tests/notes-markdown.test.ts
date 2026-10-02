@@ -33,3 +33,4 @@ test("escapes HTML entities accurately", () => {
   const escaped = escapeHtml(raw);
   assert.equal(escaped, "&lt;script&gt;alert(&quot;test&quot; &amp; &quot;x&quot;)&lt;/script&gt;");
 });
+
