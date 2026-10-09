@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
+import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import { xmlToJson } from "@/lib/xml";
 import { AlertCircle, CheckCircle2, CodeXml, Settings2 } from "lucide-react";
@@ -96,35 +97,39 @@ export default function XMLToJSONPage() {
           </div>
         </div>
 
-        {/* Input vs Output Editors */}
-        <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-2">
-          <div className="flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">Source XML</label>
-            <EditorPanel
-              value={input}
-              onChange={setInput}
-              language="xml"
-              title="XML Input"
-              sampleText={sampleXML}
-              accept=".xml,.xsl,.svg"
-              height="fill"
-              className="flex-1 min-h-0"
-            />
-          </div>
-
-          <div className="flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">Output JSON</label>
-            <EditorPanel
-              value={output}
-              language="json"
-              readOnly
-              title="JSON Output"
-              downloadFileName="converted.json"
-              height="fill"
-              className="flex-1 min-h-0"
-            />
-          </div>
-        </div>
+        {/* Input vs Output Editors — drag the divider to rebalance the panes */}
+        <ResizableSplit
+          label="Resize XML input and JSON output"
+          first={
+            <>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">Source XML</label>
+              <EditorPanel
+                value={input}
+                onChange={setInput}
+                language="xml"
+                title="XML Input"
+                sampleText={sampleXML}
+                accept=".xml,.xsl,.svg"
+                height="fill"
+                className="flex-1 min-h-0"
+              />
+            </>
+          }
+          second={
+            <>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">Output JSON</label>
+              <EditorPanel
+                value={output}
+                language="json"
+                readOnly
+                title="JSON Output"
+                downloadFileName="converted.json"
+                height="fill"
+                className="flex-1 min-h-0"
+              />
+            </>
+          }
+        />
 
         {/* Drag and Drop File Upload Area */}
         {!input && (

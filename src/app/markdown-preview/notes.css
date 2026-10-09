@@ -77,9 +77,48 @@ body:has(.notes-app) {
   min-height: 0;
 }
 
+/* Split share is driven by the --split custom property set on
+   .notes-workspace by the drag handle; 55% keeps the previous default.
+   flex-basis (not width) sets the size because .editor-scroll is a flex
+   item — a bare width would be ignored under `flex: 1`. */
 .notes-workspace.split .editor-scroll {
-  width: 55%;
+  flex: 0 0 var(--split, 55%);
+  width: var(--split, 55%);
+  border-right: none;
+}
+
+.notes-divider {
+  display: none;
+}
+
+/* Drag handle between the editor and the markdown pane */
+.notes-workspace.split .notes-divider {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  cursor: col-resize;
+  border-left: 1px solid var(--nb-border);
   border-right: 1px solid var(--nb-border);
+  background: var(--nb-panel);
+  color: var(--nb-text-muted);
+  touch-action: none;
+}
+
+.notes-workspace.split .notes-divider:hover,
+.notes-workspace.split .notes-divider:focus-visible {
+  color: var(--nb-accent);
+}
+
+.notes-workspace.split .notes-divider > svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Suppress text selection in both panes while dragging */
+.notes-workspace.is-resizing {
+  user-select: none;
 }
 
 .editor-scroll {
@@ -480,10 +519,11 @@ body:has(.notes-app) {
 /* ================= Markdown pane ================= */
 
 .md-pane {
-  width: 45%;
+  /* Fills whatever the editor pane leaves after the drag handle */
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  min-width: 0;
   background: var(--nb-bg);
 }
 

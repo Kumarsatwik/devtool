@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
+import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import {
   svgToReactComponent,
@@ -215,13 +216,15 @@ export default function SvgToReactPage() {
           </div>
         </div>
 
-        {/* Workspace */}
-        <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-2">
-          {/* SVG Input */}
-          <div className="flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-              SVG Input
-            </label>
+        {/* Workspace — drag the divider to rebalance the panes */}
+        <ResizableSplit
+          label="Resize SVG input and output"
+          first={
+            <>
+              {/* SVG Input */}
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+                SVG Input
+              </label>
             <EditorPanel
               value={svgInput}
               onChange={setSvgInput}
@@ -233,11 +236,12 @@ export default function SvgToReactPage() {
               height="fill"
               className="flex-1 min-h-0"
             />
-          </div>
-
-          {/* Output */}
-          <div className="flex flex-col min-h-0 gap-2">
-            <div className="flex items-center justify-between shrink-0">
+            </>
+          }
+          second={
+            <>
+              {/* Output */}
+              <div className="flex items-center justify-between shrink-0">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Output
               </label>
@@ -339,8 +343,9 @@ export default function SvgToReactPage() {
                 className="flex-1 min-h-0"
               />
             )}
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* File Upload */}
         {!svgInput && (

@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import type { LucideIcon } from "lucide-react";
 import { saveAs } from "file-saver";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout } from "@/components/tool-page-layout";
+import { SplitDivider, useSplitResize } from "@/components/resizable-split";
 import {
   AlertTriangle,
   Braces,
@@ -16,7 +16,6 @@ import {
   Eraser,
   ExternalLink,
   FileCode2,
-  GripVertical,
   Info,
   MonitorPlay,
   Palette,
@@ -206,46 +205,12 @@ export default function HtmlPlaygroundPage() {
   const [consoleEntries, setConsoleEntries] = useState<ConsoleEntry[]>([]);
   const [consoleCopied, setConsoleCopied] = useState(false);
   const [outputView, setOutputView] = useState<"preview" | "console">("preview");
-  const [splitPercent, setSplitPercent] = useState(50);
-  const [isResizing, setIsResizing] = useState(false);
+
+  const { isResizing, containerRef, dividerProps, containerStyle } = useSplitResize();
 
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const consoleScrollRef = useRef<HTMLDivElement>(null);
   const entryIdRef = useRef(0);
-  const workspaceRef = useRef<HTMLDivElement>(null);
-
-  const MIN_SPLIT_PERCENT = 20;
-  const MAX_SPLIT_PERCENT = 80;
-  const SPLIT_STEP = 2;
-
-  const clampSplit = (percent: number) =>
-    Math.min(MAX_SPLIT_PERCENT, Math.max(MIN_SPLIT_PERCENT, percent));
-
-  const handleDividerPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    setIsResizing(true);
-  };
-
-  const handleDividerPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!isResizing) return;
-    const el = workspaceRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    setSplitPercent(clampSplit(((event.clientX - rect.left) / rect.width) * 100));
-  };
-
-  const endResize = () => setIsResizing(false);
-
-  const handleDividerKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "ArrowLeft") {
-      event.preventDefault();
-      setSplitPercent((prev) => clampSplit(prev - SPLIT_STEP));
-    } else if (event.key === "ArrowRight") {
-      event.preventDefault();
-      setSplitPercent((prev) => clampSplit(prev + SPLIT_STEP));
-    }
-  };
 
   const run = useCallback((next: Record<PaneId, string>) => {
     setConsoleEntries([]);
@@ -403,9 +368,9 @@ export default function HtmlPlaygroundPage() {
 
         {/* Workspace — draggable split between code and output */}
         <div
-          ref={workspaceRef}
+          ref={containerRef}
+          style={containerStyle}
           className={`flex-1 min-h-0 flex flex-col lg:flex-row gap-1 lg:gap-0 ${isResizing ? "select-none" : ""}`}
-          style={{ "--split": `${splitPercent}%` } as CSSProperties}
         >
           {/* Source Panes */}
           <div className="flex flex-col min-h-0 gap-2 flex-1 lg:flex-none w-full lg:w-[var(--split)] lg:shrink-0">
@@ -446,29 +411,11 @@ export default function HtmlPlaygroundPage() {
           </div>
 
           {/* Drag handle — resize code vs output width */}
-          <div
-            role="separator"
-            aria-orientation="vertical"
-            aria-label="Resize code and output panes"
-            aria-valuenow={Math.round(splitPercent)}
-            aria-valuemin={MIN_SPLIT_PERCENT}
-            aria-valuemax={MAX_SPLIT_PERCENT}
-            tabIndex={0}
-            onPointerDown={handleDividerPointerDown}
-            onPointerMove={handleDividerPointerMove}
-            onPointerUp={endResize}
-            onPointerCancel={endResize}
-            onKeyDown={handleDividerKeyDown}
-            className="hidden lg:flex shrink-0 items-center justify-center w-3 cursor-col-resize group outline-none touch-none"
-          >
-            <GripVertical
-              className={`h-4 w-4 transition-colors ${
-                isResizing
-                  ? "text-primary"
-                  : "text-border group-hover:text-primary/70 group-focus-visible:text-primary/70"
-              }`}
-            />
-          </div>
+          <SplitDivider
+            dividerProps={dividerProps}
+            isResizing={isResizing}
+            label="Resize code and output panes"
+          />
 
           {/* Output — full-height section, switch between Preview and Console */}
           <div className="flex flex-col border border-border/80 rounded-xl overflow-hidden shadow-sm bg-card hover:border-border transition-colors duration-200 flex-1 min-h-0 min-w-0">

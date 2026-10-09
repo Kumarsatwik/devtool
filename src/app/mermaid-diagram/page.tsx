@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
+import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import { exportMermaidSvg, exportMermaidImage } from "@/lib/mermaid-export";
 import {
@@ -288,30 +289,34 @@ export default function MermaidDiagramPage() {
           </div>
         </div>
 
-        {/* Editor workspace — 30% code / 70% preview */}
-        <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-10 lg:grid-rows-1">
-          <div className="lg:col-span-3 flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-              Mermaid Code
-            </label>
-            <EditorPanel
-              value={input}
-              onChange={setInput}
-              language="mermaid"
-              title=""
-              sampleText={sampleMermaid}
-              downloadFileName="diagram.mmd"
-              downloadExtension="mmd"
-              height="fill"
-              className="flex-1 min-h-0"
-            />
-          </div>
-
-          <div className="lg:col-span-7 flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-              Diagram Preview
-            </label>
-            <div className="flex flex-col border border-border/80 rounded-xl overflow-hidden shadow-sm bg-card hover:border-border transition-colors duration-200 flex-1 min-h-0">
+        {/* Editor workspace — 30% code / 70% preview, drag the divider to rebalance */}
+        <ResizableSplit
+          label="Resize Mermaid code and diagram preview"
+          initialPercent={30}
+          first={
+            <>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+                Mermaid Code
+              </label>
+              <EditorPanel
+                value={input}
+                onChange={setInput}
+                language="mermaid"
+                title=""
+                sampleText={sampleMermaid}
+                downloadFileName="diagram.mmd"
+                downloadExtension="mmd"
+                height="fill"
+                className="flex-1 min-h-0"
+              />
+            </>
+          }
+          second={
+            <>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+                Diagram Preview
+              </label>
+              <div className="flex flex-col border border-border/80 rounded-xl overflow-hidden shadow-sm bg-card hover:border-border transition-colors duration-200 flex-1 min-h-0">
               {/* Preview Header */}
               <div className="flex items-center justify-between bg-muted/40 border-b border-border/85 px-3 py-1.5 text-xs select-none shrink-0">
                 <div className="flex items-center gap-2">
@@ -409,8 +414,9 @@ export default function MermaidDiagramPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* File drop zone if empty */}
         {!input && (

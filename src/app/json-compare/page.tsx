@@ -6,6 +6,7 @@ import type { editor } from "monaco-editor";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
+import { ResizableSplit } from "@/components/resizable-split";
 import { useTheme } from "@/components/theme-provider";
 import { sortJSONValue, validateJSON } from "@/lib/json";
 import {
@@ -250,51 +251,55 @@ export default function JSONComparePage() {
         {/* Comparative workspace */}
         <div className="flex-1 min-h-0">
           {activeView === "edit" ? (
-            <div className="h-full grid gap-4 lg:grid-cols-2">
-              <div className="flex flex-col min-h-0 gap-2">
-                <div className="flex items-center justify-between text-xs select-none shrink-0">
-                  <label className="font-bold uppercase tracking-wider text-muted-foreground">
-                    Original JSON (A)
-                  </label>
-                  <span
-                    className={`font-semibold ${validation1.valid ? "text-muted-foreground" : "text-destructive"}`}
-                  >
-                    {validation1.valid ? "Valid Syntax" : "Invalid JSON"}
-                  </span>
-                </div>
-                <EditorPanel
-                  value={input1}
-                  onChange={setInput1}
-                  language="json"
-                  title="JSON A"
-                  sampleText={sampleJSON1}
-                  height="fill"
-                  className="flex-1 min-h-0"
-                />
-              </div>
-
-              <div className="flex flex-col min-h-0 gap-2">
-                <div className="flex items-center justify-between text-xs select-none shrink-0">
-                  <label className="font-bold uppercase tracking-wider text-muted-foreground">
-                    Modified JSON (B)
-                  </label>
-                  <span
-                    className={`font-semibold ${validation2.valid ? "text-muted-foreground" : "text-destructive"}`}
-                  >
-                    {validation2.valid ? "Valid Syntax" : "Invalid JSON"}
-                  </span>
-                </div>
-                <EditorPanel
-                  value={input2}
-                  onChange={setInput2}
-                  language="json"
-                  title="JSON B"
-                  sampleText={sampleJSON2}
-                  height="fill"
-                  className="flex-1 min-h-0"
-                />
-              </div>
-            </div>
+            <ResizableSplit
+              label="Resize the two JSON inputs"
+              first={
+                <>
+                  <div className="flex items-center justify-between text-xs select-none shrink-0">
+                    <label className="font-bold uppercase tracking-wider text-muted-foreground">
+                      Original JSON (A)
+                    </label>
+                    <span
+                      className={`font-semibold ${validation1.valid ? "text-muted-foreground" : "text-destructive"}`}
+                    >
+                      {validation1.valid ? "Valid Syntax" : "Invalid JSON"}
+                    </span>
+                  </div>
+                  <EditorPanel
+                    value={input1}
+                    onChange={setInput1}
+                    language="json"
+                    title="JSON A"
+                    sampleText={sampleJSON1}
+                    height="fill"
+                    className="flex-1 min-h-0"
+                  />
+                </>
+              }
+              second={
+                <>
+                  <div className="flex items-center justify-between text-xs select-none shrink-0">
+                    <label className="font-bold uppercase tracking-wider text-muted-foreground">
+                      Modified JSON (B)
+                    </label>
+                    <span
+                      className={`font-semibold ${validation2.valid ? "text-muted-foreground" : "text-destructive"}`}
+                    >
+                      {validation2.valid ? "Valid Syntax" : "Invalid JSON"}
+                    </span>
+                  </div>
+                  <EditorPanel
+                    value={input2}
+                    onChange={setInput2}
+                    language="json"
+                    title="JSON B"
+                    sampleText={sampleJSON2}
+                    height="fill"
+                    className="flex-1 min-h-0"
+                  />
+                </>
+              }
+            />
           ) : (
             /* Diff workspace: Monaco diff */
             <div className="h-full border border-border rounded overflow-hidden bg-card shadow-none flex flex-col min-h-0">

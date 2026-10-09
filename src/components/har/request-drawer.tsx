@@ -1,13 +1,23 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
+import { GripVertical, X } from "lucide-react";
 import { RequestDetail } from "@/components/har/request-detail";
 import type { AnalyzedEntry } from "@/lib/har";
+import { clampPixels } from "@/lib/split";
+
+/** Width limits for the slide-over, in pixels. */
+const MIN_DRAWER_WIDTH = 420;
+const MAX_DRAWER_WIDTH = 1200;
+const DEFAULT_DRAWER_WIDTH = 1024;
+/** Width moved per arrow-key press, in pixels. */
+const DRAWER_STEP = 32;
 
 /**
  * Slide-over drawer that wraps RequestDetail.
- * Renders on top of any tab with a darkened backdrop.
+ * Renders on top of any tab with a darkened backdrop, and its width can be
+ * dragged from the left edge or adjusted with the arrow keys.
  */
 export function RequestDrawer({
   entry,
@@ -17,10 +27,40 @@ export function RequestDrawer({
   onClose: () => void;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(DEFAULT_DRAWER_WIDTH);
+  const [isResizing, setIsResizing] = useState(false);
 
   // Trap focus inside the drawer when open
   useEffect(() => {
     panelRef.current?.focus();
+  }, []);
+
+  const handlePointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setIsResizing(true);
+  }, []);
+
+  const handlePointerMove = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>) => {
+      if (!isResizing) return;
+      // The drawer is right-aligned, so dragging left widens it.
+      const next = window.innerWidth - event.clientX;
+      setWidth(clampPixels(next, MIN_DRAWER_WIDTH, MAX_DRAWER_WIDTH));
+    },
+    [isResizing],
+  );
+
+  const endResize = useCallback(() => setIsResizing(false), []);
+
+  const handleKeyDown = useCallback((event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      setWidth((prev) => clampPixels(prev + DRAWER_STEP, MIN_DRAWER_WIDTH, MAX_DRAWER_WIDTH));
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      setWidth((prev) => clampPixels(prev - DRAWER_STEP, MIN_DRAWER_WIDTH, MAX_DRAWER_WIDTH));
+    }
   }, []);
 
   return (
@@ -32,6 +72,29 @@ export function RequestDrawer({
         aria-hidden="true"
       />
 
+      {/* Drag handle — resize the drawer width */}
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize request details panel"
+        aria-valuenow={Math.round(width)}
+        aria-valuemin={MIN_DRAWER_WIDTH}
+        aria-valuemax={MAX_DRAWER_WIDTH}
+        tabIndex={0}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={endResize}
+        onPointerCancel={endResize}
+        onKeyDown={handleKeyDown}
+        className="relative z-10 hidden sm:flex shrink-0 items-center justify-center w-2 cursor-col-resize group outline-none touch-none"
+      >
+        <GripVertical
+          className={`h-4 w-4 transition-colors ${
+            isResizing ? "text-primary" : "text-muted-foreground/50 group-hover:text-primary"
+          }`}
+        />
+      </div>
+
       {/* Drawer panel */}
       <div
         ref={panelRef}
@@ -39,7 +102,8 @@ export function RequestDrawer({
         aria-modal="true"
         aria-label="Request details"
         tabIndex={-1}
-        className="relative w-full max-w-5xl h-full bg-background border-l border-border shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col overflow-hidden"
+        style={{ width: `${width}px`, maxWidth: "100%" }}
+        className={`relative h-full bg-background border-l border-border shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col overflow-hidden ${isResizing ? "select-none" : ""}`}
         onKeyDown={(e) => {
           if (e.key === "Escape") onClose();
         }}

@@ -6,6 +6,7 @@ import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
 import { FileUpload } from "@/components/file-upload";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { ResizableSplit } from "@/components/resizable-split";
 import { jsonToCSV } from "@/lib/csv";
 import { validateJSON } from "@/lib/json";
 import {
@@ -126,29 +127,32 @@ export default function JSONToCSVPage() {
           </div>
         </div>
 
-        {/* Input vs Output Editors */}
-        <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-2">
-          <div className="flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-              Source JSON Array
-            </label>
-            <EditorPanel
-              value={input}
-              onChange={setInput}
-              language="json"
-              title="JSON Input"
-              sampleText={sampleJSON}
-              height="fill"
-              className="flex-1 min-h-0"
-            />
-          </div>
+        {/* Input vs Output Editors — drag the divider to rebalance the panes */}
+        <ResizableSplit
+          label="Resize JSON input and CSV output"
+          first={
+            <>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+                Source JSON Array
+              </label>
+              <EditorPanel
+                value={input}
+                onChange={setInput}
+                language="json"
+                title="JSON Input"
+                sampleText={sampleJSON}
+                height="fill"
+                className="flex-1 min-h-0"
+              />
+            </>
+          }
+          second={
+            <>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+                Output CSV
+              </label>
 
-          <div className="flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-              Output CSV
-            </label>
-
-            <Tabs
+              <Tabs
               value={previewTab}
               onValueChange={setPreviewTab}
               className="w-full flex flex-col min-h-0 flex-1"
@@ -253,8 +257,9 @@ export default function JSONToCSVPage() {
                 </TabsContent>
               </div>
             </Tabs>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {/* File drop area */}
         {!input && (

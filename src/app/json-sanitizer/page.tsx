@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
+import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import {
   sanitizeJson,
@@ -309,38 +310,42 @@ export default function JsonSanitizerPage() {
           </div>
         </div>
 
-        {/* Editor workspace */}
-        <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-2">
-          <div className="flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-              Original Data
-            </label>
-            <EditorPanel
-              value={input}
-              onChange={setInput}
-              language="json"
-              title="JSON Input"
-              sampleText={sampleJSON}
-              height="fill"
-              className="flex-1 min-h-0"
-            />
-          </div>
-
-          <div className="flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-              Sanitized Output
-            </label>
-            <EditorPanel
-              value={output}
-              language="json"
-              readOnly
-              title="Safe to Share"
-              downloadFileName="sanitized.json"
-              height="fill"
-              className="flex-1 min-h-0"
-            />
-          </div>
-        </div>
+        {/* Editor workspace — drag the divider to rebalance the panes */}
+        <ResizableSplit
+          label="Resize original data and sanitized output"
+          first={
+            <>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+                Original Data
+              </label>
+              <EditorPanel
+                value={input}
+                onChange={setInput}
+                language="json"
+                title="JSON Input"
+                sampleText={sampleJSON}
+                height="fill"
+                className="flex-1 min-h-0"
+              />
+            </>
+          }
+          second={
+            <>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+                Sanitized Output
+              </label>
+              <EditorPanel
+                value={output}
+                language="json"
+                readOnly
+                title="Safe to Share"
+                downloadFileName="sanitized.json"
+                height="fill"
+                className="flex-1 min-h-0"
+              />
+            </>
+          }
+        />
 
         {/* File drop zone if empty */}
         {!input && (

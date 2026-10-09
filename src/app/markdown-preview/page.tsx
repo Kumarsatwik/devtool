@@ -21,6 +21,7 @@ import { NotePreview } from "@/components/notes/note-preview";
 import { SlideDeck } from "@/components/notes/slide-deck";
 import { Toolbar, type ExportFormat } from "@/components/notes/toolbar";
 import { MarkdownPane } from "@/components/notes/markdown-pane";
+import { SplitDivider, useSplitResize } from "@/components/resizable-split";
 import { markdownToHtml } from "@/lib/notes/markdown";
 import {
   exportAsDocx,
@@ -72,6 +73,15 @@ export default function MarkdownPreviewPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [slidesOpen, setSlidesOpen] = useState(false);
   const [exporting, setExporting] = useState<ExportFormat | null>(null);
+
+  // Notes split its editor against the markdown source pane; 55% preserves
+  // the previous fixed share until the user drags the divider.
+  const {
+    isResizing,
+    containerRef: workspaceRef,
+    dividerProps,
+    containerStyle,
+  } = useSplitResize({ initialPercent: 55 });
 
   const editor = useEditor({
     extensions,
@@ -155,10 +165,22 @@ export default function MarkdownPreviewPage() {
                   setSlidesOpen(true);
                 }}
               />
-              <div className={`notes-workspace${showMarkdown ? " split" : ""}`}>
+              <div
+                className={`notes-workspace${showMarkdown ? " split" : ""}${isResizing ? " is-resizing" : ""}`}
+                ref={workspaceRef}
+                style={showMarkdown ? containerStyle : undefined}
+              >
                 <div className="editor-scroll">
                   <EditorContent editor={editor} />
                 </div>
+                {showMarkdown && (
+                  <SplitDivider
+                    dividerProps={dividerProps}
+                    isResizing={isResizing}
+                    label="Resize editor and markdown panes"
+                    className="notes-divider"
+                  />
+                )}
                 {showMarkdown && <MarkdownPane editor={editor} />}
               </div>
             </main>

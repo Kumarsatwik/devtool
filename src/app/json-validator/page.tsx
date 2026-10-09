@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout } from "@/components/tool-page-layout";
+import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import { validateJSON } from "@/lib/json";
 import { AlertCircle, CheckCircle2, ShieldCheck, Terminal, Info } from "lucide-react";
@@ -104,28 +105,29 @@ export default function JSONValidatorPage() {
           </div>
         </div>
 
-        {/* Workspace Split Layout */}
-        <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-5">
+        {/* Workspace Split Layout — drag the divider to rebalance the panes */}
+        <ResizableSplit
+          label="Resize JSON input and diagnostics"
+          initialPercent={60}
+          first={
+            <>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">JSON Input</label>
+              <EditorPanel
+                value={input}
+                onChange={setInput}
+                language="json"
+                title="JSON Linter Input"
+                sampleText={sampleJSON}
+                height="fill"
+                className="flex-1 min-h-0"
+              />
+            </>
+          }
+          second={
+            <>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block shrink-0">Diagnostics</label>
 
-          {/* Input Editor */}
-          <div className="lg:col-span-3 flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">JSON Input</label>
-            <EditorPanel
-              value={input}
-              onChange={setInput}
-              language="json"
-              title="JSON Linter Input"
-              sampleText={sampleJSON}
-              height="fill"
-              className="flex-1 min-h-0"
-            />
-          </div>
-
-          {/* Validation Diagnostics Sidebar */}
-          <div className="lg:col-span-2 flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block shrink-0">Diagnostics</label>
-
-            {validation ? (
+              {validation ? (
               <div className="flex-1 min-h-0 overflow-auto space-y-4 pr-1">
 
                 {/* Result Status Card */}
@@ -226,9 +228,9 @@ export default function JSONValidatorPage() {
                 <p className="text-xs font-semibold text-muted-foreground">No diagnostics compiled yet.</p>
               </div>
             )}
-          </div>
-
-        </div>
+            </>
+          }
+        />
 
         {/* Drag and Drop File Upload Area */}
         {!input && (

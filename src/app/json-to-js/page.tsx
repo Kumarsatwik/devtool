@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
+import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import { validateJSON } from "@/lib/json";
 import { AlertCircle, CheckCircle2, Settings2, Sparkles } from "lucide-react";
@@ -142,35 +143,38 @@ export default function JSONToJSPage() {
           </div>
         </div>
 
-        {/* Workspace Editors */}
-        <div className="flex-1 min-h-0 grid gap-4 lg:grid-cols-2">
-
-          <div className="flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">Source JSON Code</label>
-            <EditorPanel
-              value={input}
-              onChange={setInput}
-              language="json"
-              title="JSON Input"
-              sampleText={sampleJSON}
-              height="fill"
-              className="flex-1 min-h-0"
-            />
-          </div>
-
-          <div className="flex flex-col min-h-0 gap-2">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">JavaScript Object literal</label>
-            <EditorPanel
-              value={output}
-              language="javascript"
-              readOnly
-              title="JS Output"
-              downloadFileName="converted.js"
-              height="fill"
-              className="flex-1 min-h-0"
-            />
-          </div>
-        </div>
+        {/* Workspace Editors — drag the divider to rebalance the panes */}
+        <ResizableSplit
+          label="Resize JSON input and JavaScript output"
+          first={
+            <>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">Source JSON Code</label>
+              <EditorPanel
+                value={input}
+                onChange={setInput}
+                language="json"
+                title="JSON Input"
+                sampleText={sampleJSON}
+                height="fill"
+                className="flex-1 min-h-0"
+              />
+            </>
+          }
+          second={
+            <>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">JavaScript Object literal</label>
+              <EditorPanel
+                value={output}
+                language="javascript"
+                readOnly
+                title="JS Output"
+                downloadFileName="converted.js"
+                height="fill"
+                className="flex-1 min-h-0"
+              />
+            </>
+          }
+        />
 
         {/* Drag and Drop File Upload Area */}
         {!input && (
