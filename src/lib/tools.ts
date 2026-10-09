@@ -8,11 +8,14 @@ import {
   Clock,
   Workflow,
   FileText,
-  MonitorPlay,
   Network,
   ShieldCheck,
   PenTool,
   Braces,
+  Repeat,
+  Code2,
+  SquarePlay,
+  Microscope,
   type LucideIcon,
 } from "lucide-react";
 
@@ -27,6 +30,7 @@ export interface ToolDefinition {
 export interface NavGroup {
   id: string;
   label: string;
+  description: string;
   icon: LucideIcon;
   tools: ToolDefinition[];
 }
@@ -34,8 +38,9 @@ export interface NavGroup {
 export const navGroups: NavGroup[] = [
   {
     id: "convert",
-    label: "Convert",
-    icon: ArrowLeftRight,
+    label: "File Converters",
+    description: "Translate one file format into another",
+    icon: Repeat,
     tools: [
       {
         href: "/csv-json-converter",
@@ -80,7 +85,8 @@ export const navGroups: NavGroup[] = [
   },
   {
     id: "json",
-    label: "JSON Tools",
+    label: "JSON Utilities",
+    description: "Format, validate, compare, and clean JSON",
     icon: Braces,
     tools: [
       {
@@ -116,15 +122,16 @@ export const navGroups: NavGroup[] = [
   },
   {
     id: "preview",
-    label: "Play & Preview",
-    icon: MonitorPlay,
+    label: "Preview & Notes",
+    description: "Write markup and preview the rendered result",
+    icon: SquarePlay,
     tools: [
       {
         href: "/html-playground",
         title: "HTML Playground",
         description:
           "Write HTML, CSS, and JavaScript with a live sandboxed preview, console output, and standalone HTML export",
-        icon: MonitorPlay,
+        icon: Code2,
         tag: "Playground",
       },
       {
@@ -147,8 +154,9 @@ export const navGroups: NavGroup[] = [
   },
   {
     id: "inspect",
-    label: "Inspect",
-    icon: Network,
+    label: "Inspect & Debug",
+    description: "Analyze network captures and timestamps",
+    icon: Microscope,
     tools: [
       {
         href: "/har-analyzer",
