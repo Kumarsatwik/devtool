@@ -136,7 +136,7 @@ export default function CSVToJSONPage() {
           </div>
         </div>
 
-        {/* Input vs Output Editors — drag the divider to rebalance the panes */}
+        {/* Input vs Output Editors */}
         <ResizableSplit
           label="Resize CSV input and JSON output"
           first={

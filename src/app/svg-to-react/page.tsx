@@ -216,7 +216,7 @@ export default function SvgToReactPage() {
           </div>
         </div>
 
-        {/* Workspace — drag the divider to rebalance the panes */}
+        {/* Workspace */}
         <ResizableSplit
           label="Resize SVG input and output"
           first={

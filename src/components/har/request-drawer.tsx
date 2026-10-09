@@ -7,17 +7,15 @@ import { RequestDetail } from "@/components/har/request-detail";
 import type { AnalyzedEntry } from "@/lib/har";
 import { clampPixels } from "@/lib/split";
 
-/** Width limits for the slide-over, in pixels. */
 const MIN_DRAWER_WIDTH = 420;
 const MAX_DRAWER_WIDTH = 1200;
 const DEFAULT_DRAWER_WIDTH = 1024;
-/** Width moved per arrow-key press, in pixels. */
 const DRAWER_STEP = 32;
 
 /**
  * Slide-over drawer that wraps RequestDetail.
- * Renders on top of any tab with a darkened backdrop, and its width can be
- * dragged from the left edge or adjusted with the arrow keys.
+ * Renders on top of any tab with a darkened backdrop. Its width is draggable
+ * from the left edge, or adjustable with the arrow keys.
  */
 export function RequestDrawer({
   entry,
@@ -44,14 +42,11 @@ export function RequestDrawer({
   const handlePointerMove = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
       if (!isResizing) return;
-      // The drawer is right-aligned, so dragging left widens it.
-      const next = window.innerWidth - event.clientX;
-      setWidth(clampPixels(next, MIN_DRAWER_WIDTH, MAX_DRAWER_WIDTH));
+      // Right-aligned drawer: dragging left widens it.
+      setWidth(clampPixels(window.innerWidth - event.clientX, MIN_DRAWER_WIDTH, MAX_DRAWER_WIDTH));
     },
     [isResizing],
   );
-
-  const endResize = useCallback(() => setIsResizing(false), []);
 
   const handleKeyDown = useCallback((event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key === "ArrowLeft") {
@@ -72,7 +67,6 @@ export function RequestDrawer({
         aria-hidden="true"
       />
 
-      {/* Drag handle — resize the drawer width */}
       <div
         role="separator"
         aria-orientation="vertical"
@@ -83,8 +77,8 @@ export function RequestDrawer({
         tabIndex={0}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
-        onPointerUp={endResize}
-        onPointerCancel={endResize}
+        onPointerUp={() => setIsResizing(false)}
+        onPointerCancel={() => setIsResizing(false)}
         onKeyDown={handleKeyDown}
         className="relative z-10 hidden sm:flex shrink-0 items-center justify-center w-2 cursor-col-resize group outline-none touch-none"
       >

@@ -101,7 +101,7 @@ export default function JSToJSONPage() {
           </div>
         </div>
 
-        {/* Workspace Editors — drag the divider to rebalance the panes */}
+        {/* Workspace Editors */}
         <ResizableSplit
           label="Resize JavaScript input and JSON output"
           first={

@@ -97,7 +97,7 @@ export default function XMLToJSONPage() {
           </div>
         </div>
 
-        {/* Input vs Output Editors — drag the divider to rebalance the panes */}
+        {/* Input vs Output Editors */}
         <ResizableSplit
           label="Resize XML input and JSON output"
           first={

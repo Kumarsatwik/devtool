@@ -169,7 +169,7 @@ export default function ExcelToCSVPage() {
           </div>
         </div>
 
-        {/* Input vs Output — drag the divider to rebalance the panes */}
+        {/* Input vs Output */}
         <ResizableSplit
           label="Resize workbook input and CSV output"
           first={

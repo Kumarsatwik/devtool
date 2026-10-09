@@ -289,7 +289,7 @@ export default function MermaidDiagramPage() {
           </div>
         </div>
 
-        {/* Editor workspace — 30% code / 70% preview, drag the divider to rebalance */}
+        {/* Editor workspace — 30% code / 70% preview */}
         <ResizableSplit
           label="Resize Mermaid code and diagram preview"
           initialPercent={30}

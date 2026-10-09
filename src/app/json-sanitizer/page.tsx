@@ -310,7 +310,7 @@ export default function JsonSanitizerPage() {
           </div>
         </div>
 
-        {/* Editor workspace — drag the divider to rebalance the panes */}
+        {/* Editor workspace */}
         <ResizableSplit
           label="Resize original data and sanitized output"
           first={

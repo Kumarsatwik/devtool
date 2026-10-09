@@ -125,7 +125,7 @@ export default function JSONBeautifierPage() {
           </div>
         </div>
 
-        {/* Editor workspace — drag the divider to rebalance the panes */}
+        {/* Editor workspace */}
         <ResizableSplit
           label="Resize JSON input and output"
           first={

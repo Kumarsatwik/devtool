@@ -74,14 +74,9 @@ export default function MarkdownPreviewPage() {
   const [slidesOpen, setSlidesOpen] = useState(false);
   const [exporting, setExporting] = useState<ExportFormat | null>(null);
 
-  // Notes split its editor against the markdown source pane; 55% preserves
-  // the previous fixed share until the user drags the divider.
-  const {
-    isResizing,
-    containerRef: workspaceRef,
-    dividerProps,
-    containerStyle,
-  } = useSplitResize({ initialPercent: 55 });
+  // 55% preserves the share the markdown pane had before it became draggable.
+  const { isResizing, containerRef: workspaceRef, dividerProps, containerStyle } =
+    useSplitResize({ initialPercent: 55 });
 
   const editor = useEditor({
     extensions,

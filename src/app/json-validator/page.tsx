@@ -105,7 +105,7 @@ export default function JSONValidatorPage() {
           </div>
         </div>
 
-        {/* Workspace Split Layout — drag the divider to rebalance the panes */}
+        {/* Workspace Split Layout */}
         <ResizableSplit
           label="Resize JSON input and diagnostics"
           initialPercent={60}
