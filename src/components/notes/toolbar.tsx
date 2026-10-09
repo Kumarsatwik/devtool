@@ -86,9 +86,7 @@ function Shortcut({
       {parts.map((p, i) => (
         <Fragment key={i}>
           {i > 0 && (
-            <span className="text-xs text-muted-foreground select-none">
-              +
-            </span>
+            <span className="text-xs text-muted-foreground select-none">+</span>
           )}
           <Kbd>{p}</Kbd>
         </Fragment>
@@ -130,9 +128,10 @@ export function Toolbar({
       strike: e.isActive("strike"),
       highlight: e.isActive("highlight"),
       code: e.isActive("code"),
-      heading: ([1, 2, 3, 4, 5, 6] as const).find(
-        (l) => e.isActive("heading", { level: l }),
-      ) ?? 0,
+      heading:
+        ([1, 2, 3, 4, 5, 6] as const).find((l) =>
+          e.isActive("heading", { level: l }),
+        ) ?? 0,
       link: e.isActive("link"),
       linkHref: (e.getAttributes("link").href as string) ?? "",
       inTable: e.isActive("table"),
@@ -248,8 +247,6 @@ export function Toolbar({
           </div>
         </div>
 
-        <span className="tb-sep" />
-
         {/* History */}
         <div className="tb-group">
           <Tooltip>
@@ -281,8 +278,6 @@ export function Toolbar({
             </TooltipContent>
           </Tooltip>
         </div>
-
-        <span className="tb-sep" />
 
         {/* Font family & size */}
         <div className="tb-group">
@@ -352,8 +347,6 @@ export function Toolbar({
             <TooltipContent>Increase font size</TooltipContent>
           </Tooltip>
         </div>
-
-        <span className="tb-sep" />
 
         {/* Inline marks */}
         <div className="tb-group">
@@ -445,8 +438,6 @@ export function Toolbar({
           </Tooltip>
         </div>
 
-        <span className="tb-sep" />
-
         {/* Blocks */}
         <div className="tb-group">
           <Tooltip>
@@ -457,7 +448,12 @@ export function Toolbar({
                 onChange={(e) => {
                   const v = e.target.value;
                   if (v === "p") chain().setParagraph().run();
-                  else chain().toggleHeading({ level: Number(v.slice(1)) as 1 | 2 | 3 | 4 | 5 | 6 }).run();
+                  else
+                    chain()
+                      .toggleHeading({
+                        level: Number(v.slice(1)) as 1 | 2 | 3 | 4 | 5 | 6,
+                      })
+                      .run();
                 }}
               >
                 <option value="p">Body</option>
@@ -546,8 +542,6 @@ export function Toolbar({
           </Tooltip>
         </div>
 
-        <span className="tb-sep" />
-
         {/* Table */}
         <div className="tb-dropdown" ref={tableRef}>
           <Tooltip>
@@ -634,8 +628,6 @@ export function Toolbar({
           )}
         </div>
 
-        <span className="tb-sep" />
-
         {/* Colors */}
         <div className="tb-dropdown" ref={colorRef}>
           <Tooltip>
@@ -685,8 +677,6 @@ export function Toolbar({
           )}
         </div>
 
-        <span className="tb-sep" />
-
         {/* Insert */}
         <div className="tb-group">
           <Tooltip>
@@ -726,34 +716,37 @@ export function Toolbar({
           </Tooltip>
         </div>
 
-        <span className="tb-flex" />
+        {/* Right-aligned actions */}
+        <div className="tb-actions">
+          <Tooltip>
+            <TooltipTrigger>
+              <button className="tb-btn" onClick={onSlides}>
+                ▤ Slides
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              Slides from this note — --- between sections
+            </TooltipContent>
+          </Tooltip>
 
-        <Tooltip>
-          <TooltipTrigger>
-            <button className="tb-btn" onClick={onSlides}>
-              ▤ Slides
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>Slides from this note — --- between sections</TooltipContent>
-        </Tooltip>
+          <Tooltip>
+            <TooltipTrigger>
+              <button className="tb-btn" onClick={onPreview}>
+                ⛶ Preview
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Fullscreen preview — Esc to close</TooltipContent>
+          </Tooltip>
 
-        <Tooltip>
-          <TooltipTrigger>
-            <button className="tb-btn" onClick={onPreview}>
-              ⛶ Preview
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>Fullscreen preview — Esc to close</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger>
-            <button className={btn(showMarkdown)} onClick={onToggleMarkdown}>
-              Ⓜ Markdown
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>Toggle Markdown source pane</TooltipContent>
-        </Tooltip>
+          <Tooltip>
+            <TooltipTrigger>
+              <button className={btn(showMarkdown)} onClick={onToggleMarkdown}>
+                Ⓜ Markdown
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Toggle Markdown source pane</TooltipContent>
+          </Tooltip>
+        </div>
 
         {/* Hidden inputs */}
         <input

@@ -298,11 +298,7 @@ export default function HtmlPlaygroundPage() {
     >
       <div className="h-full flex flex-col gap-4">
         {/* Sandbox Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none shrink-0">
-          <div className="flex items-center gap-2 font-bold text-foreground">
-            <MonitorPlay className="h-4 w-4 text-muted-foreground" />
-            <span>Sandbox Compiler</span>
-          </div>
+        <div className="flex flex-wrap items-center justify-end gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none shrink-0">
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Open standalone build in a new tab */}
