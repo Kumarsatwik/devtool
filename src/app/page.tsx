@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { DataToolsMark } from "@/components/logo";
-import { tools } from "@/lib/tools";
+import { navGroups, tools } from "@/lib/tools";
 
 const faqData = [
   {
@@ -117,7 +117,7 @@ export default function Home() {
 
           <div className="flex gap-3 pt-2">
             <Link
-              href="/csv-to-json"
+              href="/csv-json-converter"
               className={buttonVariants({
                 size: "sm",
                 className: "font-semibold rounded",
@@ -164,44 +164,58 @@ export default function Home() {
           </div>
 
           {filteredTools.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredTools.map((tool) => {
-                const Icon = tool.icon;
+            <div className="space-y-8">
+              {navGroups.map((group) => {
+                const matches = group.tools.filter((tool) => filteredTools.includes(tool));
+                if (!matches.length) return null;
                 return (
-                  <Link
-                    key={tool.href}
-                    href={tool.href}
-                    className="block group"
-                  >
-                    <Card className="h-full border border-border bg-card hover:bg-secondary/40 transition-all duration-150 rounded shadow-none">
-                      <CardContent className="p-5 space-y-4 flex flex-col justify-between h-full">
-                        <div className="space-y-2.5">
-                          <div className="flex items-center justify-between">
-                            <div className="flex h-7 w-7 items-center justify-center rounded border border-border bg-background text-foreground">
-                              <Icon className="h-3.5 w-3.5" />
-                            </div>
-                            <span className="text-[10px] font-semibold text-muted-foreground uppercase border border-border px-1.5 py-0.2 rounded">
-                              {tool.tag}
-                            </span>
-                          </div>
+                  <section key={group.id} aria-labelledby={`catalog-${group.id}`} className="space-y-3">
+                    <h3 id={`catalog-${group.id}`} className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      <group.icon className="h-4 w-4" aria-hidden="true" />
+                      {group.label}
+                    </h3>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {matches.map((tool) => {
+                        const Icon = tool.icon;
+                        return (
+                          <Link
+                            key={tool.href}
+                            href={tool.href}
+                            className="block group"
+                          >
+                            <Card className="h-full border border-border bg-card hover:bg-secondary/40 transition-all duration-150 rounded shadow-none">
+                              <CardContent className="p-5 space-y-4 flex flex-col justify-between h-full">
+                                <div className="space-y-2.5">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex h-7 w-7 items-center justify-center rounded border border-border bg-background text-foreground">
+                                      <Icon className="h-3.5 w-3.5" />
+                                    </div>
+                                    <span className="text-[10px] font-semibold text-muted-foreground uppercase border border-border px-1.5 py-0.2 rounded">
+                                      {tool.tag}
+                                    </span>
+                                  </div>
 
-                          <div className="space-y-1">
-                            <CardTitle className="text-sm font-bold text-foreground">
-                              {tool.title}
-                            </CardTitle>
-                            <CardDescription className="text-xs text-muted-foreground leading-normal">
-                              {tool.description}
-                            </CardDescription>
-                          </div>
-                        </div>
+                                  <div className="space-y-1">
+                                    <CardTitle className="text-sm font-bold text-foreground">
+                                      {tool.title}
+                                    </CardTitle>
+                                    <CardDescription className="text-xs text-muted-foreground leading-normal">
+                                      {tool.description}
+                                    </CardDescription>
+                                  </div>
+                                </div>
 
-                        <div className="pt-2 flex items-center text-xs font-semibold text-muted-foreground group-hover:text-foreground transition-colors gap-1">
-                          <span>Open Workspace</span>
-                          <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                                <div className="pt-2 flex items-center text-xs font-semibold text-muted-foreground group-hover:text-foreground transition-colors gap-1">
+                                  <span>Open Workspace</span>
+                                  <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </section>
                 );
               })}
             </div>
@@ -310,12 +324,12 @@ export default function Home() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/csv-to-json" className="hover:text-foreground">
+                  <Link href="/csv-json-converter?dir=csv" className="hover:text-foreground">
                     CSV → JSON
                   </Link>
                 </li>
                 <li>
-                  <Link href="/json-to-csv" className="hover:text-foreground">
+                  <Link href="/csv-json-converter?dir=json" className="hover:text-foreground">
                     JSON → CSV
                   </Link>
                 </li>
@@ -354,12 +368,12 @@ export default function Home() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/json-to-js" className="hover:text-foreground">
+                  <Link href="/json-js-converter?dir=json" className="hover:text-foreground">
                     JSON → JS
                   </Link>
                 </li>
                 <li>
-                  <Link href="/js-to-json" className="hover:text-foreground">
+                  <Link href="/json-js-converter?dir=js" className="hover:text-foreground">
                     JS → JSON
                   </Link>
                 </li>

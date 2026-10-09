@@ -249,7 +249,7 @@ export default function JSONComparePage() {
         )}
 
         {/* Comparative workspace */}
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 flex flex-col">
           {activeView === "edit" ? (
             <ResizableSplit
               label="Resize the two JSON inputs"

@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
+import { StatusMessage } from "@/components/tool-page-layout";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import { jsToJSON, validateJSON } from "@/lib/json";
@@ -59,7 +59,6 @@ export default function JSToJSONPage() {
   const validation = validateJSON(output);
 
   return (
-    <ToolPageLayout title="JS to JSON" description="Convert JavaScript object literals into strict, standard JSON text — parsed safely, never executed.">
       <div className="h-full flex flex-col gap-4">
 
         {/* Settings Panel */}
@@ -192,6 +191,5 @@ export default function JSToJSONPage() {
         )}
 
       </div>
-    </ToolPageLayout>
   );
 }

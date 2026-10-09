@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
+import { StatusMessage } from "@/components/tool-page-layout";
 import { FileUpload } from "@/components/file-upload";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ResizableSplit } from "@/components/resizable-split";
@@ -102,10 +102,6 @@ export default function JSONToCSVPage() {
   };
 
   return (
-    <ToolPageLayout
-      title="JSON to CSV"
-      description="Convert JSON array structures into standard spreadsheet-ready CSV sheets."
-    >
       <div className="h-full flex flex-col gap-4">
         {/* Settings Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none shrink-0">
@@ -319,6 +315,5 @@ export default function JSONToCSVPage() {
           </StatusMessage>
         )}
       </div>
-    </ToolPageLayout>
   );
 }

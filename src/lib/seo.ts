@@ -7,19 +7,12 @@ interface ToolSeo {
 }
 
 const TOOL_SEO: Record<string, ToolSeo> = {
-  "/csv-to-json": {
-    title: "CSV to JSON Converter – Free Online Tool | DataTools",
+  "/csv-json-converter": {
+    title: "CSV & JSON Converter – Free Online Tool | DataTools",
     description:
-      "Convert CSV or TSV data to a structured JSON array instantly. Auto-detect delimiters, smart type casting, and live conversion — 100% client-side.",
+      "Convert CSV or TSV to JSON and JSON arrays to CSV. Auto-detect delimiters, smart type casting, and table previews — 100% client-side.",
     keywords:
-      "csv to json, csv to json converter, tsv to json, csv parser, convert csv to json online",
-  },
-  "/json-to-csv": {
-    title: "JSON to CSV Converter – Free Online Tool | DataTools",
-    description:
-      "Convert JSON arrays of objects into clean, spreadsheet-ready CSV with a live table grid preview. Runs entirely in your browser.",
-    keywords:
-      "json to csv, json to csv converter, json to excel, convert json to csv online, json array to csv",
+      "csv to json, json to csv, csv json converter, tsv to json, json array to csv",
   },
   "/excel-to-csv": {
     title: "Excel to CSV Converter – XLSX to CSV Online | DataTools",
@@ -35,19 +28,12 @@ const TOOL_SEO: Record<string, ToolSeo> = {
     keywords:
       "xml to json, xml to json converter, convert xml to json online, xml parser, xml to json array",
   },
-  "/json-to-js": {
-    title: "JSON to JS Converter – JSON to JavaScript Object | DataTools",
+  "/json-js-converter": {
+    title: "JSON & JavaScript Converter – Free Online Tool | DataTools",
     description:
-      "Convert standard JSON text into unquoted JavaScript object literals, ready to paste into your code. Free, instant, and offline.",
+      "Convert JSON to JavaScript object literals and JavaScript objects to JSON with indentation options. Parsed safely in your browser, never executed.",
     keywords:
-      "json to js, json to javascript, json to js object, json to javascript converter, json to object literal",
-  },
-  "/js-to-json": {
-    title: "JS to JSON Converter – JavaScript Object to JSON | DataTools",
-    description:
-      "Turn JavaScript object literals back into strict, valid JSON. Live compilation with indentation options, fully client-side.",
-    keywords:
-      "js to json, javascript to json, js object to json, convert js to json online",
+      "json to js, js to json, json to javascript, javascript to json, json javascript converter",
   },
   "/json-beautifier": {
     title: "JSON Beautifier & Formatter – Pretty Print JSON | DataTools",

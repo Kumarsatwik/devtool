@@ -126,17 +126,17 @@ export function ResizableSplit({ initialPercent, first, second, label }: Resizab
       ref={containerRef}
       style={containerStyle}
       className={cn(
-        "flex-1 min-h-0 flex flex-col lg:flex-row",
+        "flex-1 min-h-0 flex flex-col gap-2 lg:flex-row",
         isResizing && "select-none",
       )}
     >
-      <div className="flex flex-col min-h-0 gap-2 w-full lg:w-[var(--split)] lg:shrink-0 lg:flex-none">
+      <div className="flex flex-col gap-2 w-full lg:w-[var(--split)] lg:shrink-0 lg:flex-none min-h-[280px] lg:min-h-0">
         {first}
       </div>
 
       <SplitDivider dividerProps={dividerProps} isResizing={isResizing} label={label} />
 
-      <div className="flex flex-col min-h-0 gap-2 w-full lg:flex-1 min-w-0">{second}</div>
+      <div className="flex flex-col gap-2 w-full lg:flex-1 min-w-0 min-h-[280px] lg:min-h-0">{second}</div>
     </div>
   );
 }

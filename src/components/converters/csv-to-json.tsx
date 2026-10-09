@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
+import { StatusMessage } from "@/components/tool-page-layout";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import { AlertCircle, CheckCircle2, FileSpreadsheet, Settings2 } from "lucide-react";
@@ -86,7 +86,6 @@ export default function CSVToJSONPage() {
   };
 
   return (
-    <ToolPageLayout title="CSV to JSON" description="Convert Comma-Separated Values (CSV) or TSV files into structured JSON array strings.">
       <div className="h-full flex flex-col gap-4">
 
         {/* Settings Bar */}
@@ -217,6 +216,5 @@ export default function CSVToJSONPage() {
         )}
 
       </div>
-    </ToolPageLayout>
   );
 }

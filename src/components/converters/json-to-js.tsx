@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
+import { StatusMessage } from "@/components/tool-page-layout";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import { validateJSON } from "@/lib/json";
@@ -28,7 +28,7 @@ function jsonToJS(json: string, spaces: number = 2): string {
     if (value === null) return "null";
     if (value === undefined) return "undefined";
 
-    if (typeof value === "string") return `"${value}"`;
+    if (typeof value === "string") return JSON.stringify(value);
     if (typeof value === "number" || typeof value === "boolean") return String(value);
 
     if (Array.isArray(value)) {
@@ -50,7 +50,9 @@ function jsonToJS(json: string, spaces: number = 2): string {
       const indentStr = typeof spaces === "number" ? " ".repeat(spaces) : spaces;
       const formattedKeys = keys.map((key) => {
         const needsQuotes = !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key);
-        const keyStr = needsQuotes ? `"${key}"` : key;
+        const keyStr = needsQuotes || key === "__proto__"
+          ? key === "__proto__" ? `[${JSON.stringify(key)}]` : JSON.stringify(key)
+          : key;
         const valueStr = formatValue((value as Record<string, unknown>)[key], indent + indentStr);
         return `${indent}${indentStr}${keyStr}: ${valueStr}`;
       });
@@ -101,7 +103,6 @@ export default function JSONToJSPage() {
   const validation = validateJSON(input);
 
   return (
-    <ToolPageLayout title="JSON to JS" description="Convert standard JSON text strings into unquoted JavaScript object literals.">
       <div className="h-full flex flex-col gap-4">
 
         {/* Settings Panel */}
@@ -234,6 +235,5 @@ export default function JSONToJSPage() {
         )}
 
       </div>
-    </ToolPageLayout>
   );
 }
