@@ -578,6 +578,21 @@ function deckScript(total: number, initialTransition: SlideTransition = "fade"):
   }
 
   if (canvas) {
+    // Marker canvas covers the slide and swallows wheel events; forward them to the active slide.
+    canvas.addEventListener(
+      "wheel",
+      function (e) {
+        if (!markerActive) return;
+        var slide = slides[index];
+        if (!slide) return;
+        var unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? (slide.clientHeight || window.innerHeight) : 1;
+        slide.scrollTop += e.deltaY * unit;
+        if (e.deltaX) slide.scrollLeft += e.deltaX * unit;
+        e.preventDefault();
+      },
+      { passive: false },
+    );
+
     canvas.addEventListener("pointerdown", function (e) {
       if (!markerActive) return;
       stopFade();
