@@ -18,10 +18,7 @@
 export const MERMAID_FLOW_NODE_PREFIX = "flowchart-";
 
 /** Mermaid's per-edge DOM prefix for flowchart-v2 link ids. */
-export const MERMAID_FLOW_EDGE_PREFIX = "L_";
-
-/** Upper bound on hops in one trace so cyclic diagrams always terminate. */
-export const MAX_TRACE_HOPS = 500;
+const MERMAID_FLOW_EDGE_PREFIX = "L_";
 
 export type FlowNodeRole = "default" | "terminal" | "action" | "decision";
 
@@ -54,27 +51,6 @@ export interface FlowEdge {
 export interface FlowGraph {
   nodes: FlowNode[];
   edges: FlowEdge[];
-}
-
-/** One request hop: a packet travels `edgeId` from `from` to `to`. */
-export interface FlowHop {
-  edgeId: string;
-  from: string;
-  to: string;
-  /** BFS depth from the entry node; hops at the same depth run in parallel. */
-  depth: number;
-}
-
-export interface FlowTrace {
-  hops: FlowHop[];
-  /** Source ids with no incoming edges — the candidate entry points. */
-  entryCandidates: string[];
-  /** The entry the trace was actually built from. */
-  entryId: string;
-  /** Source ids that exist but no hop reaches (reported, not animated). */
-  unreachable: string[];
-  /** True when the hop cap stopped the walk (dense or cyclic diagrams). */
-  truncated: boolean;
 }
 
 /**
@@ -153,68 +129,6 @@ export function buildFlowGraph(
     to.incoming.push(edge.domId);
   }
   return { nodes: graphNodes, edges: graphEdges };
-}
-
-function edgeByDomId(graph: FlowGraph, domId: string): FlowEdge | undefined {
-  return graph.edges.find((edge) => edge.domId === domId);
-}
-
-/**
- * Order the graph's hops for the request simulation. BFS from the entry node
- * so sibling services animate together; the walk revisits each directed edge
- * at most once and stops at MAX_TRACE_HOPS, which guarantees termination on
- * cyclic diagrams (retries, polling loops).
- *
- * When `entryId` is missing or unknown, the first entry candidate is used;
- * when the graph has no candidates (every node has an incoming edge), the
- * first node is used so pure cycles still animate.
- */
-export function buildFlowTrace(graph: FlowGraph, entryId?: string): FlowTrace {
-  const nodeIds = new Set(graph.nodes.map((node) => node.id));
-  const entryCandidates = graph.nodes
-    .filter((node) => node.incoming.length === 0)
-    .map((node) => node.id);
-  const entry =
-    (entryId && nodeIds.has(entryId) ? entryId : undefined) ??
-    entryCandidates[0] ??
-    graph.nodes[0]?.id ??
-    "";
-
-  const hops: FlowHop[] = [];
-  const visitedEdges = new Set<string>();
-  let truncated = false;
-  if (entry) {
-    const queue: Array<{ nodeId: string; depth: number }> = [{ nodeId: entry, depth: 0 }];
-    const queuedNodes = new Set([entry]);
-    while (queue.length > 0) {
-      const current = queue.shift()!;
-      const node = graph.nodes.find((n) => n.id === current.nodeId);
-      if (!node) continue;
-      for (const edgeDomId of node.outgoing) {
-        if (visitedEdges.has(edgeDomId)) continue;
-        const edge = edgeByDomId(graph, edgeDomId);
-        // Edges whose target vanished between extraction and now are skipped
-        // rather than crashing the walk.
-        if (!edge || !nodeIds.has(edge.to)) continue;
-        if (hops.length >= MAX_TRACE_HOPS) {
-          truncated = true;
-          queue.length = 0;
-          break;
-        }
-        visitedEdges.add(edgeDomId);
-        hops.push({ edgeId: edge.domId, from: edge.from, to: edge.to, depth: current.depth });
-        if (!queuedNodes.has(edge.to)) {
-          queuedNodes.add(edge.to);
-          queue.push({ nodeId: edge.to, depth: current.depth + 1 });
-        }
-      }
-    }
-  }
-
-  const reached = new Set<string>([entry, ...hops.flatMap((hop) => [hop.from, hop.to])]);
-  const unreachable = graph.nodes.map((node) => node.id).filter((id) => !reached.has(id));
-
-  return { hops, entryCandidates, entryId: entry, unreachable, truncated };
 }
 
 /** Flowcharts mermaid reports as `flowchart` / `flowchart-v2` (plus legacy `graph`). */
