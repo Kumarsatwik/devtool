@@ -1,7 +1,7 @@
 "use client";
 
-import { resolveDiagrams } from "./diagram-html";
-import { escapeHtml } from "./markdown";
+import { resolveDiagrams } from "./diagram-html.ts";
+import { escapeHtml } from "./markdown.ts";
 
 /* ---------------- slide model ---------------- */
 

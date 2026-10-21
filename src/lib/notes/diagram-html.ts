@@ -1,6 +1,6 @@
 "use client";
 
-import { renderMermaidSvg } from "@/lib/diagrams";
+import { renderMermaidSvg } from "../diagrams.ts";
 
 /**
  * Shared diagram resolution for every HTML-based note rendering path

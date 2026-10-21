@@ -7,7 +7,7 @@ import {
   nodeSourceId,
   parseEdgeEndpoints,
   type FlowGraph,
-} from "./flow-graph";
+} from "./flow-graph.ts";
 
 function labelText(element: Element | null) {
   return (element?.textContent ?? "").replace(/\s+/g, " ").trim();

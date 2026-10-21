@@ -31,14 +31,7 @@ const edges = [...graph.entries()].flatMap(([from, targets]) =>
   [...targets].map((to) => ({ from, to })),
 );
 
-const KNOWN_EXTENSIONLESS_LIB_IMPORTS = new Set([
-  "src/lib/flow-graph-dom.ts -> ./flow-graph",
-  "src/lib/flow-simulation.ts -> ./flow-graph",
-  "src/lib/notes/exporters.ts -> ./markdown",
-  "src/lib/notes/exporters.ts -> ./diagram-html",
-  "src/lib/notes/slides.ts -> ./diagram-html",
-  "src/lib/notes/slides.ts -> ./markdown",
-]);
+const KNOWN_EXTENSIONLESS_LIB_IMPORTS = new Set<string>();
 
 const PURE_MODULES = new Set([
   "src/lib/csv.ts",
