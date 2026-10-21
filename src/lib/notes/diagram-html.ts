@@ -1,6 +1,6 @@
 "use client";
 
-import { renderDiagramSvg } from "@/lib/diagrams";
+import { renderMermaidSvg } from "@/lib/diagrams";
 
 /**
  * Shared diagram resolution for every HTML-based note rendering path
@@ -74,7 +74,7 @@ export async function resolveDiagrams(
       continue;
     }
     try {
-      const svg = await renderDiagramSvg("mermaid", code);
+      const svg = await renderMermaidSvg(code);
       const wrapper = doc.createElement("div");
       wrapper.className = "mermaid-diagram";
       if (mode === "png") {

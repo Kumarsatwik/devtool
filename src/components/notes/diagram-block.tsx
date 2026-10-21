@@ -7,11 +7,10 @@ import {
   ReactNodeViewRenderer,
   type NodeViewProps,
 } from "@tiptap/react";
-import { renderDiagramSvg, type DiagramKind } from "@/lib/diagrams";
+import { renderMermaidSvg } from "@/lib/diagrams";
 
-const PLACEHOLDERS: Record<DiagramKind, string> = {
-  mermaid: "graph TD\n  A[Start] --> B{Decision}\n  B -->|Yes| C[OK]\n  B -->|No| D[Retry]",
-};
+const MERMAID_PLACEHOLDER =
+  "graph TD\n  A[Start] --> B{Decision}\n  B -->|Yes| C[OK]\n  B -->|No| D[Retry]";
 
 /* ---------------- React node view ---------------- */
 
@@ -23,8 +22,6 @@ function DiagramView({ node, updateAttributes, selected, editor }: NodeViewProps
   const [error, setError] = useState<string | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLTextAreaElement>(null);
-
-  const kind: DiagramKind = "mermaid";
 
   // Focus the code editor on insert/edit.
   useEffect(() => {
@@ -41,7 +38,7 @@ function DiagramView({ node, updateAttributes, selected, editor }: NodeViewProps
     }
     let cancelled = false;
     const t = setTimeout(() => {
-      renderDiagramSvg(kind, source)
+      renderMermaidSvg(source)
         .then((s) => {
           if (!cancelled) {
             setSvg(s);
@@ -58,7 +55,7 @@ function DiagramView({ node, updateAttributes, selected, editor }: NodeViewProps
       cancelled = true;
       clearTimeout(t);
     };
-  }, [kind, code, draft, editing]);
+  }, [code, draft, editing]);
 
   const save = useCallback(() => {
     updateAttributes({ code: draft });
@@ -98,7 +95,7 @@ function DiagramView({ node, updateAttributes, selected, editor }: NodeViewProps
             className="mermaid-editor"
             value={draft}
             rows={Math.max(4, draft.split("\n").length + 1)}
-            placeholder={PLACEHOLDERS.mermaid}
+            placeholder={MERMAID_PLACEHOLDER}
             onChange={(e) => setDraft(e.target.value)}
           />
         </div>

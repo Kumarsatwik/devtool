@@ -1,7 +1,5 @@
 "use client";
 
-export type DiagramKind = "mermaid";
-
 let mermaidReady = false;
 let renderSeq = 0;
 
@@ -16,12 +14,3 @@ export async function renderMermaidSvg(code: string): Promise<string> {
   const { svg } = await mermaid.render(id, code);
   return svg;
 }
-
-export function renderDiagramSvg(_kind: DiagramKind, code: string): Promise<string> {
-  return renderMermaidSvg(code);
-}
-
-export function detectDiagramKind(_code: string, fallback: DiagramKind = "mermaid"): DiagramKind {
-  return fallback;
-}
-
