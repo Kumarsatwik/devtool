@@ -4,6 +4,7 @@ import {
   assignKey,
   beautifyJSON,
   jsToJSON,
+  jsonToJs,
   minifyJSON,
   parseJSLiteral,
   sortJSONValue,
@@ -81,4 +82,26 @@ test("assignKey writes __proto__ as data instead of mutating the prototype", () 
   assert.equal(Object.getPrototypeOf(target), Object.prototype);
   assert.equal(Object.prototype.hasOwnProperty.call(target, "__proto__"), true);
   assert.deepEqual(target, JSON.parse('{"__proto__":{"polluted":true}}'));
+});
+
+test("jsonToJs emits object and array literals", () => {
+  assert.equal(
+    jsonToJs('{"a":1,"b":"x","c":[1,2,3]}'),
+    '{\n  a: 1,\n  b: "x",\n  c: [ 1, 2, 3 ]\n}',
+  );
+  assert.equal(
+    jsonToJs('{"a":[{"x":1},{"y":2}]}'),
+    '{\n  a: [\n    {\n      x: 1\n    },\n    {\n      y: 2\n    }\n  ]\n}',
+  );
+});
+
+test("jsonToJs quotes special keys and honors indentation", () => {
+  assert.equal(
+    jsonToJs('{"__proto__":{"x":1},"not-a-key":2}', 4),
+    '{\n    ["__proto__"]: {\n        x: 1\n    },\n    "not-a-key": 2\n}',
+  );
+});
+
+test("jsonToJs rejects invalid JSON", () => {
+  assert.throws(() => jsonToJs("{bad"), /Expected property name/);
 });

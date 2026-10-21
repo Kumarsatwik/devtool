@@ -52,6 +52,51 @@ export function jsToJSON(jsText: string, spaces: number | string = 2): string {
   return JSON.stringify(value, null, spaces) ?? "";
 }
 
+/** Convert strict JSON into a JavaScript object literal. */
+export function jsonToJs(json: string, spaces: number | string = 2): string {
+  const parsed = JSON.parse(json);
+
+  const formatValue = (value: unknown, indent: string): string => {
+    if (value === null) return "null";
+    if (value === undefined) return "undefined";
+
+    if (typeof value === "string") return JSON.stringify(value);
+    if (typeof value === "number" || typeof value === "boolean") return String(value);
+
+    if (Array.isArray(value)) {
+      if (value.length === 0) return "[]";
+      const items = value.map((item) => {
+        const formatted = formatValue(item, indent + "  ");
+        return item && typeof item === "object"
+          ? `\n${indent}  ${formatted}`
+          : ` ${formatted}`;
+      });
+      const hasObjects = value.some((item) => typeof item === "object");
+      if (hasObjects) return `[${items.join(",")}\n${indent}]`;
+      return `[${items.join(",")} ]`;
+    }
+
+    if (typeof value === "object") {
+      const keys = Object.keys(value as Record<string, unknown>);
+      if (keys.length === 0) return "{}";
+      const indentStr = typeof spaces === "number" ? " ".repeat(spaces) : spaces;
+      const formattedKeys = keys.map((key) => {
+        const needsQuotes = !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key);
+        const keyStr = needsQuotes || key === "__proto__"
+          ? key === "__proto__" ? `[${JSON.stringify(key)}]` : JSON.stringify(key)
+          : key;
+        const valueStr = formatValue((value as Record<string, unknown>)[key], indent + indentStr);
+        return `${indent}${indentStr}${keyStr}: ${valueStr}`;
+      });
+      return `{\n${formattedKeys.join(",\n")}\n${indent}}`;
+    }
+
+    return "undefined";
+  };
+
+  return formatValue(parsed, "");
+}
+
 function sortKeysDeep(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(sortKeysDeep);

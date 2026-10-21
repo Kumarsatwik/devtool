@@ -6,7 +6,7 @@ import { EditorPanel } from "@/components/editor-panel";
 import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
-import { validateJSON } from "@/lib/json";
+import { jsonToJs, validateJSON } from "@/lib/json";
 import { AlertCircle, CheckCircle2, Settings2, Sparkles } from "lucide-react";
 
 const sampleJSON = `{
@@ -20,50 +20,6 @@ const sampleJSON = `{
     "zip": "10001"
   }
 }`;
-
-function jsonToJS(json: string, spaces: number = 2): string {
-  const parsed = JSON.parse(json);
-
-  const formatValue = (value: unknown, indent: string): string => {
-    if (value === null) return "null";
-    if (value === undefined) return "undefined";
-
-    if (typeof value === "string") return JSON.stringify(value);
-    if (typeof value === "number" || typeof value === "boolean") return String(value);
-
-    if (Array.isArray(value)) {
-      if (value.length === 0) return "[]";
-      const items = value.map((item) => {
-        const formatted = formatValue(item, indent + "  ");
-        return item && typeof item === "object"
-          ? `\n${indent}  ${formatted}`
-          : ` ${formatted}`;
-      });
-      const hasObjects = value.some((item) => typeof item === "object");
-      if (hasObjects) return `[${items.join(",")}\n${indent}]`;
-      return `[${items.join(",")} ]`;
-    }
-
-    if (typeof value === "object") {
-      const keys = Object.keys(value as Record<string, unknown>);
-      if (keys.length === 0) return "{}";
-      const indentStr = typeof spaces === "number" ? " ".repeat(spaces) : spaces;
-      const formattedKeys = keys.map((key) => {
-        const needsQuotes = !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key);
-        const keyStr = needsQuotes || key === "__proto__"
-          ? key === "__proto__" ? `[${JSON.stringify(key)}]` : JSON.stringify(key)
-          : key;
-        const valueStr = formatValue((value as Record<string, unknown>)[key], indent + indentStr);
-        return `${indent}${indentStr}${keyStr}: ${valueStr}`;
-      });
-      return `{\n${formattedKeys.join(",\n")}\n${indent}}`;
-    }
-
-    return "undefined";
-  };
-
-  return formatValue(parsed, "");
-}
 
 export default function JSONToJSPage() {
   const [input, setInput] = useState(sampleJSON);
@@ -81,7 +37,7 @@ export default function JSONToJSPage() {
 
     try {
       setError(null);
-      const js = jsonToJS(input, spaces);
+      const js = jsonToJs(input, spaces);
       setOutput(js);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Conversion failed");

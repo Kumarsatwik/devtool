@@ -16,6 +16,7 @@ const expected = {
     "assignKey",
     "beautifyJSON",
     "jsToJSON",
+    "jsonToJs",
     "minifyJSON",
     "parseJSLiteral",
     "sortJSONValue",
