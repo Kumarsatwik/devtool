@@ -29,7 +29,7 @@ import {
   exportAsMarkdown,
   exportAsTxt,
 } from "@/lib/notes/exporters";
-import "./notes.css";
+import "@/components/notes/notes.css";
 
 const extensions = [
   StarterKit.configure({
