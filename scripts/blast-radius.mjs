@@ -20,11 +20,11 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const SRC = path.join(ROOT, "src");
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx"]);
 
-function toRel(absPath) {
+export function toRel(absPath) {
   return path.relative(ROOT, absPath).split(path.sep).join("/");
 }
 
-function walk(dir, files = []) {
+export function walk(dir, files = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.name === "node_modules" || entry.name.startsWith(".")) continue;
     const abs = path.join(dir, entry.name);
@@ -37,7 +37,7 @@ function walk(dir, files = []) {
   return files;
 }
 
-function parseImports(source) {
+export function parseImports(source) {
   const specifiers = new Set();
   const patterns = [
     /\bimport\s+(?:type\s+)?(?:[\w*\s{},$]+?\s+from\s+)?["']([^"']+)["']/g,
@@ -54,7 +54,7 @@ function parseImports(source) {
   return [...specifiers];
 }
 
-function resolveSpecifier(importerRel, specifier) {
+export function resolveSpecifier(importerRel, specifier) {
   let base;
   if (specifier.startsWith("@/")) {
     base = path.join(SRC, specifier.slice(2));
@@ -80,12 +80,12 @@ function resolveSpecifier(importerRel, specifier) {
   return rel.startsWith("src/") ? rel : null;
 }
 
-function componentFeature(rel) {
+export function componentFeature(rel) {
   const match = rel.match(/^src\/components\/([^/]+)\//);
   return match ? match[1] : null;
 }
 
-function findCycles(graph) {
+export function findCycles(graph) {
   const state = new Map();
   const stack = [];
   const cycles = [];
@@ -215,4 +215,7 @@ function main() {
   }
 }
 
-main();
+const isMain =
+  process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isMain) main();
