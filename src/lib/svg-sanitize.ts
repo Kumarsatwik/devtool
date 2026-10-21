@@ -83,9 +83,9 @@ export function isUnsafeSvgAttribute(name: string, value: string): boolean {
   );
 }
 
-/** Elements to sanitize, children before parents. The root is added in the security fix. */
+/** Elements to sanitize, children before parents, including the root itself. */
 export function svgElementsToSanitize(root: Element): Element[] {
-  return Array.from(root.querySelectorAll("*")).reverse();
+  return [root, ...Array.from(root.querySelectorAll("*"))].reverse();
 }
 
 export function sanitizeSvgForPreview(svg: string): string {

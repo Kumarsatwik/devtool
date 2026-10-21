@@ -45,12 +45,13 @@ test("keeps benign presentation attributes and local references", () => {
   }
 });
 
-test("sanitizes descendants children-first", () => {
+test("sanitizes descendants children-first and includes the root", () => {
   const first = { localName: "rect" } as unknown as Element;
   const second = { localName: "path" } as unknown as Element;
   const root = {
+    localName: "svg",
     querySelectorAll: () => [first, second],
   } as unknown as Element;
 
-  assert.deepEqual(svgElementsToSanitize(root), [second, first]);
+  assert.deepEqual(svgElementsToSanitize(root), [second, first, root]);
 });
