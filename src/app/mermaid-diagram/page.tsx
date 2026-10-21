@@ -14,7 +14,11 @@ import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
-import { exportMermaidSvg, exportMermaidImage } from "@/lib/mermaid-export";
+import {
+  copyMermaidImage,
+  exportMermaidSvg,
+  exportMermaidImage,
+} from "@/lib/mermaid-export";
 import { extractFlowGraphFromSvg } from "@/lib/flow-graph-dom";
 import {
   type FlowGraph,
@@ -38,7 +42,9 @@ import {
 } from "@/lib/mermaid-themes";
 import {
   AlertCircle,
+  Check,
   CheckCircle2,
+  Copy,
   Download,
   FileImage,
   FileText,
@@ -281,6 +287,7 @@ export default function MermaidDiagramPage() {
   const [input, setInput] = useState(sampleMermaid);
   const [exportFormat, setExportFormat] =
     useState<(typeof exportOptions)[number]["value"]>("svg");
+  const [copied, setCopied] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
   const [autoRender, setAutoRender] = useState(true);
   const [diagramTheme, setDiagramTheme] =
@@ -316,6 +323,7 @@ export default function MermaidDiagramPage() {
   const zoomTargetRef = useRef<HTMLDivElement>(null);
   const previewScrollRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef(1);
+  const copyResetTimerRef = useRef<number | null>(null);
   const simulationElapsedRef = useRef(0);
   const renderIdRef = useRef(0);
   const pendingZoomAnchorRef = useRef<{
@@ -667,6 +675,38 @@ export default function MermaidDiagramPage() {
     }
   };
 
+  const handleCopy = async () => {
+    if (!previewRef.current || !svgCode) return;
+
+    try {
+      dispatchRender({ type: "setError", error: null });
+      await copyMermaidImage(previewRef.current);
+      setCopied(true);
+      if (copyResetTimerRef.current !== null) {
+        window.clearTimeout(copyResetTimerRef.current);
+      }
+      copyResetTimerRef.current = window.setTimeout(() => {
+        copyResetTimerRef.current = null;
+        setCopied(false);
+      }, 2000);
+    } catch (err) {
+      setCopied(false);
+      dispatchRender({
+        type: "setError",
+        error:
+          err instanceof Error ? err.message : "Could not copy the diagram image",
+      });
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (copyResetTimerRef.current !== null) {
+        window.clearTimeout(copyResetTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleFileLoaded = (content: string) => {
     setInput(content);
   };
@@ -827,16 +867,33 @@ export default function MermaidDiagramPage() {
               </div>
             </div>
 
-            {/* Export Button */}
-            <Button
-              onClick={handleExport}
-              size="xs"
-              className="h-8 gap-1.5 px-3.5 text-xs font-semibold rounded-lg shadow-none"
-              disabled={!svgCode}
-            >
-              <Download className="h-3 w-3" />
-              <span>Export</span>
-            </Button>
+            {/* Export & Copy Buttons */}
+            <div className="flex items-center gap-1.5">
+              <Button
+                onClick={handleExport}
+                size="xs"
+                className="h-8 gap-1.5 px-3.5 text-xs font-semibold rounded-lg shadow-none"
+                disabled={!svgCode}
+              >
+                <Download className="h-3 w-3" />
+                <span>Export</span>
+              </Button>
+              <Button
+                onClick={handleCopy}
+                size="xs"
+                variant="outline"
+                className="h-8 gap-1.5 px-3.5 text-xs font-semibold rounded-lg shadow-none"
+                disabled={!svgCode}
+                title="Copy the diagram image to your clipboard"
+              >
+                {copied ? (
+                  <Check className="h-3 w-3 text-emerald-500" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
+                <span>{copied ? "Copied" : "Copy image"}</span>
+              </Button>
+            </div>
 
             {/* Auto render toggle */}
             <label className="flex items-center gap-1.5 cursor-pointer font-semibold text-muted-foreground select-none hover:text-foreground">

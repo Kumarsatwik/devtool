@@ -70,6 +70,22 @@ async function svgToCanvas(
   });
 }
 
+function canvasToBlob(
+  canvas: HTMLCanvasElement,
+  type: "image/png" | "image/jpeg",
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Failed to encode diagram image"));
+      },
+      type,
+      0.95,
+    );
+  });
+}
+
 export async function exportMermaidSvg(container: HTMLElement, filename = "diagram.svg") {
   const svg = getSvgElement(container);
   if (!svg) throw new Error("No diagram found to export");
@@ -90,11 +106,26 @@ export async function exportMermaidImage(
   const serialized = serializeSvg(svg);
   const mimeType = format === "png" ? "image/png" : "image/jpeg";
   const canvas = await svgToCanvas(serialized, mimeType);
-
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, mimeType, 0.95),
-  );
-  if (!blob) throw new Error(`Failed to encode ${format.toUpperCase()} image`);
+  const blob = await canvasToBlob(canvas, mimeType);
 
   saveAs(blob, filename || `diagram.${format}`);
+}
+
+export async function copyMermaidImage(container: HTMLElement) {
+  const svg = getSvgElement(container);
+  if (!svg) throw new Error("No diagram found to copy");
+  if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+    throw new Error("Copying images is not supported in this browser");
+  }
+
+  const serialized = serializeSvg(svg);
+  // Passing a promise keeps clipboard.write() inside the user gesture, which
+  // Safari requires for image writes.
+  const pngBlob = svgToCanvas(serialized, "image/png").then((canvas) =>
+    canvasToBlob(canvas, "image/png"),
+  );
+
+  await navigator.clipboard.write([
+    new ClipboardItem({ "image/png": pngBlob }),
+  ]);
 }
