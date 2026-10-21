@@ -114,10 +114,6 @@ export function getThemeSpec(value: string): DiagramThemeSpec {
   return diagramThemes.find((t) => t.value === value) ?? diagramThemes[0];
 }
 
-export function isDiagramTheme(value: string): value is DiagramTheme {
-  return diagramThemes.some((t) => t.value === value);
-}
-
 function buildThemeCSS(spec: DiagramThemeSpec): string {
   return `
   .node rect, .node path { rx: ${spec.radius}px; ry: ${spec.radius}px; stroke-width: ${spec.border}px; }

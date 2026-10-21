@@ -27,7 +27,6 @@ const expected = {
     "diagramThemes",
     "getMermaidConfig",
     "getThemeSpec",
-    "isDiagramTheme",
   ],
   sanitize: ["PRESET_SENSITIVE_KEYS", "collectAllKeys", "sanitizeJson"],
   seo: ["SITE_DESCRIPTION", "SITE_NAME", "SITE_URL", "buildToolMetadata"],
