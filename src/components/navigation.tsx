@@ -1,14 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { DataToolsMark } from "@/components/logo";
 
 export function Navigation() {
-  const pathname = usePathname();
-  const isHomepage = pathname === "/";
-
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background select-none">
       <div className="max-w-7xl mx-auto flex h-14 items-center justify-between px-4 sm:px-6">
