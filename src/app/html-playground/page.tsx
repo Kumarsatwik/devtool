@@ -5,7 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import { saveAs } from "file-saver";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { ToolPageLayout } from "@/components/tool-page-layout";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
 import { SplitDivider, useSplitResize } from "@/components/resizable-split";
 import { buildDocument } from "@/lib/html-playground";
 import { useCopyFeedback } from "@/hooks/use-copy-feedback";

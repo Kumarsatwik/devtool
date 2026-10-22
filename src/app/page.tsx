@@ -20,7 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { DataToolsMark } from "@/components/logo";
+import { DataToolsMark } from "@/components/shell/logo";
 import { NAV_GROUPS, TOOLS } from "@/lib/tools";
 import { TOOL_ICONS } from "@/lib/tool-icons";
 

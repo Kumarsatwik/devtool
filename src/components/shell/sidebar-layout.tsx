@@ -5,10 +5,10 @@ import { usePathname } from "next/navigation";
 import { Menu, X, Home } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Dialog } from "@base-ui/react/dialog";
-import { DataToolsMark } from "@/components/logo";
+import { DataToolsMark } from "@/components/shell/logo";
 import { Button } from "@/components/ui/button";
 import { NAV_GROUPS } from "@/lib/tools";
-import { NavGroups } from "@/components/sidebar/nav-groups";
+import { NavGroups } from "@/components/shell/nav-groups";
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

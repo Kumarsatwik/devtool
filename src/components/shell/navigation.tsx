@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { DataToolsMark } from "@/components/logo";
+import { ThemeToggle } from "@/components/shell/theme-toggle";
+import { DataToolsMark } from "@/components/shell/logo";
 
 export function Navigation() {
   return (

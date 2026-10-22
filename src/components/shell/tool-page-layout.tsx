@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode } from "react";
-import { SidebarLayout } from "@/components/sidebar-layout";
+import { SidebarLayout } from "@/components/shell/sidebar-layout";
 
 interface ToolPageLayoutProps {
   title: string;

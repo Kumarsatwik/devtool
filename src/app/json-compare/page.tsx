@@ -5,10 +5,10 @@ import dynamic from "next/dynamic";
 import type { editor } from "monaco-editor";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { ToolPageLayout } from "@/components/tool-page-layout";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
 import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
-import { useTheme } from "@/components/theme-provider";
+import { useTheme } from "@/components/shell/theme-provider";
 import { sortJsonValue, validateJson } from "@/lib/json";
 import {
   CheckCircle2,

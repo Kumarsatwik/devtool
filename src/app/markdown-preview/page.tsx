@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 
-import { ToolPageLayout } from "@/components/tool-page-layout";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
 import { extensions } from "@/components/notes/extensions";
 import { WELCOME_HTML } from "@/lib/notes/welcome-content";
 import { NotePreview } from "@/components/notes/note-preview";

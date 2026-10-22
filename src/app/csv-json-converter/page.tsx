@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { ToolPageLayout } from "@/components/tool-page-layout";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
 import { DirectionTabs } from "@/components/converters/direction-tabs";
 import CSVToJSON from "@/components/converters/csv-to-json";
 import JSONToCSV from "@/components/converters/json-to-csv";

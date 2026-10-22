@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ToolPageLayout } from "@/components/tool-page-layout";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
 import { PrivacyBadge } from "@/components/har/privacy-badge";
 import { EmptyState } from "@/components/har/empty-state";
 import { OverviewDashboard } from "@/components/har/overview";

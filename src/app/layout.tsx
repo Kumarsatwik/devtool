@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { Navigation } from "@/components/navigation";
-import { ThemeProvider } from "@/components/theme-provider";
+import { Navigation } from "@/components/shell/navigation";
+import { ThemeProvider } from "@/components/shell/theme-provider";
 
 const inter = Inter({
   variable: "--font-sans",

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { ToolPageLayout } from "@/components/tool-page-layout";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
 import { DirectionTabs } from "@/components/converters/direction-tabs";
 import JSONToJS from "@/components/converters/json-to-js";
 import JSToJSON from "@/components/converters/js-to-json";

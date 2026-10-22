@@ -5,7 +5,7 @@ import * as XLSX from "xlsx";
 import Papa from "papaparse";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { ToolPageLayout } from "@/components/tool-page-layout";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
 import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
