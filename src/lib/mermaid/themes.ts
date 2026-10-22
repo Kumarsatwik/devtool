@@ -1,5 +1,3 @@
-"use client";
-
 /**
  * Role-based Mermaid theme system.
  *

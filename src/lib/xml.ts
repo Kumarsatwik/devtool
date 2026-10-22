@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Convert XML text into a JSON string using the browser's native DOMParser.
  *

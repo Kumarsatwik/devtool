@@ -46,10 +46,7 @@ const PURE_MODULES = new Set([
   "src/lib/mermaid/themes.ts",
 ]);
 
-const KNOWN_CLIENT_PURE_MODULES = new Set([
-  "src/lib/notes/markdown.ts",
-  "src/lib/mermaid/themes.ts",
-]);
+const KNOWN_CLIENT_PURE_MODULES = new Set<string>();
 
 const SHARED_COMPONENT_FEATURES = new Set(["ui", "shell"]);
 
