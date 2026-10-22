@@ -303,7 +303,7 @@ export function NotePreview({ title, editorHtml, onClose }: NotePreviewProps) {
                 <iframe
                   ref={iframeRef}
                   title={`Preview of ${snapshot.title}`}
-                  sandbox="allow-same-origin allow-modals allow-popups allow-popups-to-escape-sandbox"
+                  sandbox="allow-same-origin allow-modals allow-popups"
                   srcDoc={doc}
                   tabIndex={-1}
                   onLoad={handleFrameLoad}

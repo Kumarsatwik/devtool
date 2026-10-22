@@ -474,7 +474,7 @@ export function SlideDeck({ title, editorHtml, onClose }: SlideDeckProps) {
             <iframe
               ref={iframeRef}
               title={`Slides for ${snapshot.title}`}
-              sandbox="allow-scripts allow-modals allow-popups-to-escape-sandbox"
+              sandbox="allow-scripts allow-modals"
               srcDoc={doc}
               tabIndex={-1}
               className="h-full w-full border-0"

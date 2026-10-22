@@ -1,5 +1,14 @@
 import { escapeHtml } from "./markdown.ts";
 
+/** Note documents allow inline styling and embedded media, but no scripts or remote resources. */
+export const NOTE_CSP = [
+  "default-src 'none'",
+  "style-src 'unsafe-inline'",
+  "img-src data: blob:",
+  "font-src data:",
+  "media-src data: blob:",
+].join("; ");
+
 export interface DocumentOptions {
   /** Markup injected into <head> — used by the preview to retarget links. */
   headHtml?: string;
@@ -44,6 +53,7 @@ export function buildDocument(
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="${NOTE_CSP}">
 ${headHtml}<title>${escapeHtml(title)}</title>
 <style>${EXPORT_CSS}${css}</style>
 </head>
