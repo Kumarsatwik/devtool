@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, Copy, Check } from "lucide-react";
 import { prettyBody, BODY_PREVIEW_LIMIT, formatBytes } from "@/lib/har";
+import { useCopyFeedback } from "@/hooks/use-copy-feedback";
 
 /* ---------- JSON tree ---------- */
 
@@ -71,7 +72,7 @@ export function BodyViewer({
   emptyHint?: string;
 }) {
   const [mode, setMode] = useState<ViewMode>("pretty");
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyFeedback();
 
   const parsed = useMemo(() => {
     if (!body) return { ok: false as const, value: undefined };
@@ -93,11 +94,7 @@ export function BodyViewer({
   const truncated = pretty.length > BODY_PREVIEW_LIMIT;
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(pretty);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {}
+    await copy(pretty);
   };
 
   const effectiveMode: ViewMode = parsed.ok ? mode : "raw";

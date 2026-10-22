@@ -13,6 +13,7 @@ import {
   type SvgToReactOptions,
 } from "@/lib/svg-to-react";
 import { sanitizeSvgForPreview } from "@/lib/svg-sanitize";
+import { useCopyFeedback } from "@/hooks/use-copy-feedback";
 import {
   AlertCircle,
   CheckCircle2,
@@ -34,7 +35,7 @@ export default function SvgToReactPage() {
   const [output, setOutput] = useState("");
   const [previewSvg, setPreviewSvg] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyFeedback();
   const [activeTab, setActiveTab] = useState<"preview" | "code">("preview");
 
   const [componentName, setComponentName] = useState(DEFAULT_COMPONENT_NAME);
@@ -86,13 +87,7 @@ export default function SvgToReactPage() {
 
   const handleCopy = async () => {
     if (!output) return;
-    try {
-      await navigator.clipboard.writeText(output);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // ignore
-    }
+    await copy(output);
   };
 
   const handleDownload = () => {

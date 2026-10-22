@@ -9,6 +9,7 @@ import { Copy, Check, Download, Trash2, FileText, Upload, RefreshCw } from "luci
 import { saveAs } from "file-saver";
 import { configureMonacoLoader } from "@/lib/monaco-config";
 import { fileSizeError } from "@/lib/upload";
+import { useCopyFeedback } from "@/hooks/use-copy-feedback";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
@@ -58,7 +59,7 @@ export function EditorPanel({
 }: EditorPanelProps) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyFeedback();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setMounted(true), []);
@@ -73,12 +74,8 @@ export function EditorPanel({
 
   const handleCopy = async () => {
     if (!value) return;
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
+    if (!(await copy(value))) {
+      console.error("Failed to copy");
     }
   };
 

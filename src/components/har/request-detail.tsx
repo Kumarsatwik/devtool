@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Copy, Check, AlertCircle, ShieldAlert, Lock, ChevronDown, ChevronRight, ChevronUp, FileJson } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { copyText } from "@/lib/clipboard";
 import { BodyViewer } from "@/components/har/body-viewer";
 import { MaskedValue } from "@/components/har/masked-value";
 import {
@@ -92,11 +93,9 @@ function CopyDropdown({ entry, align = "right" }: { entry: HarEntry; align?: "ri
   const copy = async (key: string, get: () => string) => {
     const text = get();
     if (!text) return;
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedLabel(key);
-      setTimeout(() => setCopiedLabel(null), 2000);
-    } catch {}
+    if (!(await copyText(text))) return;
+    setCopiedLabel(key);
+    setTimeout(() => setCopiedLabel(null), 2000);
   };
 
   return (

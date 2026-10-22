@@ -8,6 +8,7 @@ import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout } from "@/components/tool-page-layout";
 import { SplitDivider, useSplitResize } from "@/components/resizable-split";
 import { buildDocument } from "@/lib/html-playground";
+import { useCopyFeedback } from "@/hooks/use-copy-feedback";
 import {
   AlertTriangle,
   Braces,
@@ -120,7 +121,7 @@ export default function HtmlPlaygroundPage() {
   const [autoRun, setAutoRun] = useState(true);
   const [srcDoc, setSrcDoc] = useState(() => buildDocument(SAMPLE_HTML, SAMPLE_CSS, SAMPLE_JS, true));
   const [consoleEntries, setConsoleEntries] = useState<ConsoleEntry[]>([]);
-  const [consoleCopied, setConsoleCopied] = useState(false);
+  const { copied: consoleCopied, copy: copyConsole } = useCopyFeedback();
   const [outputView, setOutputView] = useState<"preview" | "console">("preview");
 
   const { isResizing, containerRef, dividerProps, containerStyle } = useSplitResize();
@@ -190,13 +191,7 @@ export default function HtmlPlaygroundPage() {
   const handleCopyConsole = async () => {
     if (consoleEntries.length === 0) return;
     const text = consoleEntries.map((e) => `[${e.level}] ${e.text}`).join("\n");
-    try {
-      await navigator.clipboard.writeText(text);
-      setConsoleCopied(true);
-      setTimeout(() => setConsoleCopied(false), 2000);
-    } catch {
-      // ignore
-    }
+    await copyConsole(text);
   };
 
   const pane = PANES.find((p) => p.id === activePane) ?? PANES[0];
