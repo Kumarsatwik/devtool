@@ -2,21 +2,10 @@
 
 import { useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import { TextStyleKit } from "@tiptap/extension-text-style";
-import Highlight from "@tiptap/extension-highlight";
-import Image from "@tiptap/extension-image";
-import TaskList from "@tiptap/extension-task-list";
-import TaskItem from "@tiptap/extension-task-item";
-import {
-  Table,
-  TableRow,
-  TableCell,
-  TableHeader,
-} from "@tiptap/extension-table";
 
 import { ToolPageLayout } from "@/components/tool-page-layout";
-import { DiagramBlock } from "@/components/notes/diagram-block";
+import { extensions } from "@/components/notes/extensions";
+import { WELCOME_HTML } from "@/lib/notes/welcome-content";
 import { NotePreview } from "@/components/notes/note-preview";
 import { SlideDeck } from "@/components/notes/slide-deck";
 import { Toolbar, type ExportFormat } from "@/components/notes/toolbar";
@@ -30,41 +19,6 @@ import {
   exportAsTxt,
 } from "@/lib/notes/exporters";
 import "@/components/notes/notes.css";
-
-const extensions = [
-  StarterKit.configure({
-    link: { openOnClick: false },
-    codeBlock: { HTMLAttributes: { class: "code-block" } },
-  }),
-  TextStyleKit,
-  Highlight.configure({ multicolor: true }),
-  Image.configure({ inline: false, allowBase64: true }),
-  TaskList,
-  TaskItem.configure({ nested: true }),
-  Table.configure({ resizable: false }),
-  TableRow,
-  TableHeader,
-  TableCell,
-  DiagramBlock,
-];
-
-const WELCOME_HTML = `
-<h2>Welcome 👋</h2>
-<p>This is a <strong>rich text</strong> note editor with <em>italic</em>, <u>underline</u>, <mark>highlight</mark> and full <strong>Markdown</strong> support.</p>
-<ul>
-  <li>Use the toolbar to format text, change fonts and sizes</li>
-  <li>Insert images — they are embedded right into the note</li>
-  <li>Add Mermaid diagrams with a live preview</li>
-  <li>Open / save <code>.md</code> files, export to HTML, DOCX, TXT</li>
-</ul>
-<pre data-type="mermaid"><code>graph LR
-  A[Write notes] --> B{Format}
-  B --> C[Markdown]
-  B --> D[Rich text]
-  C --> E[Export: HTML / DOCX / TXT]
-  D --> E</code></pre>
-<blockquote><p>Tip: switch to the Markdown pane to edit raw markdown side by side.</p></blockquote>
-`;
 
 export default function MarkdownPreviewPage() {
   const [title, setTitle] = useState("Welcome");
