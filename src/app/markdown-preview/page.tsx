@@ -8,16 +8,11 @@ import { extensions } from "@/components/notes/extensions";
 import { WELCOME_HTML } from "@/lib/notes/welcome-content";
 import { NotePreview } from "@/components/notes/note-preview";
 import { SlideDeck } from "@/components/notes/slide-deck";
-import { Toolbar, type ExportFormat } from "@/components/notes/toolbar";
+import { Toolbar } from "@/components/notes/toolbar";
 import { MarkdownPane } from "@/components/notes/markdown-pane";
 import { SplitDivider, useSplitResize } from "@/components/resizable-split";
 import { markdownToHtml } from "@/lib/notes/markdown";
-import {
-  exportAsDocx,
-  exportAsHtml,
-  exportAsMarkdown,
-  exportAsTxt,
-} from "@/lib/notes/exporters";
+import { useNoteExport } from "@/hooks/use-note-export";
 import "@/components/notes/notes.css";
 
 export default function MarkdownPreviewPage() {
@@ -26,7 +21,6 @@ export default function MarkdownPreviewPage() {
   const [showMarkdown, setShowMarkdown] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [slidesOpen, setSlidesOpen] = useState(false);
-  const [exporting, setExporting] = useState<ExportFormat | null>(null);
 
   // 55% preserves the share the markdown pane had before it became draggable.
   const { isResizing, containerRef: workspaceRef, dividerProps, containerStyle } =
@@ -45,42 +39,14 @@ export default function MarkdownPreviewPage() {
     },
   });
 
+  const { exporting, handleExport } = useNoteExport(editor, title);
+
   const handleOpenFile = async (file: File) => {
     const text = await file.text();
     const nextHtml = markdownToHtml(text);
     setTitle(file.name.replace(/\.(md|markdown|txt)$/i, ""));
     setHtml(nextHtml);
     editor?.commands.setContent(nextHtml, { emitUpdate: false });
-  };
-
-  const handleExport = async (format: ExportFormat) => {
-    if (!editor) return;
-    const noteTitle = title || "Untitled note";
-    const editorHtml = editor.getHTML();
-    setExporting(format);
-    try {
-      switch (format) {
-        case "md":
-          exportAsMarkdown(noteTitle, editorHtml);
-          break;
-        case "txt":
-          exportAsTxt(noteTitle, editorHtml);
-          break;
-        case "html":
-          await exportAsHtml(noteTitle, editorHtml);
-          break;
-        case "docx":
-          await exportAsDocx(noteTitle, editorHtml);
-          break;
-      }
-    } catch (err) {
-      console.error(err);
-      window.alert(
-        `Export failed: ${err instanceof Error ? err.message : String(err)}`,
-      );
-    } finally {
-      setExporting(null);
-    }
   };
 
   return (
