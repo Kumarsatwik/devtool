@@ -9,6 +9,7 @@ import { ToolPageLayout } from "@/components/tool-page-layout";
 import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { fileSizeError } from "@/lib/upload";
 import { AlertCircle, CheckCircle2, List, Table, Settings2, FileSpreadsheet, Upload, RefreshCw } from "lucide-react";
 
 interface LoadedWorkbook {
@@ -79,6 +80,12 @@ export default function ExcelToCSVPage() {
       const extension = file.name.split(".").pop()?.toLowerCase();
       if (!["xlsx", "xls", "csv"].includes(extension || "")) {
         setError("Unsupported file format. Please upload an .xlsx, .xls, or .csv file.");
+        return;
+      }
+
+      const sizeError = fileSizeError(file);
+      if (sizeError) {
+        setError(sizeError);
         return;
       }
 
