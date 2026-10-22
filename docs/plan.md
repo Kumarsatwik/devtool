@@ -7,6 +7,8 @@
 
 > The current-HEAD findings are in [`docs/audit.md`](./audit.md).
 
+> **Feature update (2026-10-21):** The Mermaid request-simulation feature was removed. The target tree and phases below no longer include the simulation engine, graph extraction, playback hooks, or simulation controls.
+
 ---
 
 ## 0. Tooling reality check
@@ -82,9 +84,6 @@ src/
       diagram-node.tsx          # renamed from diagram-block.tsx
       extensions.ts
       markdown-pane.tsx  note-preview.tsx  slide-deck.tsx  toolbar.tsx
-    mermaid/
-      number-field.tsx
-      simulation-controls.tsx   # if extraction proves clean
     epoch/
       result-row.tsx
     ui/                         # shadcn primitives
@@ -93,7 +92,6 @@ src/
     use-copy-feedback.ts
     use-debounced.ts
     use-note-export.ts
-    use-simulation-playback.ts  # only if the rAF extraction is parity-tested
   lib/
     json.ts                     # pure
     json-redact.ts              # was sanitize.ts
@@ -120,10 +118,6 @@ src/
       render.ts                 # was diagrams.ts
       export.ts                 # was mermaid-export.ts
       themes.ts                 # was mermaid-themes.ts
-      graph.ts                  # was flow-graph.ts
-      graph-dom.ts              # was flow-graph-dom.ts
-      simulation.ts             # was flow-simulation.ts
-      playback.ts               # pure reducers extracted from the page
     notes/
       markdown.ts  slides.ts  exporters.ts  diagram-html.ts  welcome-content.ts
 tests/
@@ -133,9 +127,8 @@ tests/
     catalog-routes.test.ts
   lib/
     json.test.ts  har.test.ts  csv.test.ts  json-redact.test.ts
-    split.test.ts  flow-graph.test.ts  flow-simulation.test.ts
-    svg-to-react.test.ts  notes-markdown.test.ts  mermaid-themes.test.ts
-    seo.test.ts  tool-redirects.test.ts  tools.test.ts  playback.test.ts
+    split.test.ts  svg-to-react.test.ts  notes-markdown.test.ts
+    seo.test.ts  tool-redirects.test.ts  tools.test.ts
   fixtures/
     har.ts
 ```
@@ -301,11 +294,7 @@ Enforced by `tests/contract/architecture.test.ts`:
 2. Move `src/app/markdown-preview/notes.css` → `src/components/notes/notes.css`; update the import.
 3. Standardize every `app/*/layout.tsx` to `export default function Layout({ children })`; keep metadata explicit.
 4. Rename converter symbols to `CsvToJsonPanel`, `JsonToCsvPanel`, `JsonToJsPanel`, `JsToJsonPanel`; rename files to `*-panel.tsx`; update `direction-tabs` and route imports.
-5. Extract the Mermaid page in sub-steps:
-   - `NumberField` → `components/mermaid/number-field.tsx`.
-   - `SimulationPlaybackState/Action/Reducer` → `lib/mermaid/playback.ts` with reducer tests.
-   - rAF loop → `hooks/use-simulation-playback.ts` only if reducer tests and a manual parity check pass.
-   - Config editors → `components/mermaid/simulation-controls.tsx` if the markup diff is clean.
+5. Mermaid route: the request-simulation feature has been removed. The remaining page is the editor, theme picker, render, zoom/fullscreen preview, and export/copy path.
 6. **Gate:** tests/check/build/blast-radius; manual smoke all 14 routes, especially Markdown, Mermaid, HAR, and both converter directions.
 
 ## Phase 6 — Route decomposition (Track A)
@@ -385,7 +374,7 @@ Additional checks:
 - Route count: homepage + 14 tool URLs; `next build` reports all prerendered.
 - Output parity: fixture-based comparisons for CSV, JSON, HTML export, DOCX input, cURL argv, HAR reports.
 - Security scan on the diff: `dangerouslySetInnerHTML`, `.innerHTML`, `srcdoc`, `window.open`, `URL.createObjectURL`, `eval(`, `new Function`, `fetch(`, `localStorage`, `sessionStorage`, `indexedDB`.
-- Manual smoke: homepage, all 14 tools, both converter directions, Markdown source/rich toggle, Mermaid simulation, HAR import/export, playground preview/Open, SVG preview/sanitize, Excel import/sheet switch.
+- Manual smoke: homepage, all 14 tools, both converter directions, Markdown source/rich toggle, Mermaid render/export/zoom, HAR import/export, playground preview/Open, SVG preview/sanitize, Excel import/sheet switch.
 
 ---
 
@@ -408,7 +397,7 @@ Additional checks:
 | A move silently changes output | Characterization tests first; export-surface snapshots; fixture output comparisons; `next build` |
 | Renaming public symbols breaks an importer | Contract test + `tsc --noEmit` + `git grep`; rename in a dedicated commit |
 | HAR split introduces cycles | Dependency rules in `blast-radius`; pure modules first; barrel preserves imports |
-| Extracting the Mermaid page changes playback | Reducer tests first; manual parity; stop if the rAF loop cannot be moved cleanly |
+| Mermaid simulation removal changes the tool's scope | The feature was removed at the user's request; editor/render/export/zoom behavior is unchanged |
 | CSV consolidation changes `dynamicTyping`/delimiter behavior | Explicit options matching the current component call; parity tests; otherwise keep the component's parser and delete only the dead helper |
 | UI extraction changes markup | Keep JSX copy-paste identical; manual route smoke; split into small commits; stop and report on any visual diff |
 | Track B security fix changes legitimate behavior | Separate commit per fix; failing regression first; written behavior delta; user approval |

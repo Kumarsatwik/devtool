@@ -7,6 +7,8 @@
 
 > This document is the current-HEAD audit. The target design and ordered migration plan are in [`docs/plan.md`](./plan.md). The older `CODEBASE_REVIEW.md` is historical.
 
+> **Feature update (2026-10-21):** The Mermaid request-simulation feature was removed at the user's request. Findings that reference `lib/mermaid/simulation.ts`, `graph.ts`, `graph-dom.ts`, or the simulation controls are historical.
+
 ---
 
 ## 0. Tooling reality check
