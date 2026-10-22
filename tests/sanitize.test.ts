@@ -9,7 +9,8 @@ test("hide-all respects excluded nested keys and masks unkeyed array leaves", ()
       labels: ["internal", "priority"],
     }),
     {
-      sensitiveKeys: ["labels"],
+      sensitiveKeys: [],
+      excludedKeys: ["profile"],
       redactionValue: "[HIDDEN]",
       matchMode: "exact",
       hideAllValues: true,
@@ -26,7 +27,7 @@ test("hide-all masks primitive siblings in mixed root arrays", () => {
   const result = sanitizeJson(
     '["secret", {"name":"private"}]',
     {
-      sensitiveKeys: ["name"],
+      sensitiveKeys: [],
       redactionValue: "[HIDDEN]",
       matchMode: "exact",
       hideAllValues: true,
@@ -37,4 +38,37 @@ test("hide-all masks primitive siblings in mixed root arrays", () => {
     "[HIDDEN]",
     { name: "[HIDDEN]" },
   ]);
+});
+
+test("hide-all redacts keys that were added after the toggle was enabled", () => {
+  const result = sanitizeJson('{"known":"a","newKey":"b"}', {
+    sensitiveKeys: [],
+    redactionValue: "[HIDDEN]",
+    matchMode: "exact",
+    hideAllValues: true,
+  });
+
+  assert.deepEqual(JSON.parse(result.output), {
+    known: "[HIDDEN]",
+    newKey: "[HIDDEN]",
+  });
+});
+
+test("hide-all exposes only explicitly excluded keys and their subtrees", () => {
+  const result = sanitizeJson(
+    '{"profile":{"name":"Ari"},"other":{"value":"secret"},"keep":"visible"}',
+    {
+      sensitiveKeys: [],
+      excludedKeys: ["profile", "keep"],
+      redactionValue: "[HIDDEN]",
+      matchMode: "exact",
+      hideAllValues: true,
+    },
+  );
+
+  assert.deepEqual(JSON.parse(result.output), {
+    profile: { name: "Ari" },
+    other: { value: "[HIDDEN]" },
+    keep: "visible",
+  });
 });

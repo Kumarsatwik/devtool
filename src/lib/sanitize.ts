@@ -1,19 +1,26 @@
 import { validateJSON, assignKey } from "./json.ts";
 
 export interface SanitizeOptions {
-  /** Key names whose values should be redacted. Matching is case-insensitive. */
+  /**
+   * Key names whose values should be redacted. Matching is case-insensitive.
+   * Ignored when hideAllValues is true; use excludedKeys to expose values.
+   */
   sensitiveKeys: string[];
   /** Replacement value inserted in place of sensitive data. */
   redactionValue: string | null;
   /** How key names are matched. */
   matchMode: "exact" | "contains";
   /**
-   * When true (the UI's "hide all values" toggle) the UI populates the key
-   * list with every key, so all leaf values are redacted — including items of
-   * primitive arrays — except those the user removes from the list afterwards.
-   * A bare root value or key-less root array is fully redacted.
+   * When true (the UI's "hide all values" toggle) every leaf value is redacted
+   * — including items of primitive arrays and keys added after the toggle was
+   * enabled. A bare root value or key-less root array is fully redacted.
    */
   hideAllValues?: boolean;
+  /**
+   * Keys to leave visible while hideAllValues is true. Matching is
+   * case-insensitive and exact so removing a key reliably exposes its subtree.
+   */
+  excludedKeys?: string[];
 }
 
 export interface SanitizeResult {
@@ -95,6 +102,7 @@ function redact(
   state: RedactState,
   force: boolean,
   hideUnkeyed = false,
+  hideAll = false,
 ): unknown {
   const { options } = state;
 
@@ -121,6 +129,7 @@ function redact(
             state,
             force,
             hideUnkeyed && Array.isArray(item),
+            hideAll,
           ),
         );
       }
@@ -138,24 +147,27 @@ function redact(
       const inList = options.sensitiveKeys.some((pattern) =>
         matchesKey(key, pattern, options.matchMode),
       );
+      const excluded =
+        hideAll &&
+        (options.excludedKeys ?? []).some((pattern) =>
+          matchesKey(key, pattern, "exact"),
+        );
+      const shouldRedact = hideAll ? !excluded : force || inList;
 
       if (isContainer) {
-        // Containers always recurse so nested structure survives. A sensitive
-        // key also forces redaction of every leaf inside its subtree — this
-        // fixes the old leak where `{"emails": ["a@b.c"]}` or
-        // `{"authorization": {"bearer": "…"}}` slipped through untouched.
-        // In hide-all mode, matching object keys control their own leaves so
-        // removing a nested key exposes it. Unkeyed primitive array entries
-        // are still masked by the array branch above.
-        const childForce = force || (inList && !options.hideAllValues);
-        const childHideUnkeyed =
-          Array.isArray(val) && options.hideAllValues === true && inList;
+        // Containers always recurse so nested structure survives. In hide-all
+        // mode each key decides from the exclusion list, so newly added keys
+        // stay hidden without relying on a snapshot of keys. An excluded key
+        // turns hide-all off for its whole subtree.
+        const childHideAll = hideAll && !excluded;
+        const childForce = hideAll ? false : force || inList;
+        const childHideUnkeyed = childHideAll && Array.isArray(val);
         assignKey(
           out,
           key,
-          redact(val, keyPath, state, childForce, childHideUnkeyed),
+          redact(val, keyPath, state, childForce, childHideUnkeyed, childHideAll),
         );
-      } else if (force || inList) {
+      } else if (shouldRedact) {
         assignKey(out, key, options.redactionValue);
         state.count++;
         if (state.paths.length < MAX_REDACTED_PATHS) state.paths.push(keyPath);
@@ -235,6 +247,7 @@ export function sanitizeJson(
     state,
     rootForce,
     options.hideAllValues === true && Array.isArray(parsed),
+    options.hideAllValues === true,
   );
 
   return {

@@ -69,13 +69,25 @@ export default function JsonSanitizerPage() {
   const [matchMode, setMatchMode] = useState<SanitizeOptions["matchMode"]>("contains");
   const [redactionValue, setRedactionValue] = useState("[REDACTED]");
   const [hideAllValues, setHideAllValues] = useState(false);
+  const [excludedKeys, setExcludedKeys] = useState<string[]>([]);
   const [autoSanitize, setAutoSanitize] = useState(true);
-  const preHideAllRef = useRef<{ keys: string[]; mode: SanitizeOptions["matchMode"] } | null>(null);
+  const preHideAllRef = useRef<{ mode: SanitizeOptions["matchMode"] } | null>(null);
 
   const options = useMemo<SanitizeOptions>(
-    () => ({ sensitiveKeys, redactionValue, matchMode, hideAllValues }),
-    [sensitiveKeys, redactionValue, matchMode, hideAllValues],
+    () => ({ sensitiveKeys, redactionValue, matchMode, hideAllValues, excludedKeys }),
+    [sensitiveKeys, redactionValue, matchMode, hideAllValues, excludedKeys],
   );
+
+  const allInputKeys = useMemo(() => {
+    const parsed = validateJSON(input);
+    return parsed.valid && parsed.parsed != null ? collectAllKeys(parsed.parsed) : [];
+  }, [input]);
+
+  const displayKeys = hideAllValues
+    ? allInputKeys.filter(
+        (key) => !excludedKeys.some((excluded) => excluded.toLowerCase() === key.toLowerCase()),
+      )
+    : sensitiveKeys;
 
   const stats = useMemo(() => {
     if (!input.trim()) return null;
@@ -112,33 +124,34 @@ export default function JsonSanitizerPage() {
   const addKey = () => {
     const key = newKey.trim();
     if (!key) return;
-    setSensitiveKeys((prev) =>
-      prev.some((k) => k.toLowerCase() === key.toLowerCase()) ? prev : [...prev, key],
-    );
+    if (hideAllValues) {
+      // Re-hide a key the user had removed from the hidden list.
+      setExcludedKeys((prev) => prev.filter((k) => k.toLowerCase() !== key.toLowerCase()));
+    } else {
+      setSensitiveKeys((prev) =>
+        prev.some((k) => k.toLowerCase() === key.toLowerCase()) ? prev : [...prev, key],
+      );
+    }
     setNewKey("");
   };
 
   const removeKey = (key: string) => {
-    setSensitiveKeys((prev) => prev.filter((k) => k !== key));
+    if (hideAllValues) {
+      setExcludedKeys((prev) =>
+        prev.some((k) => k.toLowerCase() === key.toLowerCase()) ? prev : [...prev, key],
+      );
+    } else {
+      setSensitiveKeys((prev) => prev.filter((k) => k !== key));
+    }
   };
 
   const handleHideAll = (checked: boolean) => {
     setHideAllValues(checked);
+    setExcludedKeys([]);
     if (checked) {
-      // Remember the current list so unchecking restores it.
-      preHideAllRef.current = { keys: sensitiveKeys, mode: matchMode };
-      setMatchMode("exact"); // exact matching so removing a key reliably un-hides it
-      const parsed = validateJSON(input);
-      if (parsed.valid && parsed.parsed != null) {
-        const allKeys = collectAllKeys(parsed.parsed);
-        setSensitiveKeys((prev) => {
-          const set = new Set(prev.map((k) => k.toLowerCase()));
-          allKeys.forEach((k) => set.add(k));
-          return [...set];
-        });
-      }
+      preHideAllRef.current = { mode: matchMode };
+      setMatchMode("exact");
     } else if (preHideAllRef.current) {
-      setSensitiveKeys(preHideAllRef.current.keys);
       setMatchMode(preHideAllRef.current.mode);
       preHideAllRef.current = null;
     }
@@ -243,23 +256,25 @@ export default function JsonSanitizerPage() {
               <EyeOff className="h-4 w-4 text-muted-foreground" />
               Sensitive Keys
               <span className="text-muted-foreground font-semibold">
-                ({sensitiveKeys.length})
+                ({displayKeys.length})
               </span>
             </span>
             <span className="text-muted-foreground">
               {hideAllValues
-                ? "Every key from the input is hidden — remove keys below to expose their values."
+                ? "Every key from the current input is hidden — remove keys below to expose their values."
                 : "Values of fields whose key names match these patterns will be redacted."}
             </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
-            {sensitiveKeys.length === 0 ? (
+            {displayKeys.length === 0 ? (
               <p className="text-muted-foreground italic">
-                No keys yet — add a key name below or load presets.
+                {hideAllValues
+                  ? "No keys left — every value is exposed."
+                  : "No keys yet — add a key name below or load presets."}
               </p>
             ) : (
-              sensitiveKeys.map((key) => (
+              displayKeys.map((key) => (
                 <span
                   key={key}
                   className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-destructive/25 bg-destructive/5 text-xs font-mono font-semibold text-foreground"
@@ -297,12 +312,15 @@ export default function JsonSanitizerPage() {
               <Plus className="h-3.5 w-3.5" />
               Add
             </Button>
-            {sensitiveKeys.length > 0 && (
+            {displayKeys.length > 0 && (
               <Button
                 variant="ghost"
                 size="xs"
                 className="h-7 gap-1 text-muted-foreground hover:text-destructive"
-                onClick={() => setSensitiveKeys([])}
+                onClick={() => {
+                  if (hideAllValues) setExcludedKeys([...allInputKeys]);
+                  else setSensitiveKeys([]);
+                }}
               >
                 <Trash2 className="h-3 w-3" />
                 Clear all
