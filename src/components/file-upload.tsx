@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback } from "react";
 import { Upload, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MAX_UPLOAD_MB } from "@/lib/upload";
 
 interface FileUploadProps {
   onFileLoaded: (content: string, fileName: string) => void;
@@ -15,7 +16,7 @@ interface FileUploadProps {
 export function FileUpload({
   onFileLoaded,
   accept,
-  maxSizeMB = 10,
+  maxSizeMB = MAX_UPLOAD_MB,
   label = "Drag and drop your file here, or click to browse",
   className,
 }: FileUploadProps) {
