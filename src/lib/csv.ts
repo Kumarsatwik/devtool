@@ -1,17 +1,34 @@
 import Papa from "papaparse";
 
-export interface CSVParseResult {
-  data: Record<string, string>[];
+export interface CsvParseOptions {
+  dynamicTyping?: boolean;
+  delimiter?: string;
+  failOnError?: boolean;
+}
+
+export interface CsvParseResult {
+  data: Record<string, unknown>[];
   headers: string[];
   errors: Papa.ParseError[];
 }
 
-export function parseCSV(csvText: string): CSVParseResult {
-  const result = Papa.parse<Record<string, string>>(csvText.trim(), {
+export function parseCsv(
+  csvText: string,
+  options: CsvParseOptions = {},
+): CsvParseResult {
+  const result = Papa.parse<Record<string, unknown>>(csvText.trim(), {
     header: true,
     skipEmptyLines: true,
-    dynamicTyping: false,
+    dynamicTyping: options.dynamicTyping ?? false,
+    delimiter: options.delimiter,
   });
+
+  if (options.failOnError && result.errors.length > 0) {
+    const firstError = result.errors[0];
+    const rowInfo =
+      firstError.row !== undefined ? ` (Row: ${firstError.row + 1})` : "";
+    throw new Error(`${firstError.message}${rowInfo}`);
+  }
 
   return {
     data: result.data,
@@ -20,12 +37,7 @@ export function parseCSV(csvText: string): CSVParseResult {
   };
 }
 
-export function csvToJSON(csvText: string): string {
-  const { data } = parseCSV(csvText);
-  return JSON.stringify(data, null, 2);
-}
-
-export function jsonToCSV(jsonData: unknown): string {
+export function jsonToCsv(jsonData: unknown): string {
   if (!Array.isArray(jsonData)) {
     throw new Error("Input must be an array");
   }

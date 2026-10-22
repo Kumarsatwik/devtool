@@ -11,7 +11,7 @@ import * as toolRedirects from "../../src/lib/tool-redirects.ts";
 import * as tools from "../../src/lib/tools.ts";
 
 const expected = {
-  csv: ["csvToJSON", "jsonToCSV", "parseCSV"],
+  csv: ["jsonToCsv", "parseCsv"],
   json: [
     "assignKey",
     "beautifyJSON",

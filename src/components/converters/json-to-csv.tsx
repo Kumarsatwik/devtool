@@ -7,7 +7,7 @@ import { StatusMessage } from "@/components/status-message";
 import { FileUpload } from "@/components/file-upload";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ResizableSplit } from "@/components/resizable-split";
-import { jsonToCSV } from "@/lib/csv";
+import { jsonToCsv } from "@/lib/csv";
 import { validateJSON } from "@/lib/json";
 import {
   AlertCircle,
@@ -70,7 +70,7 @@ export default function JSONToCSVPage() {
         return;
       }
 
-      const csv = jsonToCSV(parsedData);
+      const csv = jsonToCsv(parsedData);
       setOutput(csv);
 
       // Extract unique keys as headers
