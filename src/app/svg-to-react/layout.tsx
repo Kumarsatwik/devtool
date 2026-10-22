@@ -3,7 +3,7 @@ import { buildToolMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildToolMetadata("/svg-to-react");
 
-export default function SvgToReactLayout({
+export default function Layout({
   children,
 }: {
   children: React.ReactNode;

@@ -3,7 +3,7 @@ import { buildToolMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildToolMetadata("/json-sanitizer");
 
-export default function JsonSanitizerLayout({
+export default function Layout({
   children,
 }: {
   children: React.ReactNode;
