@@ -8,6 +8,7 @@ import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import { AlertCircle, CheckCircle2, FileSpreadsheet, Settings2 } from "lucide-react";
 import Papa from "papaparse";
+import { byteLength } from "@/lib/bytes";
 
 const sampleCSV = `name,age,city,isDeveloper
 John,25,New York,true
@@ -67,7 +68,7 @@ export default function CSVToJSONPage() {
       setMeta({
         columns: fields.length,
         rows: parsed.data.length,
-        size: new Blob([input]).size,
+        size: byteLength(input),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Conversion failed");

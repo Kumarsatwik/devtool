@@ -7,6 +7,7 @@ import { ToolPageLayout } from "@/components/tool-page-layout";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import { validateJSON } from "@/lib/json";
+import { byteLength } from "@/lib/bytes";
 import { AlertCircle, CheckCircle2, ShieldCheck, Terminal, Info } from "lucide-react";
 
 const sampleJSON = `{
@@ -68,7 +69,7 @@ export default function JSONValidatorPage() {
   const getJSONMetrics = (parsed: unknown) => {
     if (parsed && typeof parsed === "object") {
       const keys = Object.keys(parsed);
-      const size = new Blob([input]).size;
+      const size = byteLength(input);
       return {
         keys: keys.length,
         size: (size / 1024).toFixed(2) + " KB",

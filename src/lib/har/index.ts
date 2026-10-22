@@ -26,10 +26,9 @@ export { buildCurl } from "./curl.ts";
 export {
   BODY_PREVIEW_LIMIT,
   decodeBody,
-  formatBytes,
-  formatMs,
   isBinaryBody,
   prettyBody,
 } from "./body.ts";
+export { formatBytes, formatMs } from "../format.ts";
 export { explainEntry, TIMING_PHASES } from "./insights.ts";
 export { analyzeHar, headerValue, parseHar } from "./analyze.ts";

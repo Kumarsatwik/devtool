@@ -1,4 +1,4 @@
-import { formatBytes } from "./body.ts";
+import { formatBytes } from "../format.ts";
 import { CATEGORY_META, baseDomain, categorize } from "./classify.ts";
 import { detectSensitive } from "./sensitive.ts";
 import type {

@@ -7,6 +7,7 @@ import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import { jsToJSON, validateJSON } from "@/lib/json";
+import { byteLength } from "@/lib/bytes";
 import { AlertCircle, CheckCircle2, FileCode2, Settings2 } from "lucide-react";
 
 const sampleJS = `{
@@ -173,8 +174,8 @@ export default function JSToJSONPage() {
                     <span className="font-semibold text-foreground">Valid JSON output.</span>
                   </div>
                   <div className="text-xs text-muted-foreground flex items-center gap-4">
-                    <span>Input Size: <strong className="text-foreground">{new Blob([input]).size} Bytes</strong></span>
-                    <span>Output Size: <strong className="text-foreground">{new Blob([output]).size} Bytes</strong></span>
+                    <span>Input Size: <strong className="text-foreground">{byteLength(input)} Bytes</strong></span>
+                    <span>Output Size: <strong className="text-foreground">{byteLength(output)} Bytes</strong></span>
                   </div>
                 </div>
               </>
