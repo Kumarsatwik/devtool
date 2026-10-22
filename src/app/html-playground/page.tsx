@@ -15,7 +15,6 @@ import {
   Copy,
   Check,
   Eraser,
-  ExternalLink,
   FileCode2,
   Info,
   MonitorPlay,
@@ -188,13 +187,6 @@ export default function HtmlPlaygroundPage() {
     saveAs(blob, "playground.html");
   };
 
-  const handleOpenInNewTab = () => {
-    const blob = new Blob([buildDocument(panes.html, panes.css, panes.js, false)], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank", "noopener,noreferrer");
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
-  };
-
   const handleCopyConsole = async () => {
     if (consoleEntries.length === 0) return;
     const text = consoleEntries.map((e) => `[${e.level}] ${e.text}`).join("\n");
@@ -212,25 +204,13 @@ export default function HtmlPlaygroundPage() {
   return (
     <ToolPageLayout
       title="HTML Playground"
-      description="Write HTML, CSS, and JavaScript with a live sandboxed preview and console. All network access is blocked inside the preview."
+      description="Write HTML, CSS, and JavaScript with a live origin-isolated preview and console. External fetches, forms, and popups are blocked by the preview policy."
     >
       <div className="h-full flex flex-col gap-4">
         {/* Sandbox Bar */}
         <div className="flex flex-wrap items-center justify-end gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none shrink-0">
 
           <div className="flex flex-wrap items-center gap-3">
-            {/* Open standalone build in a new tab */}
-            <Button
-              variant="ghost"
-              size="xs"
-              className="h-6 gap-1 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/70"
-              onClick={handleOpenInNewTab}
-              title="Open compiled page in a new tab"
-            >
-              <ExternalLink className="h-3 w-3" />
-              <span>Open</span>
-            </Button>
-
             {/* Download standalone HTML */}
             <Button
               variant="ghost"
@@ -401,7 +381,7 @@ export default function HtmlPlaygroundPage() {
               <iframe
                 ref={iframeRef}
                 title="HTML Preview"
-                sandbox="allow-scripts allow-modals allow-forms allow-popups"
+                sandbox="allow-scripts allow-modals"
                 srcDoc={srcDoc}
                 className={`w-full h-full border-0 bg-white ${isResizing ? "pointer-events-none" : ""}`}
               />
