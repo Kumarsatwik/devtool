@@ -13,7 +13,7 @@ import {
   PRESET_SENSITIVE_KEYS,
   type SanitizeOptions,
 } from "@/lib/json-redact";
-import { validateJSON } from "@/lib/json";
+import { validateJson } from "@/lib/json";
 import {
   AlertCircle,
   CheckCircle2,
@@ -79,7 +79,7 @@ export default function JsonSanitizerPage() {
   );
 
   const allInputKeys = useMemo(() => {
-    const parsed = validateJSON(input);
+    const parsed = validateJson(input);
     return parsed.valid && parsed.parsed != null ? collectAllKeys(parsed.parsed) : [];
   }, [input]);
 
@@ -119,7 +119,7 @@ export default function JsonSanitizerPage() {
     }
   }, [input, autoSanitize, handleProcess]);
 
-  const validation = validateJSON(input);
+  const validation = validateJson(input);
 
   const addKey = () => {
     const key = newKey.trim();

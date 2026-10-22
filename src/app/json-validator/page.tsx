@@ -6,7 +6,7 @@ import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout } from "@/components/tool-page-layout";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
-import { validateJSON } from "@/lib/json";
+import { validateJson } from "@/lib/json";
 import { byteLength } from "@/lib/bytes";
 import { AlertCircle, CheckCircle2, ShieldCheck, Terminal, Info } from "lucide-react";
 
@@ -35,7 +35,7 @@ export default function JSONValidatorPage() {
       setValidation(null);
       return;
     }
-    setValidation(validateJSON(input));
+    setValidation(validateJson(input));
   }, [input]);
 
   // Live validation

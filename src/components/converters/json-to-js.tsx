@@ -6,7 +6,7 @@ import { EditorPanel } from "@/components/editor-panel";
 import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
-import { jsonToJs, validateJSON } from "@/lib/json";
+import { jsonToJs, validateJson } from "@/lib/json";
 import { byteLength } from "@/lib/bytes";
 import { AlertCircle, CheckCircle2, Settings2, Sparkles } from "lucide-react";
 
@@ -57,7 +57,7 @@ export default function JSONToJSPage() {
     setInput(content);
   };
 
-  const validation = validateJSON(input);
+  const validation = validateJson(input);
 
   return (
       <div className="h-full flex flex-col gap-4">

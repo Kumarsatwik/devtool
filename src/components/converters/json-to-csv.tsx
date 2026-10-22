@@ -8,7 +8,7 @@ import { FileUpload } from "@/components/file-upload";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ResizableSplit } from "@/components/resizable-split";
 import { jsonToCsv } from "@/lib/csv";
-import { validateJSON } from "@/lib/json";
+import { validateJson } from "@/lib/json";
 import {
   AlertCircle,
   CheckCircle2,
@@ -47,7 +47,7 @@ export default function JSONToCSVPage() {
 
     try {
       setError(null);
-      const validation = validateJSON(input);
+      const validation = validateJson(input);
       if (!validation.valid) {
         setError(validation.error || "Malformed JSON data");
         setHeaders([]);

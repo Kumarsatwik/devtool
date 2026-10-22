@@ -1,4 +1,4 @@
-import { validateJSON, assignKey } from "./json.ts";
+import { validateJson, assignKey } from "./json.ts";
 
 export interface SanitizeOptions {
   /**
@@ -214,7 +214,7 @@ export function redactJson(
     return { output: "", redactedCount: 0, redactedPaths: [], inputChars: 0 };
   }
 
-  const { valid, parsed, error } = validateJSON(trimmed);
+  const { valid, parsed, error } = validateJson(trimmed);
   if (!valid) {
     throw new Error(error ?? "Invalid JSON");
   }

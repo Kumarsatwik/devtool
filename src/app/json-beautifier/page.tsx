@@ -7,7 +7,7 @@ import { ToolPageLayout } from "@/components/tool-page-layout";
 import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
-import { beautifyJSON, minifyJSON, validateJSON } from "@/lib/json";
+import { beautifyJson, minifyJson, validateJson } from "@/lib/json";
 import { AlertCircle, CheckCircle2, Sparkles, Settings2, Minimize2, AlignLeft } from "lucide-react";
 
 const sampleJSON = `{"name":"DataTools platform","version":1.1,"isActive":true,"modules":["CSV-JSON","Linter","DiffEditor"],"environment":{"host":"localhost","port":3000}}`;
@@ -36,9 +36,9 @@ export default function JSONBeautifierPage() {
     try {
       setError(null);
       if (mode === "beautify") {
-        setOutput(beautifyJSON(input, spaces));
+        setOutput(beautifyJson(input, spaces));
       } else {
-        setOutput(minifyJSON(input));
+        setOutput(minifyJson(input));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Processing failed");
@@ -57,7 +57,7 @@ export default function JSONBeautifierPage() {
     setInput(content);
   };
 
-  const validation = validateJSON(input);
+  const validation = validateJson(input);
 
   return (
     <ToolPageLayout title="JSON Beautifier" description="Format, indent, or collapse raw JSON data to read it easily.">

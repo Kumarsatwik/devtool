@@ -6,7 +6,7 @@ import { EditorPanel } from "@/components/editor-panel";
 import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
-import { jsToJSON, validateJSON } from "@/lib/json";
+import { jsToJson, validateJson } from "@/lib/json";
 import { byteLength } from "@/lib/bytes";
 import { AlertCircle, CheckCircle2, FileCode2, Settings2 } from "lucide-react";
 
@@ -38,7 +38,7 @@ export default function JSToJSONPage() {
 
     try {
       setError(null);
-      const json = jsToJSON(input, spaces);
+      const json = jsToJson(input, spaces);
       setOutput(json);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Conversion failed");
@@ -57,7 +57,7 @@ export default function JSToJSONPage() {
     setInput(content);
   };
 
-  const validation = validateJSON(output);
+  const validation = validateJson(output);
 
   return (
       <div className="h-full flex flex-col gap-4">
