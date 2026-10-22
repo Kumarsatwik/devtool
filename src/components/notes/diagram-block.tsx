@@ -7,7 +7,7 @@ import {
   ReactNodeViewRenderer,
   type NodeViewProps,
 } from "@tiptap/react";
-import { renderMermaidSvg } from "@/lib/diagrams";
+import { renderMermaidSvg } from "@/lib/mermaid/render";
 
 const MERMAID_PLACEHOLDER =
   "graph TD\n  A[Start] --> B{Decision}\n  B -->|Yes| C[OK]\n  B -->|No| D[Retry]";

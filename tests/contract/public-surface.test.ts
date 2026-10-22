@@ -3,7 +3,7 @@ import test from "node:test";
 import * as csv from "../../src/lib/csv.ts";
 import * as json from "../../src/lib/json.ts";
 import * as markdown from "../../src/lib/notes/markdown.ts";
-import * as mermaidThemes from "../../src/lib/mermaid-themes.ts";
+import * as mermaidThemes from "../../src/lib/mermaid/themes.ts";
 import * as sanitize from "../../src/lib/sanitize.ts";
 import * as seo from "../../src/lib/seo.ts";
 import * as split from "../../src/lib/split.ts";

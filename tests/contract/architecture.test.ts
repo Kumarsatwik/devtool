@@ -43,12 +43,12 @@ const PURE_MODULES = new Set([
   "src/lib/svg-to-react.ts",
   "src/lib/tool-redirects.ts",
   "src/lib/tools.ts",
-  "src/lib/mermaid-themes.ts",
+  "src/lib/mermaid/themes.ts",
 ]);
 
 const KNOWN_CLIENT_PURE_MODULES = new Set([
   "src/lib/notes/markdown.ts",
-  "src/lib/mermaid-themes.ts",
+  "src/lib/mermaid/themes.ts",
 ]);
 
 const SHARED_COMPONENT_FEATURES = new Set(["ui", "shell"]);

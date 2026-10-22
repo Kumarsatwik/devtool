@@ -19,11 +19,11 @@ import {
   copyMermaidImage,
   exportMermaidSvg,
   exportMermaidImage,
-} from "@/lib/mermaid-export";
-import { extractFlowGraphFromSvg } from "@/lib/flow-graph-dom";
+} from "@/lib/mermaid/export";
+import { extractFlowGraphFromSvg } from "@/lib/mermaid/graph-dom";
 import {
   type FlowGraph,
-} from "@/lib/flow-graph";
+} from "@/lib/mermaid/graph";
 import {
   buildFlowSimulation,
   readSimulationConfig,
@@ -33,14 +33,14 @@ import {
   type FlowSimulation,
   type FlowSimulationConfig,
   type SimulationEvent,
-} from "@/lib/flow-simulation";
+} from "@/lib/mermaid/simulation";
 import {
   diagramThemes,
   defaultDiagramTheme,
   getMermaidConfig,
   getThemeSpec,
   type DiagramTheme,
-} from "@/lib/mermaid-themes";
+} from "@/lib/mermaid/themes";
 import {
   AlertCircle,
   Check,

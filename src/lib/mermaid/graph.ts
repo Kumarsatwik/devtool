@@ -5,7 +5,7 @@
  * request-flow simulation stay unit testable under `node --test`.
  *
  * The model is recovered from mermaid's rendered SVG (see
- * `flow-graph-dom.ts`), not by re-parsing mermaid syntax: mermaid keeps the
+ * `graph-dom.ts`), not by re-parsing mermaid syntax: mermaid keeps the
  * only layout, and its deterministic DOM ids carry the topology.
  *
  * ID contract observed in mermaid@11 (flowchart-v2, dagre):

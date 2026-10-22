@@ -1,4 +1,4 @@
-import type { FlowEdge, FlowGraph } from "./flow-graph.ts";
+import type { FlowEdge, FlowGraph } from "./graph.ts";
 
 export const SIMULATION_CONFIG_VERSION = 2;
 export const DEFAULT_PROCESSING_MS = 450;
