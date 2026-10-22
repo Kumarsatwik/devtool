@@ -9,6 +9,8 @@
 
 > **Feature update (2026-10-21):** The Mermaid request-simulation feature was removed at the user's request. Findings that reference `lib/mermaid/simulation.ts`, `graph.ts`, `graph-dom.ts`, or the simulation controls are historical.
 
+> **Implementation update (2026-10-21):** Track B security items B1–B10 are implemented on `refactor/codebase-overhaul`. See [`docs/pr-summary.md`](./pr-summary.md) for the verification record and behavior deltas.
+
 ---
 
 ## 0. Tooling reality check
@@ -64,19 +66,19 @@
 
 | ID | Status | Finding | Evidence | Track |
 |---|---|---|---|---|
-| S1 | **PARTIAL** | SVG preview sanitizer never inspects the **root `<svg>` element**; `onload`, `style`, `href` on the root survive and are inserted via `dangerouslySetInnerHTML` | `src/app/svg-to-react/page.tsx:453` (only descendants); sink `:322-326`; sanitizer `:441-489` | B1 |
-| S2 | **PRESENT** | Playground **Open** creates an app-origin `blob:` URL and opens it top-level; `noopener` does not revoke origin/storage access | `src/app/html-playground/page.tsx:273-278` | B6 |
-| S3 | **PRESENT** | Playground CSP does not block **self-navigation**; UI claims “All network access is blocked” | CSP `src/app/html-playground/page.tsx:151-161`; claim `:297`; sandbox `:486` | B7 |
-| S4 | **PARTIAL** | cURL builder whitelists `&`, `?`, `#` unquoted and interpolates the HTTP method raw; shell injection from an untrusted HAR is possible | `src/lib/har.ts:905-937` | B2 |
-| S5 | **PRESENT** | Export document `<title>` and both `<h1>` interpolations are unescaped | `src/lib/notes/exporters.ts:51,436,508` | B3 |
-| S6 | **PRESENT** | Excel route advertises a 10 MB limit but only checks the extension before reading; sync `XLSX.read` on the main thread | `src/app/excel-to-csv/page.tsx:71-102`, claim `:226` | B5 |
-| S7 | **PRESENT** | Notes pipeline initializes Mermaid with `securityLevel: "loose"` and writes the returned SVG into the app DOM; competing config owners are order-dependent | `src/lib/diagrams.ts:12`; `src/app/mermaid-diagram/page.tsx:463-468`; `src/lib/mermaid-themes.ts:150` | B4 |
-| S8 | **PRESENT** | Note preview/export documents have no CSP; `serif` theme injects Google Fonts; imported Markdown can auto-fetch remote images; `allow-popups-to-escape-sandbox` is unnecessarily broad | `src/lib/notes/exporters.ts:41-58,261-265`; `src/components/notes/note-preview.tsx:306`; `src/lib/notes/markdown.ts:25-30` | B8 |
-| S9 | **PRESENT** | Dependency risk: `xlsx@0.18.5` (fixed builds not on npm), Next `16.2.9`, Mermaid `11.16.0`, TipTap `3.29.x` | `package.json:15-43` | B10 |
+| S1 | **FIXED** | SVG preview sanitizer never inspects the **root `<svg>` element**; `onload`, `style`, `href` on the root survive and are inserted via `dangerouslySetInnerHTML` | `src/app/svg-to-react/page.tsx:453` (only descendants); sink `:322-326`; sanitizer `:441-489` | B1 |
+| S2 | **FIXED** | Playground **Open** creates an app-origin `blob:` URL and opens it top-level; `noopener` does not revoke origin/storage access | `src/app/html-playground/page.tsx:273-278` | B6 |
+| S3 | **FIXED** | Playground CSP does not block **self-navigation**; UI claims “All network access is blocked” | CSP `src/app/html-playground/page.tsx:151-161`; claim `:297`; sandbox `:486` | B7 |
+| S4 | **FIXED** | cURL builder whitelists `&`, `?`, `#` unquoted and interpolates the HTTP method raw; shell injection from an untrusted HAR is possible | `src/lib/har.ts:905-937` | B2 |
+| S5 | **FIXED** | Export document `<title>` and both `<h1>` interpolations are unescaped | `src/lib/notes/exporters.ts:51,436,508` | B3 |
+| S6 | **FIXED** | Excel route advertises a 10 MB limit but only checks the extension before reading; sync `XLSX.read` on the main thread | `src/app/excel-to-csv/page.tsx:71-102`, claim `:226` | B5 |
+| S7 | **FIXED** | Notes pipeline initializes Mermaid with `securityLevel: "loose"` and writes the returned SVG into the app DOM; competing config owners are order-dependent | `src/lib/diagrams.ts:12`; `src/app/mermaid-diagram/page.tsx:463-468`; `src/lib/mermaid-themes.ts:150` | B4 |
+| S8 | **FIXED** | Note preview/export documents have no CSP; `serif` theme injects Google Fonts; imported Markdown can auto-fetch remote images; `allow-popups-to-escape-sandbox` is unnecessarily broad | `src/lib/notes/exporters.ts:41-58,261-265`; `src/components/notes/note-preview.tsx:306`; `src/lib/notes/markdown.ts:25-30` | B8 |
+| S9 | **FIXED (production)** | Dependencies updated: Next 16.4.2, Mermaid 12.2.0, TipTap 3.32, Base UI 1.9, Monaco 0.57, SheetJS 0.20.3. Production audit is clean; dev-only ESLint/Monaco advisories remain. | `package.json` | B10 |
 | S10 | **FIXED** | PlantUML remote rendering removed; no `fetch`/XHR/WebSocket/sendBeacon anywhere in `src` | — | — |
-| S11 | **FIXED (residual)** | Hide-all now masks primitive siblings in mixed arrays, with a regression test. Residual: the key list is snapshotted only when the toggle is flipped, so pasting new JSON while hide-all is on can expose new keys | `src/lib/sanitize.ts:101-128`; `tests/sanitize.test.ts:25-39` | B9 |
+| S11 | **FIXED** | Hide-all redacts every leaf by default and exposes only explicit `excludedKeys`; keys added after the toggle is enabled stay hidden. | `src/lib/json-redact.ts`; `tests/lib/json-redact.test.ts` | B9 |
 
-**Other sinks checked:** no `eval`, `new Function`, `localStorage`, `sessionStorage`, or `indexedDB` in `src`. Mermaid SVG is inserted in three places (`notes/diagram-html.ts:20,88`, `notes/diagram-block.tsx:114`) and needs the B4/B8 boundary work.
+**Other sinks checked:** no `eval`, `new Function`, `localStorage`, `sessionStorage`, or `indexedDB` in `src`. Mermaid SVG is inserted in three places (`notes/diagram-html.ts`, `notes/diagram-block.tsx`) and now renders with strict security and the note-document CSP.
 
 ## 1.3 Dead code (safe to remove)
 

@@ -9,6 +9,8 @@
 
 > **Feature update (2026-10-21):** The Mermaid request-simulation feature was removed. The target tree and phases below no longer include the simulation engine, graph extraction, playback hooks, or simulation controls.
 
+> **Implementation status (2026-10-21):** Track A structural work and Track B security items are implemented. Track C remains a separate correctness backlog. See [`docs/pr-summary.md`](./pr-summary.md).
+
 ---
 
 ## 0. Tooling reality check
