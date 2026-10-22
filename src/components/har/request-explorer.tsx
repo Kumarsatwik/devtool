@@ -9,43 +9,12 @@ import {
   formatMs,
   type AnalyzedEntry,
   type HarAnalysis,
-  type RequestCategory,
 } from "@/lib/har";
-
-export type ExplorerFilter =
-  | "all"
-  | "error"
-  | "slow"
-  | "large"
-  | "cors"
-  | "thirdparty"
-  | "sensitive"
-  | RequestCategory;
-
-/**
- * Explicit handoff from another view (Overview, Domains) into this explorer.
- * The explorer renders a visible, dismissible chip for this state, so the
- * user always knows why the list is filtered.
- */
-export type ExplorerHandoff =
-  | { kind: "none" }
-  | { kind: "filter"; filter: ExplorerFilter; label: string }
-  | { kind: "domain"; host: string };
-
-const FILTER_TABS: { key: ExplorerFilter; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "error", label: "Errors" },
-  { key: "slow", label: "Slow" },
-  { key: "large", label: "Large" },
-  { key: "cors", label: "CORS" },
-  { key: "sensitive", label: "Sensitive" },
-  { key: "api", label: "API" },
-  { key: "auth", label: "Authentication" },
-  { key: "thirdparty", label: "Third-party" },
-  { key: "image", label: "Images" },
-  { key: "js", label: "JavaScript" },
-  { key: "css", label: "CSS" },
-];
+import {
+  FILTER_TABS,
+  type ExplorerFilter,
+  type ExplorerHandoff,
+} from "@/lib/har/filters";
 
 const PAGE_SIZE = 50;
 

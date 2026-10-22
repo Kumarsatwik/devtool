@@ -19,7 +19,7 @@ import {
   type HarAnalysis,
   type RequestCategory,
 } from "@/lib/har";
-import type { ExplorerFilter } from "@/components/har/request-explorer";
+import type { ExplorerFilter } from "@/lib/har/filters";
 
 interface Finding {
   icon: React.ReactNode;

@@ -6,11 +6,12 @@ import { ToolPageLayout } from "@/components/tool-page-layout";
 import { PrivacyBadge } from "@/components/har/privacy-badge";
 import { EmptyState } from "@/components/har/empty-state";
 import { OverviewDashboard } from "@/components/har/overview";
+import { RequestExplorer } from "@/components/har/request-explorer";
 import {
-  RequestExplorer,
+  FILTER_LABELS,
   type ExplorerFilter,
   type ExplorerHandoff,
-} from "@/components/har/request-explorer";
+} from "@/lib/har/filters";
 import { RequestDrawer } from "@/components/har/request-drawer";
 import { TimelineView } from "@/components/har/timeline";
 import { DomainsView } from "@/components/har/domains-view";
@@ -34,26 +35,6 @@ const MAIN_TABS: { key: MainTab; label: string }[] = [
   { key: "requests", label: "Requests" },
   { key: "domains", label: "Domains" },
 ];
-
-const FILTER_LABELS: Record<ExplorerFilter, string> = {
-  all: "All requests",
-  error: "Errors",
-  slow: "Slow requests",
-  large: "Large responses",
-  cors: "CORS issues",
-  thirdparty: "Third-party requests",
-  sensitive: "Sensitive data",
-  page: "Documents",
-  api: "API requests",
-  auth: "Authentication",
-  image: "Images",
-  js: "JavaScript",
-  css: "CSS",
-  font: "Fonts",
-  data: "Data",
-  analytics: "Analytics",
-  other: "Other",
-};
 
 
 export default function HarAnalyzerPage() {
