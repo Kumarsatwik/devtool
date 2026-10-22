@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useAutoRun } from "@/hooks/use-auto-run";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout } from "@/components/shell/tool-page-layout";
@@ -39,11 +40,7 @@ export default function JSONValidatorPage() {
   }, [input]);
 
   // Live validation
-  useEffect(() => {
-    if (autoValidate) {
-      handleValidate();
-    }
-  }, [input, autoValidate, handleValidate]);
+  useAutoRun(autoValidate, handleValidate);
 
   const handleFileLoaded = (content: string) => {
     setInput(content);

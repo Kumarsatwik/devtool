@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
+import { useAutoRun } from "@/hooks/use-auto-run";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout } from "@/components/shell/tool-page-layout";
@@ -113,11 +114,7 @@ export default function JsonSanitizerPage() {
     }
   }, [input, options]);
 
-  useEffect(() => {
-    if (autoSanitize) {
-      handleProcess();
-    }
-  }, [input, autoSanitize, handleProcess]);
+  useAutoRun(autoSanitize, handleProcess);
 
   const validation = validateJson(input);
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useAutoRun } from "@/hooks/use-auto-run";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout } from "@/components/shell/tool-page-layout";
@@ -47,11 +48,7 @@ export default function JSONBeautifierPage() {
   }, [input, spaces, mode]);
 
   // Live compile
-  useEffect(() => {
-    if (autoConvert) {
-      handleProcess();
-    }
-  }, [input, spaces, mode, autoConvert, handleProcess]);
+  useAutoRun(autoConvert, handleProcess);
 
   const handleFileLoaded = (content: string) => {
     setInput(content);

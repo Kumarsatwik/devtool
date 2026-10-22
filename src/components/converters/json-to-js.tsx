@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useAutoRun } from "@/hooks/use-auto-run";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { StatusMessage } from "@/components/status-message";
@@ -47,11 +48,7 @@ export default function JsonToJsPanel() {
   }, [input, spaces]);
 
   // Live compilation
-  useEffect(() => {
-    if (autoConvert) {
-      handleConvert();
-    }
-  }, [input, spaces, autoConvert, handleConvert]);
+  useAutoRun(autoConvert, handleConvert);
 
   const handleFileLoaded = (content: string) => {
     setInput(content);

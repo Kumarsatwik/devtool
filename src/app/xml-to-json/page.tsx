@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useAutoRun } from "@/hooks/use-auto-run";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
 import { ToolPageLayout } from "@/components/shell/tool-page-layout";
@@ -56,11 +57,7 @@ export default function XMLToJSONPage() {
   }, [input, smartTypes]);
 
   // Live compilation
-  useEffect(() => {
-    if (autoConvert) {
-      handleConvert();
-    }
-  }, [input, smartTypes, autoConvert, handleConvert]);
+  useAutoRun(autoConvert, handleConvert);
 
   return (
     <ToolPageLayout
