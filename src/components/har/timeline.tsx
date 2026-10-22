@@ -2,18 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { formatMs, type AnalyzedEntry, type HarAnalysis } from "@/lib/har";
-
-type TimelineFilter = "all" | "api" | "page" | "image" | "js" | "css" | "thirdparty";
-
-const TIMELINE_FILTERS: { key: TimelineFilter; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "api", label: "API" },
-  { key: "page", label: "Documents" },
-  { key: "image", label: "Images" },
-  { key: "js", label: "JavaScript" },
-  { key: "css", label: "CSS" },
-  { key: "thirdparty", label: "Third-party" },
-];
+import { TIMELINE_FILTERS, type TimelineFilter } from "@/lib/har/filters";
 
 const MAX_ROWS = 300;
 

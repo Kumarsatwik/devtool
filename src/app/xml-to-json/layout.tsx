@@ -3,7 +3,7 @@ import { buildToolMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildToolMetadata("/xml-to-json");
 
-export default function XmlToJsonLayout({
+export default function Layout({
   children,
 }: {
   children: React.ReactNode;

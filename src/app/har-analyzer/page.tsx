@@ -2,15 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ToolPageLayout } from "@/components/tool-page-layout";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
 import { PrivacyBadge } from "@/components/har/privacy-badge";
 import { EmptyState } from "@/components/har/empty-state";
 import { OverviewDashboard } from "@/components/har/overview";
+import { RequestExplorer } from "@/components/har/request-explorer";
 import {
-  RequestExplorer,
+  FILTER_LABELS,
   type ExplorerFilter,
   type ExplorerHandoff,
-} from "@/components/har/request-explorer";
+} from "@/lib/har/filters";
 import { RequestDrawer } from "@/components/har/request-drawer";
 import { TimelineView } from "@/components/har/timeline";
 import { DomainsView } from "@/components/har/domains-view";
@@ -21,197 +22,10 @@ import {
   type AnalyzedEntry,
   type HarAnalysis,
 } from "@/lib/har";
+import { SAMPLE_HAR } from "@/lib/har/sample";
+import { buildCsvReport, buildJsonReport } from "@/lib/har/report";
+import { downloadBlob } from "@/lib/download";
 import { FileJson, RefreshCw, Table } from "lucide-react";
-
-const sampleHar = JSON.stringify(
-  {
-    log: {
-      version: "1.2",
-      creator: { name: "DataTools Sample", version: "1.0" },
-      entries: [
-        {
-          startedDateTime: "2024-01-01T10:00:00.000Z",
-          time: 142.5,
-          request: {
-            method: "GET",
-            url: "https://example.com/",
-            headers: [{ name: "Accept", value: "text/html" }],
-          },
-          response: {
-            status: 200,
-            statusText: "OK",
-            headers: [
-              { name: "Content-Type", value: "text/html; charset=utf-8" },
-            ],
-            content: {
-              size: 18432,
-              mimeType: "text/html",
-              text: "<!DOCTYPE html>\n<html>\n<head><title>Example</title></head>\n<body>\n  <h1>Example Domain</h1>\n  <p>This domain is for use in examples.</p>\n</body>\n</html>",
-            },
-          },
-          timings: {
-            blocked: 2,
-            dns: 12,
-            connect: 34,
-            ssl: 28,
-            send: 1,
-            wait: 78,
-            receive: 15,
-          },
-        },
-        {
-          startedDateTime: "2024-01-01T10:00:00.210Z",
-          time: 2350,
-          request: {
-            method: "GET",
-            url: "https://example.com/assets/app.js",
-            headers: [{ name: "Accept", value: "*/*" }],
-          },
-          response: {
-            status: 200,
-            statusText: "OK",
-            headers: [
-              { name: "Content-Type", value: "application/javascript" },
-            ],
-            content: { size: 1240000, mimeType: "application/javascript" },
-          },
-          timings: {
-            blocked: 5,
-            dns: 0,
-            connect: 0,
-            send: 1,
-            wait: 1900,
-            receive: 444,
-          },
-        },
-        {
-          startedDateTime: "2024-01-01T10:00:01.050Z",
-          time: 89,
-          request: {
-            method: "GET",
-            url: "https://api.example.com/v1/user",
-            headers: [
-              { name: "Authorization", value: "Bearer eyJhbGciOi..." },
-              { name: "Origin", value: "https://example.com" },
-            ],
-          },
-          response: {
-            status: 401,
-            statusText: "Unauthorized",
-            headers: [{ name: "Content-Type", value: "application/json" }],
-            content: {
-              size: 96,
-              mimeType: "application/json",
-              text: '{"error":"invalid_token","message":"The access token has expired"}',
-            },
-          },
-          timings: {
-            blocked: 1,
-            dns: 8,
-            connect: 22,
-            ssl: 18,
-            send: 1,
-            wait: 54,
-            receive: 3,
-          },
-        },
-        {
-          startedDateTime: "2024-01-01T10:00:01.400Z",
-          time: 0,
-          request: {
-            method: "GET",
-            url: "https://fonts.othercdn.com/font.woff2",
-            headers: [{ name: "Origin", value: "https://example.com" }],
-          },
-          response: {
-            status: 0,
-            statusText: "",
-            headers: [],
-            content: { size: 0, mimeType: "" },
-          },
-          timings: {
-            blocked: -1,
-            dns: -1,
-            connect: -1,
-            send: 0,
-            wait: 0,
-            receive: 0,
-          },
-        },
-        {
-          startedDateTime: "2024-01-01T10:00:02.000Z",
-          time: 45,
-          request: {
-            method: "POST",
-            url: "https://api.example.com/v1/login",
-            headers: [
-              { name: "Content-Type", value: "application/json" },
-              { name: "Origin", value: "https://example.com" },
-            ],
-            postData: {
-              mimeType: "application/json",
-              text: '{"username":"demo@example.com","password":"••••••••"}',
-            },
-          },
-          response: {
-            status: 200,
-            statusText: "OK",
-            headers: [
-              { name: "Content-Type", value: "application/json" },
-              {
-                name: "Access-Control-Allow-Origin",
-                value: "https://example.com",
-              },
-            ],
-            content: {
-              size: 148,
-              mimeType: "application/json",
-              text: '{"token":"eyJhbGciOiJIUzI1NiIs...","expiresIn":3600,"user":{"id":42,"name":"Demo User"}}',
-            },
-          },
-          timings: {
-            blocked: 1,
-            dns: 6,
-            connect: 18,
-            ssl: 12,
-            send: 1,
-            wait: 30,
-            receive: 2,
-          },
-        },
-        {
-          startedDateTime: "2024-01-01T10:00:02.300Z",
-          time: 45,
-          request: {
-            method: "GET",
-            url: "https://example.com/old-page",
-            headers: [],
-          },
-          response: {
-            status: 301,
-            statusText: "Moved Permanently",
-            headers: [
-              { name: "Location", value: "https://example.com/new-page" },
-            ],
-            content: { size: 0, mimeType: "text/html" },
-            redirectURL: "https://example.com/new-page",
-          },
-          timings: {
-            blocked: 1,
-            dns: 9,
-            connect: 20,
-            ssl: 10,
-            send: 1,
-            wait: 12,
-            receive: 2,
-          },
-        },
-      ],
-    },
-  },
-  null,
-  2,
-);
 
 type MainTab = "overview" | "timeline" | "requests" | "domains";
 
@@ -222,118 +36,6 @@ const MAIN_TABS: { key: MainTab; label: string }[] = [
   { key: "domains", label: "Domains" },
 ];
 
-const FILTER_LABELS: Record<ExplorerFilter, string> = {
-  all: "All requests",
-  error: "Errors",
-  slow: "Slow requests",
-  large: "Large responses",
-  cors: "CORS issues",
-  thirdparty: "Third-party requests",
-  sensitive: "Sensitive data",
-  page: "Documents",
-  api: "API requests",
-  auth: "Authentication",
-  image: "Images",
-  js: "JavaScript",
-  css: "CSS",
-  font: "Fonts",
-  data: "Data",
-  analytics: "Analytics",
-  other: "Other",
-};
-
-function buildCsvReport(analysis: HarAnalysis): string {
-  const header = [
-    "index",
-    "method",
-    "status",
-    "statusText",
-    "category",
-    "host",
-    "path",
-    "url",
-    "time_ms",
-    "size_bytes",
-    "is_third_party",
-    "issues",
-    "mime_type",
-  ].join(",");
-  const rows = analysis.entries.map((e) =>
-    [
-      e.index,
-      e.method,
-      e.status,
-      `"${(e.statusText || "").replace(/"/g, '""')}"`,
-      e.category,
-      e.host,
-      `"${e.path.replace(/"/g, '""')}"`,
-      `"${e.url.replace(/"/g, '""')}"`,
-      e.timeMs,
-      e.sizeBytes,
-      e.isThirdParty ? 1 : 0,
-      `"${e.issues
-        .map((i) => `${i.kind}:${i.label}`)
-        .join(" | ")
-        .replace(/"/g, '""')}"`,
-      e.mimeType,
-    ].join(","),
-  );
-  return [header, ...rows].join("\n");
-}
-
-function buildJsonReport(analysis: HarAnalysis): string {
-  const report = {
-    generatedAt: new Date().toISOString(),
-    summary: {
-      creator: analysis.creator,
-      firstPartyHost: analysis.firstPartyHost,
-      totalRequests: analysis.totalRequests,
-      totalSizeBytes: analysis.totalSizeBytes,
-      totalTimeMs: analysis.totalTimeMs,
-      ttfbMedianMs: analysis.ttfbMedianMs,
-      lcpHeuristicMs: analysis.lcpHeuristicMs,
-      uniqueHosts: analysis.uniqueHosts,
-      errorCount: analysis.errorCount,
-      errors4xx: analysis.errors4xx,
-      errors5xx: analysis.errors5xx,
-      failedCount: analysis.failedCount,
-      corsCount: analysis.corsCount,
-      authCount: analysis.authCount,
-      redirectCount: analysis.redirectCount,
-      slowCount: analysis.slowCount,
-      largeCount: analysis.largeCount,
-      thirdPartyCount: analysis.thirdPartyCount,
-      sensitiveRequestCount: analysis.sensitiveRequestCount,
-      slowest: analysis.slowest
-        ? { url: analysis.slowest.url, timeMs: analysis.slowest.timeMs }
-        : null,
-      largest: analysis.largest
-        ? { url: analysis.largest.url, sizeBytes: analysis.largest.sizeBytes }
-        : null,
-      lcpHeuristicEntry: analysis.lcpHeuristicEntry
-        ? {
-            url: analysis.lcpHeuristicEntry.url,
-            sizeBytes: analysis.lcpHeuristicEntry.sizeBytes,
-          }
-        : null,
-    },
-    categoryCounts: analysis.categoryCounts,
-    domains: analysis.domains,
-  };
-  return JSON.stringify(report, null, 2);
-}
-
-function downloadBlob(filename: string, content: string, mime: string) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 
 export default function HarAnalyzerPage() {
   const [analysis, setAnalysis] = useState<HarAnalysis | null>(null);
@@ -430,7 +132,7 @@ export default function HarAnalyzerPage() {
       >
         <EmptyState
           onFileLoaded={handleLoaded}
-          onLoadSample={() => handleLoaded(sampleHar)}
+          onLoadSample={() => handleLoaded(SAMPLE_HAR)}
           error={error}
         />
       </ToolPageLayout>

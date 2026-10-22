@@ -24,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   buildSlideDeck,
-  SLIDE_BRIDGE_TAG,
+  DECK_BRIDGE_TAG,
   SLIDE_CMD_TAG,
   SLIDE_THEMES,
   SLIDE_TRANSITIONS,
@@ -148,7 +148,7 @@ export function SlideDeck({ title, editorHtml, onClose }: SlideDeckProps) {
     const onMessage = (event: MessageEvent) => {
       const data = event.data as
         | {
-            [SLIDE_BRIDGE_TAG]?: boolean;
+            [DECK_BRIDGE_TAG]?: boolean;
             index?: number;
             total?: number;
             overview?: boolean;
@@ -158,7 +158,7 @@ export function SlideDeck({ title, editorHtml, onClose }: SlideDeckProps) {
             fullscreen?: boolean;
           }
         | undefined;
-      if (!data || data[SLIDE_BRIDGE_TAG] !== true) return;
+      if (!data || data[DECK_BRIDGE_TAG] !== true) return;
       if (iframeRef.current && event.source !== iframeRef.current.contentWindow) return;
       if (data.fullscreen === true) {
         toggleFullscreen();
@@ -474,7 +474,7 @@ export function SlideDeck({ title, editorHtml, onClose }: SlideDeckProps) {
             <iframe
               ref={iframeRef}
               title={`Slides for ${snapshot.title}`}
-              sandbox="allow-scripts allow-modals allow-popups-to-escape-sandbox"
+              sandbox="allow-scripts allow-modals"
               srcDoc={doc}
               tabIndex={-1}
               className="h-full w-full border-0"

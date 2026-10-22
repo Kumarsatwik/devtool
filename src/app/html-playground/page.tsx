@@ -5,8 +5,10 @@ import type { LucideIcon } from "lucide-react";
 import { saveAs } from "file-saver";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { ToolPageLayout } from "@/components/tool-page-layout";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
 import { SplitDivider, useSplitResize } from "@/components/resizable-split";
+import { buildDocument } from "@/lib/html-playground";
+import { useCopyFeedback } from "@/hooks/use-copy-feedback";
 import {
   AlertTriangle,
   Braces,
@@ -14,7 +16,6 @@ import {
   Copy,
   Check,
   Eraser,
-  ExternalLink,
   FileCode2,
   Info,
   MonitorPlay,
@@ -99,89 +100,6 @@ const PANES: {
   { id: "js", label: "JS", language: "javascript", icon: Braces, sample: SAMPLE_JS, downloadName: "script.js" },
 ];
 
-/**
- * Injected into the preview before user code. Relays console calls and
- * runtime errors back to the parent page via postMessage. Keep this free
- * of backticks and template placeholders — it ships as a plain string.
- */
-const CONSOLE_BRIDGE = `<script>
-(function () {
-  var send = function (level, args) {
-    try { parent.postMessage({ __htmlPlayground: true, level: level, args: args }, "*"); } catch (e) {}
-  };
-  var format = function (value, depth) {
-    try {
-      if (value instanceof Error) return value.stack || (value.name + ": " + value.message);
-      if (typeof value === "function") return "[Function" + (value.name ? ": " + value.name : "") + "]";
-      if (typeof value === "string") return value;
-      if (value === undefined) return "undefined";
-      if (value instanceof Element) return "<" + value.tagName.toLowerCase() + ">";
-      if (depth > 3) return "…";
-      return JSON.stringify(value, function (key, val) {
-        if (typeof val === "function") return "[Function]";
-        if (typeof val === "bigint") return String(val) + "n";
-        return val;
-      }, 2) || String(value);
-    } catch (err) { return String(value); }
-  };
-  ["log", "info", "warn", "error", "debug"].forEach(function (method) {
-    var original = console[method].bind(console);
-    console[method] = function () {
-      var args = Array.prototype.slice.call(arguments).map(function (v) { return format(v, 0); });
-      send(method === "debug" ? "log" : method, args);
-      original.apply(null, arguments);
-    };
-  });
-  window.addEventListener("error", function (event) {
-    send("error", [event.message + "  (" + (event.filename || "inline") + ":" + event.lineno + ":" + event.colno + ")"]);
-  });
-  window.addEventListener("unhandledrejection", function (event) {
-    send("error", ["Unhandled promise rejection: " + format(event.reason, 0)]);
-  });
-})();
-</script>`;
-
-/**
- * Content-Security-Policy compiled into the preview/standalone document.
- * The iframe `sandbox` attribute isolates the origin and storage, but it does
- * NOT block network requests — this CSP denies every external fetch (scripts,
- * styles, images, fonts, XHR/WebSockets, form navigations). Inline code and
- * data:/blob: URLs stay allowed so normal playground code keeps working.
- */
-const PREVIEW_CSP = [
-  "default-src 'none'",
-  "script-src 'unsafe-inline'",
-  "style-src 'unsafe-inline'",
-  "img-src data: blob:",
-  "font-src data: blob:",
-  "media-src data: blob:",
-  "connect-src data: blob:",
-  "form-action 'none'",
-  "base-uri 'none'",
-].join("; ");
-
-function buildDocument(html: string, css: string, js: string, includeBridge: boolean): string {
-  return [
-    "<!DOCTYPE html>",
-    '<html lang="en">',
-    "<head>",
-    '<meta charset="utf-8" />',
-    '<meta name="viewport" content="width=device-width, initial-scale=1" />',
-    `<meta http-equiv="Content-Security-Policy" content="${PREVIEW_CSP}" />`,
-    "<style>",
-    css,
-    "</style>",
-    "</head>",
-    "<body>",
-    html,
-    includeBridge ? CONSOLE_BRIDGE : "",
-    "<script>",
-    js,
-    "</script>",
-    "</body>",
-    "</html>",
-  ].join("\n");
-}
 
 const MAX_CONSOLE_ENTRIES = 200;
 const AUTORUN_DELAY_MS = 400;
@@ -203,7 +121,7 @@ export default function HtmlPlaygroundPage() {
   const [autoRun, setAutoRun] = useState(true);
   const [srcDoc, setSrcDoc] = useState(() => buildDocument(SAMPLE_HTML, SAMPLE_CSS, SAMPLE_JS, true));
   const [consoleEntries, setConsoleEntries] = useState<ConsoleEntry[]>([]);
-  const [consoleCopied, setConsoleCopied] = useState(false);
+  const { copied: consoleCopied, copy: copyConsole } = useCopyFeedback();
   const [outputView, setOutputView] = useState<"preview" | "console">("preview");
 
   const { isResizing, containerRef, dividerProps, containerStyle } = useSplitResize();
@@ -270,23 +188,10 @@ export default function HtmlPlaygroundPage() {
     saveAs(blob, "playground.html");
   };
 
-  const handleOpenInNewTab = () => {
-    const blob = new Blob([buildDocument(panes.html, panes.css, panes.js, false)], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank", "noopener,noreferrer");
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
-  };
-
   const handleCopyConsole = async () => {
     if (consoleEntries.length === 0) return;
     const text = consoleEntries.map((e) => `[${e.level}] ${e.text}`).join("\n");
-    try {
-      await navigator.clipboard.writeText(text);
-      setConsoleCopied(true);
-      setTimeout(() => setConsoleCopied(false), 2000);
-    } catch {
-      // ignore
-    }
+    await copyConsole(text);
   };
 
   const pane = PANES.find((p) => p.id === activePane) ?? PANES[0];
@@ -294,25 +199,13 @@ export default function HtmlPlaygroundPage() {
   return (
     <ToolPageLayout
       title="HTML Playground"
-      description="Write HTML, CSS, and JavaScript with a live sandboxed preview and console. All network access is blocked inside the preview."
+      description="Write HTML, CSS, and JavaScript with a live origin-isolated preview and console. External fetches, forms, and popups are blocked by the preview policy."
     >
       <div className="h-full flex flex-col gap-4">
         {/* Sandbox Bar */}
         <div className="flex flex-wrap items-center justify-end gap-4 border border-border bg-card p-3 rounded text-xs select-none shadow-none shrink-0">
 
           <div className="flex flex-wrap items-center gap-3">
-            {/* Open standalone build in a new tab */}
-            <Button
-              variant="ghost"
-              size="xs"
-              className="h-6 gap-1 px-2 text-muted-foreground hover:text-foreground hover:bg-muted/70"
-              onClick={handleOpenInNewTab}
-              title="Open compiled page in a new tab"
-            >
-              <ExternalLink className="h-3 w-3" />
-              <span>Open</span>
-            </Button>
-
             {/* Download standalone HTML */}
             <Button
               variant="ghost"
@@ -483,7 +376,7 @@ export default function HtmlPlaygroundPage() {
               <iframe
                 ref={iframeRef}
                 title="HTML Preview"
-                sandbox="allow-scripts allow-modals allow-forms allow-popups"
+                sandbox="allow-scripts allow-modals"
                 srcDoc={srcDoc}
                 className={`w-full h-full border-0 bg-white ${isResizing ? "pointer-events-none" : ""}`}
               />

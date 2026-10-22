@@ -3,7 +3,7 @@ import { buildToolMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildToolMetadata("/har-analyzer");
 
-export default function HarAnalyzerLayout({
+export default function Layout({
   children,
 }: {
   children: React.ReactNode;

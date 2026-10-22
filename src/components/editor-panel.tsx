@@ -4,18 +4,17 @@ import dynamic from "next/dynamic";
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/components/theme-provider";
+import { useTheme } from "@/components/shell/theme-provider";
 import { Copy, Check, Download, Trash2, FileText, Upload, RefreshCw } from "lucide-react";
 import { saveAs } from "file-saver";
 import { configureMonacoLoader } from "@/lib/monaco-config";
+import { fileSizeError } from "@/lib/upload";
+import { useCopyFeedback } from "@/hooks/use-copy-feedback";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
 
 // Serve the editor from the self-hosted copy in public/monaco/vs (no CDN).
 configureMonacoLoader();
-
-/** Matches the size limit enforced by the drag-and-drop FileUpload component. */
-const MAX_UPLOAD_MB = 10;
 
 interface EditorPanelProps {
   value: string;
@@ -60,7 +59,7 @@ export function EditorPanel({
 }: EditorPanelProps) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyFeedback();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setMounted(true), []);
@@ -75,12 +74,8 @@ export function EditorPanel({
 
   const handleCopy = async () => {
     if (!value) return;
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
+    if (!(await copy(value))) {
+      console.error("Failed to copy");
     }
   };
 
@@ -104,10 +99,9 @@ export function EditorPanel({
     const accepted = accept ?? fileType.accept;
 
     // Keep validation consistent with the drag-and-drop FileUpload component.
-    if (file.size > MAX_UPLOAD_MB * 1024 * 1024) {
-      window.alert(
-        `"${file.name}" is too large. Uploads are limited to ${MAX_UPLOAD_MB}MB.`,
-      );
+    const sizeError = fileSizeError(file);
+    if (sizeError) {
+      window.alert(sizeError);
       e.target.value = "";
       return;
     }

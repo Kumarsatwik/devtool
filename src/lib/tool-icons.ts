@@ -1,0 +1,42 @@
+import {
+  ArrowLeftRight,
+  Braces,
+  CheckCircle,
+  Clock,
+  Code2,
+  CodeXml,
+  FileCode2,
+  FileSpreadsheet,
+  FileText,
+  Microscope,
+  Network,
+  PenTool,
+  Repeat,
+  ShieldCheck,
+  Sparkles,
+  SquarePlay,
+  Workflow,
+  type LucideIcon,
+} from "lucide-react";
+
+export const TOOL_ICONS = {
+  arrowLeftRight: ArrowLeftRight,
+  braces: Braces,
+  checkCircle: CheckCircle,
+  clock: Clock,
+  code: Code2,
+  codeXml: CodeXml,
+  fileCode: FileCode2,
+  fileSpreadsheet: FileSpreadsheet,
+  fileText: FileText,
+  microscope: Microscope,
+  network: Network,
+  penTool: PenTool,
+  repeat: Repeat,
+  shieldCheck: ShieldCheck,
+  sparkles: Sparkles,
+  squarePlay: SquarePlay,
+  workflow: Workflow,
+} satisfies Record<string, LucideIcon>;
+
+export type ToolIconName = keyof typeof TOOL_ICONS;

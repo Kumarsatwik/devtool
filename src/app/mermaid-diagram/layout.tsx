@@ -3,7 +3,7 @@ import { buildToolMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildToolMetadata("/mermaid-diagram");
 
-export default function MermaidDiagramLayout({
+export default function Layout({
   children,
 }: {
   children: React.ReactNode;

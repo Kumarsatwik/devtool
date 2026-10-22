@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useAutoRun } from "@/hooks/use-auto-run";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { ToolPageLayout } from "@/components/tool-page-layout";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
-import { validateJSON } from "@/lib/json";
+import { validateJson } from "@/lib/json";
+import { byteLength } from "@/lib/bytes";
 import { AlertCircle, CheckCircle2, ShieldCheck, Terminal, Info } from "lucide-react";
 
 const sampleJSON = `{
@@ -34,15 +36,11 @@ export default function JSONValidatorPage() {
       setValidation(null);
       return;
     }
-    setValidation(validateJSON(input));
+    setValidation(validateJson(input));
   }, [input]);
 
   // Live validation
-  useEffect(() => {
-    if (autoValidate) {
-      handleValidate();
-    }
-  }, [input, autoValidate, handleValidate]);
+  useAutoRun(autoValidate, handleValidate);
 
   const handleFileLoaded = (content: string) => {
     setInput(content);
@@ -68,7 +66,7 @@ export default function JSONValidatorPage() {
   const getJSONMetrics = (parsed: unknown) => {
     if (parsed && typeof parsed === "object") {
       const keys = Object.keys(parsed);
-      const size = new Blob([input]).size;
+      const size = byteLength(input);
       return {
         keys: keys.length,
         size: (size / 1024).toFixed(2) + " KB",

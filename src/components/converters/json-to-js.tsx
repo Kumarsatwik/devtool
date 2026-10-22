@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useAutoRun } from "@/hooks/use-auto-run";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { StatusMessage } from "@/components/tool-page-layout";
+import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
-import { validateJSON } from "@/lib/json";
+import { jsonToJs, validateJson } from "@/lib/json";
+import { byteLength } from "@/lib/bytes";
 import { AlertCircle, CheckCircle2, Settings2, Sparkles } from "lucide-react";
 
 const sampleJSON = `{
@@ -21,51 +23,7 @@ const sampleJSON = `{
   }
 }`;
 
-function jsonToJS(json: string, spaces: number = 2): string {
-  const parsed = JSON.parse(json);
-
-  const formatValue = (value: unknown, indent: string): string => {
-    if (value === null) return "null";
-    if (value === undefined) return "undefined";
-
-    if (typeof value === "string") return JSON.stringify(value);
-    if (typeof value === "number" || typeof value === "boolean") return String(value);
-
-    if (Array.isArray(value)) {
-      if (value.length === 0) return "[]";
-      const items = value.map((item) => {
-        const formatted = formatValue(item, indent + "  ");
-        return item && typeof item === "object"
-          ? `\n${indent}  ${formatted}`
-          : ` ${formatted}`;
-      });
-      const hasObjects = value.some((item) => typeof item === "object");
-      if (hasObjects) return `[${items.join(",")}\n${indent}]`;
-      return `[${items.join(",")} ]`;
-    }
-
-    if (typeof value === "object") {
-      const keys = Object.keys(value as Record<string, unknown>);
-      if (keys.length === 0) return "{}";
-      const indentStr = typeof spaces === "number" ? " ".repeat(spaces) : spaces;
-      const formattedKeys = keys.map((key) => {
-        const needsQuotes = !/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key);
-        const keyStr = needsQuotes || key === "__proto__"
-          ? key === "__proto__" ? `[${JSON.stringify(key)}]` : JSON.stringify(key)
-          : key;
-        const valueStr = formatValue((value as Record<string, unknown>)[key], indent + indentStr);
-        return `${indent}${indentStr}${keyStr}: ${valueStr}`;
-      });
-      return `{\n${formattedKeys.join(",\n")}\n${indent}}`;
-    }
-
-    return "undefined";
-  };
-
-  return formatValue(parsed, "");
-}
-
-export default function JSONToJSPage() {
+export default function JsonToJsPanel() {
   const [input, setInput] = useState(sampleJSON);
   const [output, setOutput] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +39,7 @@ export default function JSONToJSPage() {
 
     try {
       setError(null);
-      const js = jsonToJS(input, spaces);
+      const js = jsonToJs(input, spaces);
       setOutput(js);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Conversion failed");
@@ -90,17 +48,13 @@ export default function JSONToJSPage() {
   }, [input, spaces]);
 
   // Live compilation
-  useEffect(() => {
-    if (autoConvert) {
-      handleConvert();
-    }
-  }, [input, spaces, autoConvert, handleConvert]);
+  useAutoRun(autoConvert, handleConvert);
 
   const handleFileLoaded = (content: string) => {
     setInput(content);
   };
 
-  const validation = validateJSON(input);
+  const validation = validateJson(input);
 
   return (
       <div className="h-full flex flex-col gap-4">
@@ -217,8 +171,8 @@ export default function JSONToJSPage() {
                     <span className="font-semibold text-foreground">Valid JSON syntax check.</span>
                   </div>
                   <div className="text-xs text-muted-foreground flex items-center gap-4">
-                    <span>Input Size: <strong className="text-foreground">{new Blob([input]).size} Bytes</strong></span>
-                    <span>Output Size: <strong className="text-foreground">{new Blob([output]).size} Bytes</strong></span>
+                    <span>Input Size: <strong className="text-foreground">{byteLength(input)} Bytes</strong></span>
+                    <span>Output Size: <strong className="text-foreground">{byteLength(output)} Bytes</strong></span>
                   </div>
                 </div>
               </>

@@ -3,9 +3,12 @@
 import React, { useState, useRef, useCallback } from "react";
 import { Upload, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MAX_UPLOAD_MB } from "@/lib/upload";
 
 interface FileUploadProps {
-  onFileLoaded: (content: string, fileName: string) => void;
+  onFileLoaded?: (content: string, fileName: string) => void;
+  onBinaryLoaded?: (content: ArrayBuffer, fileName: string) => void;
+  readAs?: "text" | "arrayBuffer";
   accept: string;
   maxSizeMB?: number;
   label?: string;
@@ -14,8 +17,10 @@ interface FileUploadProps {
 
 export function FileUpload({
   onFileLoaded,
+  onBinaryLoaded,
+  readAs = "text",
   accept,
-  maxSizeMB = 10,
+  maxSizeMB = MAX_UPLOAD_MB,
   label = "Drag and drop your file here, or click to browse",
   className,
 }: FileUploadProps) {
@@ -50,8 +55,12 @@ export function FileUpload({
     
     reader.onload = (e) => {
       const result = e.target?.result;
-      if (typeof result === "string") {
-        onFileLoaded(result, file.name);
+      if (readAs === "arrayBuffer" && result instanceof ArrayBuffer) {
+        onBinaryLoaded?.(result, file.name);
+        setSuccess(`Loaded: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
+        setTimeout(() => setSuccess(null), 3000);
+      } else if (readAs === "text" && typeof result === "string") {
+        onFileLoaded?.(result, file.name);
         setSuccess(`Loaded: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(null), 3000);
@@ -66,8 +75,9 @@ export function FileUpload({
       setLoading(false);
     };
 
-    reader.readAsText(file);
-  }, [accept, maxSizeMB, onFileLoaded]);
+    if (readAs === "arrayBuffer") reader.readAsArrayBuffer(file);
+    else reader.readAsText(file);
+  }, [accept, maxSizeMB, onFileLoaded, onBinaryLoaded, readAs]);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();

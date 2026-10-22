@@ -3,7 +3,7 @@ import { buildToolMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildToolMetadata("/markdown-preview");
 
-export default function MarkdownPreviewLayout({
+export default function Layout({
   children,
 }: {
   children: React.ReactNode;

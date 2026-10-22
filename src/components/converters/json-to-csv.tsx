@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useAutoRun } from "@/hooks/use-auto-run";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { StatusMessage } from "@/components/tool-page-layout";
+import { StatusMessage } from "@/components/status-message";
 import { FileUpload } from "@/components/file-upload";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ResizableSplit } from "@/components/resizable-split";
-import { jsonToCSV } from "@/lib/csv";
-import { validateJSON } from "@/lib/json";
+import { jsonToCsv } from "@/lib/csv";
+import { validateJson } from "@/lib/json";
 import {
   AlertCircle,
   CheckCircle2,
@@ -25,7 +26,7 @@ const sampleJSON = `[
   {"name": "Bob Vance", "age": 41, "city": "Scranton", "role": "Refrigeration Specialist"}
 ]`;
 
-export default function JSONToCSVPage() {
+export default function JsonToCsvPanel() {
   const [input, setInput] = useState(sampleJSON);
   const [output, setOutput] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +48,7 @@ export default function JSONToCSVPage() {
 
     try {
       setError(null);
-      const validation = validateJSON(input);
+      const validation = validateJson(input);
       if (!validation.valid) {
         setError(validation.error || "Malformed JSON data");
         setHeaders([]);
@@ -70,7 +71,7 @@ export default function JSONToCSVPage() {
         return;
       }
 
-      const csv = jsonToCSV(parsedData);
+      const csv = jsonToCsv(parsedData);
       setOutput(csv);
 
       // Extract unique keys as headers
@@ -91,11 +92,7 @@ export default function JSONToCSVPage() {
   }, [input]);
 
   // Live compile
-  useEffect(() => {
-    if (autoConvert) {
-      handleConvert();
-    }
-  }, [input, autoConvert, handleConvert]);
+  useAutoRun(autoConvert, handleConvert);
 
   const handleFileLoaded = (content: string) => {
     setInput(content);

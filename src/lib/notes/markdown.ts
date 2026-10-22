@@ -1,5 +1,3 @@
-"use client";
-
 import { marked } from "marked";
 import TurndownService from "turndown";
 // @ts-expect-error - no type definitions shipped for turndown-plugin-gfm

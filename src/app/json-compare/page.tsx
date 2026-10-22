@@ -5,10 +5,11 @@ import dynamic from "next/dynamic";
 import type { editor } from "monaco-editor";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
+import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
-import { useTheme } from "@/components/theme-provider";
-import { sortJSONValue, validateJSON } from "@/lib/json";
+import { useTheme } from "@/components/shell/theme-provider";
+import { sortJsonValue, validateJson } from "@/lib/json";
 import {
   CheckCircle2,
   Edit3,
@@ -122,15 +123,15 @@ export default function JSONComparePage() {
   const [splitLayout, setSplitLayout] = useState(true); // true = split, false = unified
   const [sortKeys, setSortKeys] = useState(false);
 
-  const validation1 = useMemo(() => validateJSON(input1), [input1]);
-  const validation2 = useMemo(() => validateJSON(input2), [input2]);
+  const validation1 = useMemo(() => validateJson(input1), [input1]);
+  const validation2 = useMemo(() => validateJson(input2), [input2]);
 
   const source1 = useMemo(
-    () => (sortKeys && validation1.valid ? sortJSONValue(validation1.parsed) : input1),
+    () => (sortKeys && validation1.valid ? sortJsonValue(validation1.parsed) : input1),
     [sortKeys, input1, validation1],
   );
   const source2 = useMemo(
-    () => (sortKeys && validation2.valid ? sortJSONValue(validation2.parsed) : input2),
+    () => (sortKeys && validation2.valid ? sortJsonValue(validation2.parsed) : input2),
     [sortKeys, input2, validation2],
   );
 

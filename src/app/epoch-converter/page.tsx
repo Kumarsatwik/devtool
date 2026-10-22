@@ -1,57 +1,18 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { ToolPageLayout } from "@/components/tool-page-layout";
-import { Copy, Check, RefreshCw } from "lucide-react";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
+import { ResultRow } from "@/components/epoch/result-row";
+import {
+  getMs,
+  fmtTz,
+  toLocalInput,
+  IST_TIMEZONE,
+  UTC_TIMEZONE,
+  type EpochUnit,
+} from "@/lib/epoch";
+import { RefreshCw } from "lucide-react";
 
-type EpochUnit = "seconds" | "milliseconds";
-
-const IST_TIMEZONE = "Asia/Kolkata";
-const UTC_TIMEZONE = "UTC";
-
-function getMs(epoch: number, unit: EpochUnit) {
-  return unit === "seconds" ? epoch * 1000 : epoch;
-}
-
-function fmtTz(date: Date, tz: string) {
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: tz,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  }).format(date);
-}
-
-function pad(n: number) {
-  return n.toString().padStart(2, "0");
-}
-
-function toLocalInput(date: Date) {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
-    date.getHours(),
-  )}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-}
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {}
-  };
-  return (
-    <button onClick={handleCopy} className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-2 shrink-0 flex items-center gap-1">
-      {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-      {copied ? "Copied" : "Copy"}
-    </button>
-  );
-}
 
 export default function EpochConverterPage() {
   // Inputs start empty and are filled with "now" after mount: time-dependent
@@ -215,15 +176,3 @@ export default function EpochConverterPage() {
   );
 }
 
-function ResultRow({ label, value, extra, mono, copy }: { label: string; value: string; extra?: string; mono?: boolean; copy: string }) {
-  return (
-    <div className="flex flex-col gap-0.5 p-2.5 rounded bg-muted/10 text-xs border border-border/50">
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
-        {extra ? <span className="text-xs text-muted-foreground">{extra}</span> : <CopyButton text={copy} />}
-      </div>
-      <span className={`text-sm font-bold text-foreground break-all ${mono ? "font-mono" : ""}`}>{value}</span>
-      {extra && <div className="flex items-center justify-end"><CopyButton text={copy} /></div>}
-    </div>
-  );
-}

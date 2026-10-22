@@ -2,69 +2,18 @@
 
 import { useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import { TextStyleKit } from "@tiptap/extension-text-style";
-import Highlight from "@tiptap/extension-highlight";
-import Image from "@tiptap/extension-image";
-import TaskList from "@tiptap/extension-task-list";
-import TaskItem from "@tiptap/extension-task-item";
-import {
-  Table,
-  TableRow,
-  TableCell,
-  TableHeader,
-} from "@tiptap/extension-table";
 
-import { ToolPageLayout } from "@/components/tool-page-layout";
-import { DiagramBlock } from "@/components/notes/diagram-block";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
+import { extensions } from "@/components/notes/extensions";
+import { WELCOME_HTML } from "@/lib/notes/welcome-content";
 import { NotePreview } from "@/components/notes/note-preview";
 import { SlideDeck } from "@/components/notes/slide-deck";
-import { Toolbar, type ExportFormat } from "@/components/notes/toolbar";
+import { Toolbar } from "@/components/notes/toolbar";
 import { MarkdownPane } from "@/components/notes/markdown-pane";
 import { SplitDivider, useSplitResize } from "@/components/resizable-split";
 import { markdownToHtml } from "@/lib/notes/markdown";
-import {
-  exportAsDocx,
-  exportAsHtml,
-  exportAsMarkdown,
-  exportAsTxt,
-} from "@/lib/notes/exporters";
-import "./notes.css";
-
-const extensions = [
-  StarterKit.configure({
-    link: { openOnClick: false },
-    codeBlock: { HTMLAttributes: { class: "code-block" } },
-  }),
-  TextStyleKit,
-  Highlight.configure({ multicolor: true }),
-  Image.configure({ inline: false, allowBase64: true }),
-  TaskList,
-  TaskItem.configure({ nested: true }),
-  Table.configure({ resizable: false }),
-  TableRow,
-  TableHeader,
-  TableCell,
-  DiagramBlock,
-];
-
-const WELCOME_HTML = `
-<h2>Welcome 👋</h2>
-<p>This is a <strong>rich text</strong> note editor with <em>italic</em>, <u>underline</u>, <mark>highlight</mark> and full <strong>Markdown</strong> support.</p>
-<ul>
-  <li>Use the toolbar to format text, change fonts and sizes</li>
-  <li>Insert images — they are embedded right into the note</li>
-  <li>Add Mermaid diagrams with a live preview</li>
-  <li>Open / save <code>.md</code> files, export to HTML, DOCX, TXT</li>
-</ul>
-<pre data-type="mermaid"><code>graph LR
-  A[Write notes] --> B{Format}
-  B --> C[Markdown]
-  B --> D[Rich text]
-  C --> E[Export: HTML / DOCX / TXT]
-  D --> E</code></pre>
-<blockquote><p>Tip: switch to the Markdown pane to edit raw markdown side by side.</p></blockquote>
-`;
+import { useNoteExport } from "@/hooks/use-note-export";
+import "@/components/notes/notes.css";
 
 export default function MarkdownPreviewPage() {
   const [title, setTitle] = useState("Welcome");
@@ -72,7 +21,6 @@ export default function MarkdownPreviewPage() {
   const [showMarkdown, setShowMarkdown] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [slidesOpen, setSlidesOpen] = useState(false);
-  const [exporting, setExporting] = useState<ExportFormat | null>(null);
 
   // 55% preserves the share the markdown pane had before it became draggable.
   const { isResizing, containerRef: workspaceRef, dividerProps, containerStyle } =
@@ -91,42 +39,14 @@ export default function MarkdownPreviewPage() {
     },
   });
 
+  const { exporting, handleExport } = useNoteExport(editor, title);
+
   const handleOpenFile = async (file: File) => {
     const text = await file.text();
     const nextHtml = markdownToHtml(text);
     setTitle(file.name.replace(/\.(md|markdown|txt)$/i, ""));
     setHtml(nextHtml);
     editor?.commands.setContent(nextHtml, { emitUpdate: false });
-  };
-
-  const handleExport = async (format: ExportFormat) => {
-    if (!editor) return;
-    const noteTitle = title || "Untitled note";
-    const editorHtml = editor.getHTML();
-    setExporting(format);
-    try {
-      switch (format) {
-        case "md":
-          exportAsMarkdown(noteTitle, editorHtml);
-          break;
-        case "txt":
-          exportAsTxt(noteTitle, editorHtml);
-          break;
-        case "html":
-          await exportAsHtml(noteTitle, editorHtml);
-          break;
-        case "docx":
-          await exportAsDocx(noteTitle, editorHtml);
-          break;
-      }
-    } catch (err) {
-      console.error(err);
-      window.alert(
-        `Export failed: ${err instanceof Error ? err.message : String(err)}`,
-      );
-    } finally {
-      setExporting(null);
-    }
   };
 
   return (

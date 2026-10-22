@@ -3,7 +3,7 @@ import { buildToolMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildToolMetadata("/json-validator");
 
-export default function JsonValidatorLayout({
+export default function Layout({
   children,
 }: {
   children: React.ReactNode;

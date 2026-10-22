@@ -1,7 +1,7 @@
 "use client";
 
-import { resolveDiagrams } from "./diagram-html";
-import { escapeHtml } from "./markdown";
+import { resolveDiagrams } from "./diagram-html.ts";
+import { escapeHtml } from "./markdown.ts";
 
 /* ---------------- slide model ---------------- */
 
@@ -157,7 +157,7 @@ export interface SlideDeckOptions {
   standalone?: boolean;
 }
 
-const DECK_BRIDGE_TAG = "__markdownSlides";
+export const DECK_BRIDGE_TAG = "__markdownSlides";
 
 const DECK_CSP = [
   "default-src 'none'",
@@ -730,7 +730,6 @@ function deckScript(total: number, initialTransition: SlideTransition = "fade"):
 
 /* ---------------- public builders ---------------- */
 
-export const SLIDE_BRIDGE_TAG = DECK_BRIDGE_TAG;
 export const SLIDE_CMD_TAG = "__markdownSlidesCmd";
 
 export interface SlideDeckInfo {

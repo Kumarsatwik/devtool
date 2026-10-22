@@ -3,7 +3,7 @@ import { buildToolMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildToolMetadata("/html-playground");
 
-export default function HtmlPlaygroundLayout({
+export default function Layout({
   children,
 }: {
   children: React.ReactNode;

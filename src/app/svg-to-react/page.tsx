@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
+import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import {
@@ -11,6 +12,8 @@ import {
   SAMPLE_SVG,
   type SvgToReactOptions,
 } from "@/lib/svg-to-react";
+import { sanitizeSvgForPreview } from "@/lib/svg-sanitize";
+import { useCopyFeedback } from "@/hooks/use-copy-feedback";
 import {
   AlertCircle,
   CheckCircle2,
@@ -32,7 +35,7 @@ export default function SvgToReactPage() {
   const [output, setOutput] = useState("");
   const [previewSvg, setPreviewSvg] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyFeedback();
   const [activeTab, setActiveTab] = useState<"preview" | "code">("preview");
 
   const [componentName, setComponentName] = useState(DEFAULT_COMPONENT_NAME);
@@ -84,13 +87,7 @@ export default function SvgToReactPage() {
 
   const handleCopy = async () => {
     if (!output) return;
-    try {
-      await navigator.clipboard.writeText(output);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // ignore
-    }
+    await copy(output);
   };
 
   const handleDownload = () => {
@@ -386,104 +383,3 @@ export default function SvgToReactPage() {
   );
 }
 
-const SAFE_SVG_ELEMENTS = new Set([
-  "svg",
-  "g",
-  "defs",
-  "path",
-  "rect",
-  "circle",
-  "ellipse",
-  "line",
-  "polyline",
-  "polygon",
-  "text",
-  "tspan",
-  "textPath",
-  "title",
-  "desc",
-  "linearGradient",
-  "radialGradient",
-  "stop",
-  "clipPath",
-  "mask",
-  "pattern",
-  "marker",
-  "symbol",
-  "use",
-  "filter",
-  "feBlend",
-  "feColorMatrix",
-  "feComponentTransfer",
-  "feComposite",
-  "feConvolveMatrix",
-  "feDiffuseLighting",
-  "feDisplacementMap",
-  "feDistantLight",
-  "feDropShadow",
-  "feFlood",
-  "feFuncA",
-  "feFuncB",
-  "feFuncG",
-  "feFuncR",
-  "feGaussianBlur",
-  "feMerge",
-  "feMergeNode",
-  "feMorphology",
-  "feOffset",
-  "fePointLight",
-  "feSpecularLighting",
-  "feSpotLight",
-  "feTile",
-  "feTurbulence",
-]);
-
-function sanitizeSvgForPreview(svg: string): string {
-  const parsed = new DOMParser().parseFromString(svg, "image/svg+xml");
-  const root = parsed.documentElement;
-
-  if (
-    parsed.querySelector("parsererror") ||
-    root.localName !== "svg" ||
-    (root.namespaceURI && root.namespaceURI !== "http://www.w3.org/2000/svg")
-  ) {
-    return "";
-  }
-
-  for (const element of Array.from(root.querySelectorAll("*")).reverse()) {
-    if (!SAFE_SVG_ELEMENTS.has(element.localName)) {
-      element.remove();
-      continue;
-    }
-
-    for (const attribute of Array.from(element.attributes)) {
-      const name = attribute.name.toLowerCase();
-      const value = attribute.value.trim();
-
-      if (
-        name.startsWith("on") ||
-        name === "style" ||
-        name === "src" ||
-        name === "xml:base"
-      ) {
-        element.removeAttribute(attribute.name);
-        continue;
-      }
-
-      if (name === "href" || name === "xlink:href") {
-        if (!/^#[\w:.-]+$/.test(value)) element.removeAttribute(attribute.name);
-        continue;
-      }
-
-      if (
-        /\b(?:javascript|vbscript|data):/i.test(value) ||
-        (/url\s*\(/i.test(value) &&
-          !/^(?:[^)]|url\s*\(\s*#[\w:.-]+\s*\))*$/i.test(value))
-      ) {
-        element.removeAttribute(attribute.name);
-      }
-    }
-  }
-
-  return new XMLSerializer().serializeToString(root);
-}

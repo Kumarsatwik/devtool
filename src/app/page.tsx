@@ -20,8 +20,9 @@ import {
   X,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { DataToolsMark } from "@/components/logo";
-import { navGroups, tools } from "@/lib/tools";
+import { DataToolsMark } from "@/components/shell/logo";
+import { NAV_GROUPS, TOOLS } from "@/lib/tools";
+import { TOOL_ICONS } from "@/lib/tool-icons";
 
 const faqData = [
   {
@@ -50,7 +51,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const filteredTools = useMemo(() => {
-    return tools.filter(
+    return TOOLS.filter(
       (tool) =>
         tool.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         tool.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -165,21 +166,22 @@ export default function Home() {
 
           {filteredTools.length > 0 ? (
             <div className="space-y-8">
-              {navGroups.map((group) => {
+              {NAV_GROUPS.map((group) => {
                 const matches = group.tools.filter((tool) => filteredTools.includes(tool));
                 if (!matches.length) return null;
+                const GroupIcon = TOOL_ICONS[group.icon];
                 return (
                   <section key={group.id} aria-labelledby={`catalog-${group.id}`} className="space-y-3">
                     <div className="space-y-0.5">
                       <h3 id={`catalog-${group.id}`} className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-foreground">
-                        <group.icon className="h-4 w-4" aria-hidden="true" />
+                        <GroupIcon className="h-4 w-4" aria-hidden="true" />
                         {group.label}
                       </h3>
                       <p className="text-xs text-muted-foreground">{group.description}</p>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       {matches.map((tool) => {
-                        const Icon = tool.icon;
+                        const Icon = TOOL_ICONS[tool.icon];
                         return (
                           <Link
                             key={tool.href}

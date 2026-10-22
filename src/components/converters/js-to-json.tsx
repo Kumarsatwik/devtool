@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useAutoRun } from "@/hooks/use-auto-run";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { StatusMessage } from "@/components/tool-page-layout";
+import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
-import { jsToJSON, validateJSON } from "@/lib/json";
+import { jsToJson, validateJson } from "@/lib/json";
+import { byteLength } from "@/lib/bytes";
 import { AlertCircle, CheckCircle2, FileCode2, Settings2 } from "lucide-react";
 
 const sampleJS = `{
@@ -21,7 +23,7 @@ const sampleJS = `{
   }
 }`;
 
-export default function JSToJSONPage() {
+export default function JsToJsonPanel() {
   const [input, setInput] = useState(sampleJS);
   const [output, setOutput] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export default function JSToJSONPage() {
 
     try {
       setError(null);
-      const json = jsToJSON(input, spaces);
+      const json = jsToJson(input, spaces);
       setOutput(json);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Conversion failed");
@@ -46,17 +48,13 @@ export default function JSToJSONPage() {
   }, [input, spaces]);
 
   // Live compilation
-  useEffect(() => {
-    if (autoConvert) {
-      handleConvert();
-    }
-  }, [input, spaces, autoConvert, handleConvert]);
+  useAutoRun(autoConvert, handleConvert);
 
   const handleFileLoaded = (content: string) => {
     setInput(content);
   };
 
-  const validation = validateJSON(output);
+  const validation = validateJson(output);
 
   return (
       <div className="h-full flex flex-col gap-4">
@@ -173,8 +171,8 @@ export default function JSToJSONPage() {
                     <span className="font-semibold text-foreground">Valid JSON output.</span>
                   </div>
                   <div className="text-xs text-muted-foreground flex items-center gap-4">
-                    <span>Input Size: <strong className="text-foreground">{new Blob([input]).size} Bytes</strong></span>
-                    <span>Output Size: <strong className="text-foreground">{new Blob([output]).size} Bytes</strong></span>
+                    <span>Input Size: <strong className="text-foreground">{byteLength(input)} Bytes</strong></span>
+                    <span>Output Size: <strong className="text-foreground">{byteLength(output)} Bytes</strong></span>
                   </div>
                 </div>
               </>

@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import * as XLSX from "xlsx";
 import Papa from "papaparse";
-import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { ToolPageLayout, StatusMessage } from "@/components/tool-page-layout";
+import { FileUpload } from "@/components/file-upload";
+import { ToolPageLayout } from "@/components/shell/tool-page-layout";
+import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { AlertCircle, CheckCircle2, List, Table, Settings2, FileSpreadsheet, Upload, RefreshCw } from "lucide-react";
+import { AlertCircle, CheckCircle2, List, Table, Settings2 } from "lucide-react";
 
 interface LoadedWorkbook {
   sheets: string[];
   fileName: string;
-  fileSize: number;
   data: ArrayBuffer;
 }
 
@@ -22,15 +22,17 @@ export default function ExcelToCSVPage() {
   const [sheetName, setSheetName] = useState("");
   const [output, setOutput] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [previewTab, setPreviewTab] = useState<string>("raw");
-  const [dragActive, setDragActive] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<Record<string, string>[]>([]);
 
   const convertSheet = useCallback((data: ArrayBuffer, wbName: string, targetSheet?: string) => {
+    setError(null);
+    setOutput("");
+    setHeaders([]);
+    setRows([]);
+
     try {
       const wb = XLSX.read(data, { type: "array" });
       const sheets = wb.SheetNames;
@@ -48,7 +50,7 @@ export default function ExcelToCSVPage() {
 
       const csv = XLSX.utils.sheet_to_csv(ws, { blankrows: false });
 
-      setWorkbook({ sheets, fileName: wbName, fileSize: data.byteLength, data });
+      setWorkbook({ sheets, fileName: wbName, data });
       setSheetName(selected);
       setOutput(csv);
       setError(null);
@@ -68,69 +70,9 @@ export default function ExcelToCSVPage() {
     }
   }, []);
 
-  const handleFile = useCallback(
-    (file: File) => {
-      setError(null);
-      setOutput("");
-      setHeaders([]);
-      setRows([]);
-
-      const extension = file.name.split(".").pop()?.toLowerCase();
-      if (!["xlsx", "xls", "csv"].includes(extension || "")) {
-        setError("Unsupported file format. Please upload an .xlsx, .xls, or .csv file.");
-        return;
-      }
-
-      setLoading(true);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result;
-        if (result instanceof ArrayBuffer) {
-          convertSheet(result, file.name);
-        } else {
-          setError("Could not read file content.");
-        }
-        setLoading(false);
-      };
-      reader.onerror = () => {
-        setError("An error occurred while reading the file.");
-        setLoading(false);
-      };
-      reader.readAsArrayBuffer(file);
-    },
-    [convertSheet],
-  );
-
   const handleSheetChange = (name: string) => {
     if (!workbook) return;
     convertSheet(workbook.data, workbook.fileName, name);
-  };
-
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
-    }
-    e.target.value = "";
   };
 
   const previewRows = rows.slice(0, 50);
@@ -175,74 +117,13 @@ export default function ExcelToCSVPage() {
           first={
             <>
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground shrink-0">Source Workbook</label>
-
-            <div
-              onDragEnter={handleDrag}
-              onDragOver={handleDrag}
-              onDragLeave={handleDrag}
-              onDrop={handleDrop}
-              onClick={() => inputRef.current?.click()}
-              className={`flex-1 min-h-0 group relative flex flex-col items-center justify-center border-2 border-dashed border-border/80 hover:border-primary/50 bg-muted/20 hover:bg-muted/40 rounded-xl p-6 text-center cursor-pointer transition-all duration-300 ${
-                dragActive ? "border-primary bg-primary/5 scale-[0.99]" : ""
-              } ${loading ? "pointer-events-none opacity-80" : ""}`}
-            >
-              <input
-                ref={inputRef}
-                type="file"
-                className="hidden"
+              <FileUpload
                 accept=".xlsx,.xls,.csv"
-                onChange={handleChange}
-                disabled={loading}
+                readAs="arrayBuffer"
+                onBinaryLoaded={(data, name) => convertSheet(data, name)}
+                label="Drag and drop your Excel file here, or click to browse"
+                className="flex-1 min-h-0"
               />
-
-              <div className="flex flex-col items-center gap-2">
-                {loading ? (
-                  <RefreshCw className="h-8 w-8 text-primary animate-spin" />
-                ) : workbook ? (
-                  <FileSpreadsheet className="h-8 w-8 text-emerald-500 animate-in zoom-in-75 duration-200" />
-                ) : (
-                  <Upload className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors group-hover:translate-y-[-2px] duration-300" />
-                )}
-
-                <div className="space-y-1">
-                  {loading ? (
-                    <p className="text-xs font-semibold text-foreground">Reading workbook...</p>
-                  ) : workbook ? (
-                    <>
-                      <p className="text-xs font-semibold text-foreground">{workbook.fileName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {(workbook.fileSize / 1024).toFixed(1)} KB · {workbook.sheets.length} sheet{workbook.sheets.length === 1 ? "" : "s"}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Click to load a different file
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-xs font-semibold text-foreground">
-                        Drag and drop your Excel file here, or click to browse
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Accepted formats: .xlsx, .xls (max 10MB)
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {workbook && workbook.sheets.length > 1 && (
-              <div className="flex items-center gap-2 shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="font-semibold rounded shadow-none"
-                  onClick={() => inputRef.current?.click()}
-                >
-                  Load Another File
-                </Button>
-              </div>
-            )}
             </>
           }
           second={

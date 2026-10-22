@@ -1,20 +1,22 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useAutoRun } from "@/hooks/use-auto-run";
 import { Button } from "@/components/ui/button";
 import { EditorPanel } from "@/components/editor-panel";
-import { StatusMessage } from "@/components/tool-page-layout";
+import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import { AlertCircle, CheckCircle2, FileSpreadsheet, Settings2 } from "lucide-react";
-import Papa from "papaparse";
+import { parseCsv } from "@/lib/csv";
+import { byteLength } from "@/lib/bytes";
 
 const sampleCSV = `name,age,city,isDeveloper
 John,25,New York,true
 Mike,30,Los Angeles,false
 Sarah,28,Chicago,true`;
 
-export default function CSVToJSONPage() {
+export default function CsvToJsonPanel() {
   const [input, setInput] = useState(sampleCSV);
   const [output, setOutput] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -36,24 +38,11 @@ export default function CSVToJSONPage() {
     try {
       setError(null);
       
-      const config: Papa.ParseConfig = {
-        header: true,
-        skipEmptyLines: true,
-        dynamicTyping: dynamicTyping,
-      };
-
-      if (delimiter !== "") {
-        config.delimiter = delimiter;
-      }
-
-      const parsed = Papa.parse<Record<string, unknown>>(input.trim(), config);
-
-      if (parsed.errors.length > 0) {
-        const firstError = parsed.errors[0];
-        const rowInfo = firstError.row !== undefined ? ` (Row: ${firstError.row + 1})` : "";
-        setError(`${firstError.message}${rowInfo}`);
-        return;
-      }
+      const parsed = parseCsv(input.trim(), {
+        dynamicTyping,
+        delimiter: delimiter || undefined,
+        failOnError: true,
+      });
 
       if (parsed.data.length === 0) {
         setError("No tabular records detected in CSV input.");
@@ -63,11 +52,10 @@ export default function CSVToJSONPage() {
       const json = JSON.stringify(parsed.data, null, 2);
       setOutput(json);
 
-      const fields = parsed.meta.fields || [];
       setMeta({
-        columns: fields.length,
+        columns: parsed.headers.length,
         rows: parsed.data.length,
-        size: new Blob([input]).size,
+        size: byteLength(input),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Conversion failed");
@@ -75,11 +63,7 @@ export default function CSVToJSONPage() {
   }, [input, delimiter, dynamicTyping]);
 
   // Handle auto conversion
-  useEffect(() => {
-    if (autoConvert) {
-      handleConvert();
-    }
-  }, [input, delimiter, dynamicTyping, autoConvert, handleConvert]);
+  useAutoRun(autoConvert, handleConvert);
 
   const handleFileLoaded = (content: string) => {
     setInput(content);
