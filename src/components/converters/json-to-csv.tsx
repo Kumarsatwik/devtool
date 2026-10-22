@@ -25,7 +25,7 @@ const sampleJSON = `[
   {"name": "Bob Vance", "age": 41, "city": "Scranton", "role": "Refrigeration Specialist"}
 ]`;
 
-export default function JSONToCSVPage() {
+export default function JsonToCsvPanel() {
   const [input, setInput] = useState(sampleJSON);
   const [output, setOutput] = useState("");
   const [error, setError] = useState<string | null>(null);

@@ -15,7 +15,7 @@ John,25,New York,true
 Mike,30,Los Angeles,false
 Sarah,28,Chicago,true`;
 
-export default function CSVToJSONPage() {
+export default function CsvToJsonPanel() {
   const [input, setInput] = useState(sampleCSV);
   const [output, setOutput] = useState("");
   const [error, setError] = useState<string | null>(null);

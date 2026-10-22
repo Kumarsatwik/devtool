@@ -22,7 +22,7 @@ const sampleJS = `{
   }
 }`;
 
-export default function JSToJSONPage() {
+export default function JsToJsonPanel() {
   const [input, setInput] = useState(sampleJS);
   const [output, setOutput] = useState("");
   const [error, setError] = useState<string | null>(null);
