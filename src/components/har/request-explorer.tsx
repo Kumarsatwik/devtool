@@ -75,6 +75,17 @@ function statusDot(entry: AnalyzedEntry): { cls: string; label: string } {
   return { cls: "bg-emerald-500", label: "OK" };
 }
 
+const corpusCache = new WeakMap<AnalyzedEntry, string>();
+
+function cachedCorpus(entry: AnalyzedEntry): string {
+  let corpus = corpusCache.get(entry);
+  if (!corpus) {
+    corpus = buildCorpus(entry);
+    corpusCache.set(entry, corpus);
+  }
+  return corpus;
+}
+
 function statusLabel(entry: AnalyzedEntry): string {
   if (entry.status === 0) return "Failed";
   return `${entry.status} ${entry.statusText}`.trim();
@@ -104,16 +115,6 @@ export function RequestExplorer({
 
   const domainHost = handoff.kind === "domain" ? handoff.host : null;
 
-  // Search corpus cache, built on demand per entry.
-  // NOTE: we intentionally use a stable Map object whose identity persists
-  // between renders; we mutate it during the filter pass. This avoids React
-  // ref reads during render-phase computations while still preserving
-  // per-session cache semantics.
-  const [corpusCache] = useState<Map<number, string>>(() => new Map());
-  useEffect(() => {
-    corpusCache.clear();
-  }, [analysis, corpusCache]);
-
   const methods = useMemo(
     () => [...new Set(analysis.entries.map((e) => e.method))].sort(),
     [analysis],
@@ -135,25 +136,26 @@ export function RequestExplorer({
     }
     const q = query.trim().toLowerCase();
     if (q) {
-      list = list.filter((e) => {
-        let corpus = corpusCache.get(e.index);
-        if (!corpus) {
-          corpus = buildCorpus(e);
-          corpusCache.set(e.index, corpus);
-        }
-        return corpus.includes(q);
-      });
+      list = list.filter((e) => cachedCorpus(e).includes(q));
     }
     return list;
-  }, [analysis, filter, query, methodFilter, statusFilter, corpusCache, domainHost]);
+  }, [analysis, filter, query, methodFilter, statusFilter, domainHost]);
 
   useEffect(() => {
     setPage(1);
     listRef.current?.scrollTo(0, 0);
   }, [filter, query, methodFilter, statusFilter, domainHost]);
 
-  const filterCount = (key: ExplorerFilter): number =>
-    analysis.entries.filter((e) => matchesFilter(e, key)).length;
+  const filterCounts = useMemo(() => {
+    const counts = new Map<ExplorerFilter, number>();
+    for (const tab of FILTER_TABS) {
+      counts.set(
+        tab.key,
+        analysis.entries.filter((e) => matchesFilter(e, tab.key)).length,
+      );
+    }
+    return counts;
+  }, [analysis]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -184,7 +186,7 @@ export function RequestExplorer({
           aria-label="Request filters"
         >
           {FILTER_TABS.map((tab) => {
-            const count = filterCount(tab.key);
+            const count = filterCounts.get(tab.key) ?? 0;
             if (tab.key !== "all" && count === 0) return null;
             const active = filter === tab.key;
             return (
