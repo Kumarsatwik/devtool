@@ -13,16 +13,16 @@ export type {
   IssueKind,
   RequestCategory,
   SensitiveFinding,
-} from "./har/types.ts";
+} from "./types.ts";
 
-export { CATEGORY_META, baseDomain } from "./har/classify.ts";
+export { CATEGORY_META, baseDomain } from "./classify.ts";
 export {
   SENSITIVE_HEADER,
   SENSITIVE_KEY,
   maskValue,
   isSensitiveHeader,
-} from "./har/sensitive.ts";
-export { buildCurl } from "./har/curl.ts";
+} from "./sensitive.ts";
+export { buildCurl } from "./curl.ts";
 export {
   BODY_PREVIEW_LIMIT,
   decodeBody,
@@ -30,6 +30,6 @@ export {
   formatMs,
   isBinaryBody,
   prettyBody,
-} from "./har/body.ts";
-export { explainEntry, TIMING_PHASES } from "./har/insights.ts";
-export { analyzeHar, headerValue, parseHar } from "./har/analyze.ts";
+} from "./body.ts";
+export { explainEntry, TIMING_PHASES } from "./insights.ts";
+export { analyzeHar, headerValue, parseHar } from "./analyze.ts";

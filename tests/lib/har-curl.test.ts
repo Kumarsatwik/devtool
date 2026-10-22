@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildCurl, type HarEntry } from "../../src/lib/har.ts";
+import { buildCurl, type HarEntry } from "../../src/lib/har/index.ts";
 
 function makeEntry(request: Partial<HarEntry["request"]> = {}): HarEntry {
   return {
