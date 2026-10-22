@@ -40,7 +40,7 @@ const expected = {
     "splitPercentFromPointer",
   ],
   toolRedirects: ["toolRedirects"],
-  tools: ["navGroups", "tools"],
+  tools: ["NAV_GROUPS", "TOOLS"],
 } as const;
 
 test("public export surface is stable", () => {

@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { DataToolsMark } from "@/components/logo";
 import { Button } from "@/components/ui/button";
-import { navGroups } from "@/lib/tools";
+import { NAV_GROUPS } from "@/lib/tools";
 import { NavGroups } from "@/components/sidebar/nav-groups";
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
@@ -15,12 +15,12 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [groupState, setGroupState] = useState({
     pathname,
-    open: Object.fromEntries(navGroups.map((group) => [group.id, true])),
+    open: Object.fromEntries(NAV_GROUPS.map((group) => [group.id, true])),
   });
 
   // Route changes reopen the destination group; manual toggles then take priority.
   if (groupState.pathname !== pathname) {
-    const activeGroup = navGroups.find((group) => group.tools.some((tool) => tool.href === pathname));
+    const activeGroup = NAV_GROUPS.find((group) => group.tools.some((tool) => tool.href === pathname));
     setGroupState({
       pathname,
       open: activeGroup ? { ...groupState.open, [activeGroup.id]: true } : groupState.open,
