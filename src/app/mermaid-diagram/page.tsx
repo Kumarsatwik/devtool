@@ -18,6 +18,7 @@ import {
   exportMermaidSvg,
   exportMermaidImage,
 } from "@/lib/mermaid/export";
+import { renderMermaidSvg } from "@/lib/mermaid/render";
 import {
   diagramThemes,
   defaultDiagramTheme,
@@ -208,11 +209,7 @@ export default function MermaidDiagramPage() {
     setError(null);
 
     try {
-      // lazy: mermaid is ~1MB; loaded on first render, then cached by the bundler
-      const mermaid = (await import("mermaid")).default;
-      mermaid.initialize(getMermaidConfig(diagramTheme));
-      const id = `mermaid-${Math.random().toString(36).slice(2, 11)}`;
-      const { svg } = await mermaid.render(id, input);
+      const svg = await renderMermaidSvg(input, getMermaidConfig(diagramTheme));
       if (renderId !== renderIdRef.current) return;
       setSvgCode(svg);
       setError(null);
