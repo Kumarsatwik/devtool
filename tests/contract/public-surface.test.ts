@@ -4,7 +4,7 @@ import * as csv from "../../src/lib/csv.ts";
 import * as json from "../../src/lib/json.ts";
 import * as markdown from "../../src/lib/notes/markdown.ts";
 import * as mermaidThemes from "../../src/lib/mermaid/themes.ts";
-import * as sanitize from "../../src/lib/sanitize.ts";
+import * as sanitize from "../../src/lib/json-redact.ts";
 import * as seo from "../../src/lib/seo.ts";
 import * as split from "../../src/lib/split.ts";
 import * as toolRedirects from "../../src/lib/tool-redirects.ts";
@@ -29,7 +29,7 @@ const expected = {
     "getMermaidConfig",
     "getThemeSpec",
   ],
-  sanitize: ["PRESET_SENSITIVE_KEYS", "collectAllKeys", "sanitizeJson"],
+  sanitize: ["PRESET_SENSITIVE_KEYS", "collectAllKeys", "redactJson"],
   seo: ["SITE_DESCRIPTION", "SITE_NAME", "SITE_URL", "buildToolMetadata"],
   split: [
     "MAX_SPLIT_PERCENT",

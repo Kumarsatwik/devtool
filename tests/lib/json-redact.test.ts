@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { sanitizeJson } from "../src/lib/sanitize.ts";
+import { redactJson } from "../../src/lib/json-redact.ts";
 
 test("hide-all respects excluded nested keys and masks unkeyed array leaves", () => {
-  const result = sanitizeJson(
+  const result = redactJson(
     JSON.stringify({
       profile: { name: "Ari", email: "ari@example.test" },
       labels: ["internal", "priority"],
@@ -24,7 +24,7 @@ test("hide-all respects excluded nested keys and masks unkeyed array leaves", ()
 });
 
 test("hide-all masks primitive siblings in mixed root arrays", () => {
-  const result = sanitizeJson(
+  const result = redactJson(
     '["secret", {"name":"private"}]',
     {
       sensitiveKeys: [],
@@ -41,7 +41,7 @@ test("hide-all masks primitive siblings in mixed root arrays", () => {
 });
 
 test("hide-all redacts keys that were added after the toggle was enabled", () => {
-  const result = sanitizeJson('{"known":"a","newKey":"b"}', {
+  const result = redactJson('{"known":"a","newKey":"b"}', {
     sensitiveKeys: [],
     redactionValue: "[HIDDEN]",
     matchMode: "exact",
@@ -55,7 +55,7 @@ test("hide-all redacts keys that were added after the toggle was enabled", () =>
 });
 
 test("hide-all exposes only explicitly excluded keys and their subtrees", () => {
-  const result = sanitizeJson(
+  const result = redactJson(
     '{"profile":{"name":"Ari"},"other":{"value":"secret"},"keep":"visible"}',
     {
       sensitiveKeys: [],

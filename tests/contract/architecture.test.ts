@@ -37,7 +37,7 @@ const PURE_MODULES = new Set([
   "src/lib/csv.ts",
   "src/lib/json.ts",
   "src/lib/notes/markdown.ts",
-  "src/lib/sanitize.ts",
+  "src/lib/json-redact.ts",
   "src/lib/seo.ts",
   "src/lib/split.ts",
   "src/lib/svg-to-react.ts",

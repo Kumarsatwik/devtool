@@ -205,7 +205,7 @@ export function collectAllKeys(value: unknown): string[] {
  * Sanitize a JSON document by redacting the values of fields whose key names
  * are marked sensitive. Processes nested objects and arrays recursively.
  */
-export function sanitizeJson(
+export function redactJson(
   jsonText: string,
   options: SanitizeOptions,
 ): SanitizeResult {

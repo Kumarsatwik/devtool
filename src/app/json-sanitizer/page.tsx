@@ -8,11 +8,11 @@ import { StatusMessage } from "@/components/status-message";
 import { ResizableSplit } from "@/components/resizable-split";
 import { FileUpload } from "@/components/file-upload";
 import {
-  sanitizeJson,
+  redactJson,
   collectAllKeys,
   PRESET_SENSITIVE_KEYS,
   type SanitizeOptions,
-} from "@/lib/sanitize";
+} from "@/lib/json-redact";
 import { validateJSON } from "@/lib/json";
 import {
   AlertCircle,
@@ -92,7 +92,7 @@ export default function JsonSanitizerPage() {
   const stats = useMemo(() => {
     if (!input.trim()) return null;
     try {
-      return sanitizeJson(input, options);
+      return redactJson(input, options);
     } catch {
       return null;
     }
@@ -106,7 +106,7 @@ export default function JsonSanitizerPage() {
     }
     try {
       setError(null);
-      setOutput(sanitizeJson(input, options).output);
+      setOutput(redactJson(input, options).output);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sanitization failed");
       setOutput("");
