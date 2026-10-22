@@ -34,7 +34,7 @@
 - Contract tests guard public exports, catalog/route integrity, and architecture boundaries.
 - Characterization tests cover CSV, JSON literal parsing, redaction, HAR analysis/insights/body/cURL/reports, SVG sanitization, note HTML escaping, pagination, upload limits, epoch helpers, and SheetJS round-trips.
 - CI now runs typecheck/lint with `--max-warnings=0`, recursive tests, coverage, production build, and blast-radius.
-- `npm run test:coverage`: **79.57% lines / 82.68% branches / 88.62% functions**.
+- `npm run test:coverage`: **88.89% lines / 77.83% branches / 91.77% functions**.
 
 ## Behavior changes (Track B)
 
@@ -54,8 +54,8 @@
 
 ```bash
 npm run check          # tsc --noEmit + eslint --max-warnings=0
-npm test               # 95 passing
-npm run test:coverage  # 79.57% lines / 82.68% branches
+npm test               # 103 passing
+npm run test:coverage  # 88.89% lines / 77.83% branches
 npm run build          # production build, all routes prerendered
 npm run blast-radius   # 115 modules, 0 cycles, 0 boundary violations
 ```
