@@ -36,17 +36,14 @@ export function NavGroups({
       {rail ? (
         <TooltipProvider>
           <div className="space-y-3">
-            {navGroups.map((group) => (
+            {navGroups.map((group, index) => (
               <div
                 key={group.id}
-                className="flex flex-col items-center gap-0.5"
+                className={cn(
+                  "flex flex-col items-center gap-0.5",
+                  index > 0 && "border-t border-border/70 pt-3",
+                )}
               >
-                <span
-                  className="flex h-6 w-6 items-center justify-center text-muted-foreground"
-                  aria-hidden="true"
-                >
-                  <group.icon className="h-3.5 w-3.5" />
-                </span>
                 <span className="sr-only">{group.label}</span>
                 {group.tools.map((tool) => {
                   const active = pathname === tool.href;
@@ -80,9 +77,7 @@ export function NavGroups({
         </TooltipProvider>
       ) : (
         navGroups.map((group) => {
-          const groupActive = group.tools.some(
-            (tool) => tool.href === pathname,
-          );
+          const groupActive = group.tools.some((tool) => tool.href === pathname);
           return (
             <Collapsible.Root
               key={group.id}

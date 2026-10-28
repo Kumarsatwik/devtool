@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/navigation";
+import { SidebarStateProvider } from "@/components/sidebar-layout";
 import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({
@@ -16,7 +17,8 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "DataTools - JSON & CSV Utilities",
-  description: "Free online developer tools for JSON and CSV conversion, validation, formatting, and comparison.",
+  description:
+    "Free online developer tools for JSON and CSV conversion, validation, formatting, and comparison.",
 };
 
 export default function RootLayout({
@@ -35,8 +37,10 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider>
-          <Navigation />
-          <main className="flex-1 flex flex-col">{children}</main>
+          <SidebarStateProvider>
+            <Navigation />
+            <main className="flex-1 flex flex-col">{children}</main>
+          </SidebarStateProvider>
         </ThemeProvider>
       </body>
     </html>

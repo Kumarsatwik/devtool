@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, Home, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext, useContext, useMemo } from "react";
 import { Dialog } from "@base-ui/react/dialog";
 import { DataToolsMark } from "@/components/logo";
 import { Button } from "@/components/ui/button";
@@ -17,10 +17,44 @@ import { navGroups } from "@/lib/tools";
 import { NavGroups } from "@/components/sidebar/nav-groups";
 import { cn } from "@/lib/utils";
 
+interface SidebarState {
+  collapsed: boolean;
+  setCollapsed: (collapsed: boolean) => void;
+}
+
+const SidebarStateContext = createContext<SidebarState | null>(null);
+
+// The rail state has to outlive a route change, and each tool page owns its own
+// SidebarLayout, so the state lives in the app shell instead of the page.
+export function SidebarStateProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [collapsed, setCollapsed] = useState(false);
+
+  const value = useMemo(() => ({ collapsed, setCollapsed }), [collapsed]);
+
+  return (
+    <SidebarStateContext.Provider value={value}>
+      {children}
+    </SidebarStateContext.Provider>
+  );
+}
+
+function useSidebarState() {
+  const context = useContext(SidebarStateContext);
+  if (!context) {
+    throw new Error("useSidebarState must be used within SidebarStateProvider");
+  }
+
+  return context;
+}
+
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { collapsed: navCollapsed, setCollapsed } = useSidebarState();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [navCollapsed, setNavCollapsed] = useState(false);
   const [groupState, setGroupState] = useState({
     pathname,
     open: Object.fromEntries(navGroups.map((group) => [group.id, true])),
@@ -117,7 +151,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
                           ? "Expand navigation"
                           : "Collapse navigation"
                       }
-                      onClick={() => setNavCollapsed((v) => !v)}
+                      onClick={() => setCollapsed(!navCollapsed)}
                     >
                       {navCollapsed ? (
                         <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
