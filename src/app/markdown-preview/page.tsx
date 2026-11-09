@@ -66,6 +66,23 @@ const WELCOME_HTML = `
 <blockquote><p>Tip: switch to the Markdown pane to edit raw markdown side by side.</p></blockquote>
 `;
 
+/**
+ * Drop image sources that are not data: URLs. A pasted or imported
+ * `<img src="https://…">` is fetched automatically by the browser, leaking the
+ * reader's IP address and referrer to a third-party server. Only embedded
+ * data: images — the ones this editor produces — are allowed through.
+ */
+function blockRemoteImages(html: string): string {
+  if (!/<img/i.test(html)) return html;
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  doc.querySelectorAll("img").forEach((img) => {
+    if (!/^data:image\//i.test(img.getAttribute("src") ?? "")) img.remove();
+  });
+  return doc.body.innerHTML;
+}
+
+const MAX_NOTE_FILE_SIZE_MB = 10;
+
 export default function MarkdownPreviewPage() {
   const [title, setTitle] = useState("Welcome");
   const [html, setHtml] = useState(WELCOME_HTML);
@@ -85,6 +102,7 @@ export default function MarkdownPreviewPage() {
     immediatelyRender: false,
     editorProps: {
       attributes: { class: "note-editor", spellcheck: "true" },
+      transformPastedHTML: blockRemoteImages,
     },
     onUpdate: ({ editor: e }) => {
       setHtml(e.getHTML());
@@ -92,8 +110,14 @@ export default function MarkdownPreviewPage() {
   });
 
   const handleOpenFile = async (file: File) => {
+    if (file.size > MAX_NOTE_FILE_SIZE_MB * 1024 * 1024) {
+      window.alert(
+        `File is too large. Maximum size is ${MAX_NOTE_FILE_SIZE_MB}MB.`,
+      );
+      return;
+    }
     const text = await file.text();
-    const nextHtml = markdownToHtml(text);
+    const nextHtml = blockRemoteImages(markdownToHtml(text));
     setTitle(file.name.replace(/\.(md|markdown|txt)$/i, ""));
     setHtml(nextHtml);
     editor?.commands.setContent(nextHtml, { emitUpdate: false });

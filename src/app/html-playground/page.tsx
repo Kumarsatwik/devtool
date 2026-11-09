@@ -160,6 +160,10 @@ const PREVIEW_CSP = [
   "base-uri 'none'",
 ].join("; ");
 
+/** Sandbox flags shared by the in-page preview and the standalone build. */
+const PREVIEW_SANDBOX =
+  "allow-scripts allow-modals allow-forms allow-popups";
+
 function buildDocument(html: string, css: string, js: string, includeBridge: boolean): string {
   return [
     "<!DOCTYPE html>",
@@ -178,6 +182,39 @@ function buildDocument(html: string, css: string, js: string, includeBridge: boo
     "<script>",
     js,
     "</script>",
+    "</body>",
+    "</html>",
+  ].join("\n");
+}
+
+/** Escape a value for use inside a double-quoted HTML attribute. */
+function escapeHtmlAttribute(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+
+/**
+ * Wrap a compiled playground document in a host page whose only job is to
+ * hold it inside a sandboxed iframe. A blob: document inherits this app's
+ * origin, so opening it directly would let the page's scripts reach app
+ * storage; the sandbox gives the iframe an opaque origin instead.
+ */
+function buildSandboxWrapper(inner: string): string {
+  const frame =
+    `<iframe title="HTML Preview" sandbox="${PREVIEW_SANDBOX}" ` +
+    `srcdoc="${escapeHtmlAttribute(inner)}"></iframe>`;
+  return [
+    "<!DOCTYPE html>",
+    '<html lang="en">',
+    "<head>",
+    '<meta charset="utf-8" />',
+    "<title>HTML Playground</title>",
+    "<style>",
+    "html, body { margin: 0; height: 100%; background: #fff; }",
+    "iframe { border: 0; width: 100%; height: 100%; display: block; }",
+    "</style>",
+    "</head>",
+    "<body>",
+    frame,
     "</body>",
     "</html>",
   ].join("\n");
@@ -271,8 +308,10 @@ export default function HtmlPlaygroundPage() {
   };
 
   const handleOpenInNewTab = () => {
-    const blob = new Blob([buildDocument(panes.html, panes.css, panes.js, false)], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
+    const inner = buildDocument(panes.html, panes.css, panes.js, false);
+    const url = URL.createObjectURL(
+      new Blob([buildSandboxWrapper(inner)], { type: "text/html" }),
+    );
     window.open(url, "_blank", "noopener,noreferrer");
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
   };
@@ -483,7 +522,7 @@ export default function HtmlPlaygroundPage() {
               <iframe
                 ref={iframeRef}
                 title="HTML Preview"
-                sandbox="allow-scripts allow-modals allow-forms allow-popups"
+                sandbox={PREVIEW_SANDBOX}
                 srcDoc={srcDoc}
                 className={`w-full h-full border-0 bg-white ${isResizing ? "pointer-events-none" : ""}`}
               />

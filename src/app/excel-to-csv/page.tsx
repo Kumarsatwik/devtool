@@ -17,6 +17,8 @@ interface LoadedWorkbook {
   data: ArrayBuffer;
 }
 
+const MAX_FILE_SIZE_MB = 10;
+
 export default function ExcelToCSVPage() {
   const [workbook, setWorkbook] = useState<LoadedWorkbook | null>(null);
   const [sheetName, setSheetName] = useState("");
@@ -46,7 +48,19 @@ export default function ExcelToCSVPage() {
         return;
       }
 
-      const csv = XLSX.utils.sheet_to_csv(ws, { blankrows: false });
+      const rawCsv = XLSX.utils.sheet_to_csv(ws, { blankrows: false });
+      // Re-serialize through Papa Parse with escapeFormulae so cells that
+      // Excel/LibreOffice would treat as formulas (leading =, +, -, @) are
+      // neutralized before the CSV can be opened in a spreadsheet app.
+      const rows = Papa.parse<string[]>(rawCsv, {
+        skipEmptyLines: true,
+      }).data;
+      // newline is pinned to "\n" so the output keeps the LF endings the
+      // previous sheet_to_csv path produced.
+      const csv = Papa.unparse(rows, {
+        escapeFormulae: true,
+        newline: "\n",
+      });
 
       setWorkbook({ sheets, fileName: wbName, fileSize: data.byteLength, data });
       setSheetName(selected);
@@ -78,6 +92,11 @@ export default function ExcelToCSVPage() {
       const extension = file.name.split(".").pop()?.toLowerCase();
       if (!["xlsx", "xls", "csv"].includes(extension || "")) {
         setError("Unsupported file format. Please upload an .xlsx, .xls, or .csv file.");
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        setError(`File size exceeds the ${MAX_FILE_SIZE_MB}MB limit.`);
         return;
       }
 

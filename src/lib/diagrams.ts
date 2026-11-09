@@ -9,7 +9,15 @@ export async function renderMermaidSvg(code: string): Promise<string> {
   // lazy: mermaid is ~1MB; only loaded when a mermaid diagram actually renders
   const mermaid = (await import("mermaid")).default;
   if (!mermaidReady) {
-    mermaid.initialize({ startOnLoad: false, theme: "neutral", securityLevel: "loose" });
+    // "strict" (not "loose"): loose mode skips Mermaid's URL sanitizing and
+    // final DOMPurify pass, so a diagram link like `click A href
+    // "javascript:alert(1)"` would become a clickable XSS payload once the
+    // SVG is inserted with innerHTML.
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "neutral",
+      securityLevel: "strict",
+    });
     mermaidReady = true;
   }
   const id = `mermaid-svg-${++renderSeq}`;

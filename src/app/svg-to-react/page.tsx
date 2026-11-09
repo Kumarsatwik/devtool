@@ -455,35 +455,42 @@ function sanitizeSvgForPreview(svg: string): string {
       element.remove();
       continue;
     }
-
-    for (const attribute of Array.from(element.attributes)) {
-      const name = attribute.name.toLowerCase();
-      const value = attribute.value.trim();
-
-      if (
-        name.startsWith("on") ||
-        name === "style" ||
-        name === "src" ||
-        name === "xml:base"
-      ) {
-        element.removeAttribute(attribute.name);
-        continue;
-      }
-
-      if (name === "href" || name === "xlink:href") {
-        if (!/^#[\w:.-]+$/.test(value)) element.removeAttribute(attribute.name);
-        continue;
-      }
-
-      if (
-        /\b(?:javascript|vbscript|data):/i.test(value) ||
-        (/url\s*\(/i.test(value) &&
-          !/^(?:[^)]|url\s*\(\s*#[\w:.-]+\s*\))*$/i.test(value))
-      ) {
-        element.removeAttribute(attribute.name);
-      }
-    }
+    sanitizeSvgAttributes(element);
   }
 
+  // querySelectorAll only walks descendants, so the root <svg> would keep
+  // its own attributes (e.g. onload, href) unless it is sanitized too.
+  sanitizeSvgAttributes(root);
+
   return new XMLSerializer().serializeToString(root);
+}
+
+function sanitizeSvgAttributes(element: Element): void {
+  for (const attribute of Array.from(element.attributes)) {
+    const name = attribute.name.toLowerCase();
+    const value = attribute.value.trim();
+
+    if (
+      name.startsWith("on") ||
+      name === "style" ||
+      name === "src" ||
+      name === "xml:base"
+    ) {
+      element.removeAttribute(attribute.name);
+      continue;
+    }
+
+    if (name === "href" || name === "xlink:href") {
+      if (!/^#[\w:.-]+$/.test(value)) element.removeAttribute(attribute.name);
+      continue;
+    }
+
+    if (
+      /\b(?:javascript|vbscript|data):/i.test(value) ||
+      (/url\s*\(/i.test(value) &&
+        !/^(?:[^)]|url\s*\(\s*#[\w:.-]+\s*\))*$/i.test(value))
+    ) {
+      element.removeAttribute(attribute.name);
+    }
+  }
 }

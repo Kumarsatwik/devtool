@@ -135,6 +135,30 @@ function convertSvgAttributes(svgStr: string): string {
   );
 }
 
+/**
+ * Escape characters that are inert in SVG/XML but executable in JSX. Braces
+ * open a JavaScript expression in JSX text, so an untrusted SVG such as
+ * `<text>{globalThis.alert(1)}</text>` would inject live code into the
+ * generated component. Only text nodes are escaped (tag markup is left alone
+ * so converted attributes keep working), and <style>/<script> bodies are
+ * skipped because they carry CSS/JS where braces are meaningful.
+ */
+function escapeJsxText(jsx: string): string {
+  let inRawText = false;
+  return jsx
+    .split(/(<[^>]*>)/g)
+    .map((segment) => {
+      if (segment.startsWith("<") && segment.endsWith(">")) {
+        if (/^<(?:style|script)\b/i.test(segment)) inRawText = true;
+        else if (/^<\/(?:style|script)\s*>$/i.test(segment)) inRawText = false;
+        return segment;
+      }
+      if (inRawText || segment === "") return segment;
+      return segment.replace(/[{}]/g, (c) => (c === "{" ? "&#123;" : "&#125;"));
+    })
+    .join("");
+}
+
 function cleanSvgString(svg: string): string {
   let cleaned = svg
     .replace(/<\?xml[^?]*\?>\s*/gi, "")
@@ -164,7 +188,7 @@ export function svgToReactComponent(
     throw new Error("No valid SVG element found in the input.");
   }
 
-  const jsxSvg = convertSvgAttributes(cleaned);
+  const jsxSvg = escapeJsxText(convertSvgAttributes(cleaned));
 
   const lines: string[] = [];
 

@@ -1,5 +1,5 @@
 import { saveAs } from "file-saver";
-import { htmlToMarkdown } from "./markdown";
+import { escapeHtml, htmlToMarkdown } from "./markdown";
 import { resolveDiagrams } from "./diagram-html";
 
 /* ---------------- helpers ---------------- */
@@ -48,7 +48,7 @@ function buildDocument(
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-${headHtml}<title>${title}</title>
+${headHtml}<title>${escapeHtml(title)}</title>
 <style>${EXPORT_CSS}${css}</style>
 </head>
 <body>
@@ -433,7 +433,8 @@ export const PREVIEW_THEMES: Record<
 /** Diagrams resolved to inline SVG with the note title on top. */
 async function buildNoteBody(title: string, editorHtml: string): Promise<string> {
   const body = await resolveDiagrams(editorHtml);
-  return `<h1>${title}</h1>\n${body}`;
+  // Titles come from user input or filenames, so escape before embedding.
+  return `<h1>${escapeHtml(title)}</h1>\n${body}`;
 }
 
 export interface HeadingItem {
@@ -505,7 +506,7 @@ export async function exportAsHtml(title: string, editorHtml: string): Promise<v
 export async function exportAsDocx(title: string, editorHtml: string): Promise<void> {
   const { asBlob } = await import("html-docx-js-typescript");
   const body = await resolveDiagrams(editorHtml, { mode: "png" });
-  const doc = buildDocument(title, `<h1>${title}</h1>\n${body}`);
+  const doc = buildDocument(title, `<h1>${escapeHtml(title)}</h1>\n${body}`);
   const blob = await asBlob(doc, { orientation: "portrait" });
   saveAs(blob as Blob, `${sanitizeFilename(title)}.docx`);
 }

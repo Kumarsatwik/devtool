@@ -903,14 +903,20 @@ export function prettyBody(body: string, mimeType: string | undefined): string {
 
 /** Build a curl command that approximates the recorded request. */
 export function buildCurl(entry: HarEntry): string {
-  const method = (entry.request.method || "GET").toUpperCase();
+  const rawMethod = entry.request.method || "GET";
+  // Only a plain HTTP token may reach the command; a crafted HAR could
+  // otherwise inject shell syntax through the method argument.
+  const method = /^[A-Za-z]+$/.test(rawMethod)
+    ? rawMethod.toUpperCase()
+    : "GET";
   const url = entry.request.url;
   const headers = entry.request.headers ?? [];
   const postData = entry.request.postData;
 
   const parts: string[] = ["curl"];
   if (method !== "GET") parts.push("-X", method);
-  parts.push(escapeShellArg(url));
+  // `--url` keeps a URL that starts with "-" from being read as a flag.
+  parts.push("--url", escapeShellArg(url));
 
   for (const h of headers) {
     const name = h.name;
@@ -919,19 +925,31 @@ export function buildCurl(entry: HarEntry): string {
     parts.push("-H", escapeShellArg(`${name}: ${value}`));
   }
 
+  // `--data-raw` (not `-d`) stops curl from reading a local file when the
+  // body starts with "@".
   if (postData?.text) {
-    parts.push("-d", escapeShellArg(postData.text));
+    parts.push("--data-raw", escapeShellArg(postData.text));
   } else if (postData?.params?.length) {
     const body = postData.params
       .map((p) => `${encodeURIComponent(p.name)}=${encodeURIComponent(p.value)}`)
       .join("&");
-    parts.push("-d", escapeShellArg(body));
+    parts.push("--data-raw", escapeShellArg(body));
   }
 
   return parts.join(" ");
 }
 
+/** Characters that are inert to a POSIX shell and can stay unquoted. */
+const SHELL_SAFE_ARG = /^[a-zA-Z0-9_\-./:@%~+=]+$/;
+
+/**
+ * Quote a value so a POSIX shell treats it as a single literal argument.
+ * A HAR is untrusted input and this command is handed to a shell, so only
+ * inert characters stay bare; everything else is single-quoted (the one form
+ * POSIX shells never expand), with embedded quotes escaped as '\''.
+ * Metacharacters such as &, ;, | and $ must never survive unquoted.
+ */
 function escapeShellArg(value: string): string {
-  if (/^[a-zA-Z0-9_\-./:?&=~#@%]+$/.test(value)) return value;
-  return `"${value.replace(/(["\\$`])/g, "\\$1")}"`;
+  if (value.length > 0 && SHELL_SAFE_ARG.test(value)) return value;
+  return `'${value.replace(/'/g, "'\\''")}'`;
 }

@@ -52,5 +52,8 @@ export function jsonToCSV(jsonData: unknown): string {
     );
   });
 
-  return Papa.unparse(flattened);
+  // escapeFormulae prefixes cells starting with =, +, -, @ (and tab/CR) with
+  // an apostrophe so a value like "=1+1" is not executed as a formula when the
+  // CSV is opened in Excel, LibreOffice, or Google Sheets.
+  return Papa.unparse(flattened, { escapeFormulae: true });
 }
