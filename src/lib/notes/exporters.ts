@@ -1,6 +1,11 @@
 import { saveAs } from "file-saver";
 import { escapeHtml, htmlToMarkdown } from "./markdown";
 import { resolveDiagrams } from "./diagram-html";
+import {
+  buildPdfCss,
+  printPdfDocument,
+  type PdfLayoutOptions,
+} from "./pdf";
 
 /* ---------------- helpers ---------------- */
 
@@ -501,6 +506,27 @@ export async function buildNotePreview(
 export async function exportAsHtml(title: string, editorHtml: string): Promise<void> {
   const doc = buildDocument(title, await buildNoteBody(title, editorHtml));
   saveAs(new Blob([doc], { type: "text/html;charset=utf-8" }), `${sanitizeFilename(title)}.html`);
+}
+
+export async function exportAsPdf(
+  title: string,
+  editorHtml: string,
+  options?: PdfLayoutOptions,
+): Promise<void> {
+  const css = buildPdfCss(options);
+  const noteTitle = title.trim();
+  const body = noteTitle
+    ? await buildNoteBody(noteTitle, editorHtml)
+    : await resolveDiagrams(editorHtml);
+  const doc = buildDocument(noteTitle, body, {
+    css,
+    headHtml:
+      '<meta http-equiv="Content-Security-Policy" ' +
+      'content="default-src \'none\'; img-src data: blob:; ' +
+      'style-src \'unsafe-inline\'; font-src data:; base-uri \'none\'; ' +
+      'form-action \'none\'">\n',
+  });
+  await printPdfDocument(doc);
 }
 
 export async function exportAsDocx(title: string, editorHtml: string): Promise<void> {

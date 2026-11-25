@@ -21,12 +21,18 @@ import { NotePreview } from "@/components/notes/note-preview";
 import { SlideDeck } from "@/components/notes/slide-deck";
 import { Toolbar, type ExportFormat } from "@/components/notes/toolbar";
 import { MarkdownPane } from "@/components/notes/markdown-pane";
+import { PdfExportOptions } from "@/components/notes/pdf-export-options";
 import { SplitDivider, useSplitResize } from "@/components/resizable-split";
 import { markdownToHtml } from "@/lib/notes/markdown";
+import {
+  DEFAULT_PDF_LAYOUT,
+  type PdfLayoutOptions,
+} from "@/lib/notes/pdf";
 import {
   exportAsDocx,
   exportAsHtml,
   exportAsMarkdown,
+  exportAsPdf,
   exportAsTxt,
 } from "@/lib/notes/exporters";
 import "./notes.css";
@@ -89,6 +95,10 @@ export default function MarkdownPreviewPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [slidesOpen, setSlidesOpen] = useState(false);
   const [exporting, setExporting] = useState<ExportFormat | null>(null);
+  const [pdfOptionsOpen, setPdfOptionsOpen] = useState(false);
+  const [pdfOptions, setPdfOptions] = useState<PdfLayoutOptions>(
+    DEFAULT_PDF_LAYOUT,
+  );
 
   // 55% preserves the share the markdown pane had before it became draggable.
   const { isResizing, containerRef: workspaceRef, dividerProps, containerStyle } =
@@ -122,7 +132,10 @@ export default function MarkdownPreviewPage() {
     editor?.commands.setContent(nextHtml, { emitUpdate: false });
   };
 
-  const handleExport = async (format: ExportFormat) => {
+  const handleExport = async (
+    format: ExportFormat,
+    layout = pdfOptions,
+  ) => {
     if (!editor) return;
     const noteTitle = title || "Untitled note";
     const editorHtml = editor.getHTML();
@@ -140,6 +153,9 @@ export default function MarkdownPreviewPage() {
           break;
         case "docx":
           await exportAsDocx(noteTitle, editorHtml);
+          break;
+        case "pdf":
+          await exportAsPdf(title, editorHtml, layout);
           break;
       }
     } catch (err) {
@@ -170,7 +186,10 @@ export default function MarkdownPreviewPage() {
               <Toolbar
                 editor={editor}
                 onOpenFile={handleOpenFile}
-                onExport={handleExport}
+                onExport={(format) => {
+                  if (format === "pdf") setPdfOptionsOpen(true);
+                  else void handleExport(format);
+                }}
                 exporting={exporting}
                 showMarkdown={showMarkdown}
                 onToggleMarkdown={() => setShowMarkdown((v) => !v)}
@@ -203,6 +222,17 @@ export default function MarkdownPreviewPage() {
               </div>
             </main>
           </div>
+          {pdfOptionsOpen && (
+            <PdfExportOptions
+              options={pdfOptions}
+              onClose={() => setPdfOptionsOpen(false)}
+              onExport={(options) => {
+                setPdfOptions(options);
+                setPdfOptionsOpen(false);
+                void handleExport("pdf", options);
+              }}
+            />
+          )}
           {previewOpen && (
             <NotePreview
               title={title}

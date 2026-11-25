@@ -11,7 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-export type ExportFormat = "html" | "docx" | "txt" | "md";
+export type ExportFormat = "html" | "docx" | "txt" | "md" | "pdf";
 
 interface ToolbarProps {
   editor: Editor;
@@ -230,18 +230,24 @@ export function Toolbar({
             </Tooltip>
             {exportOpen && (
               <div className="tb-menu">
-                {(["md", "html", "docx", "txt"] as ExportFormat[]).map((f) => (
-                  <button
-                    key={f}
-                    className="tb-menu-item"
-                    onClick={() => {
-                      setExportOpen(false);
-                      onExport(f);
-                    }}
-                  >
-                    {f === "md" ? "Markdown (.md)" : f.toUpperCase()}
-                  </button>
-                ))}
+                {(["md", "html", "docx", "txt", "pdf"] as ExportFormat[]).map(
+                  (f) => (
+                    <button
+                      key={f}
+                      className="tb-menu-item"
+                      onClick={() => {
+                        setExportOpen(false);
+                        onExport(f);
+                      }}
+                    >
+                      {f === "md"
+                        ? "Markdown (.md)"
+                        : f === "pdf"
+                          ? "PDF (Save as PDF)"
+                          : f.toUpperCase()}
+                    </button>
+                  ),
+                )}
               </div>
             )}
           </div>
